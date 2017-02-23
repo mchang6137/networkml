@@ -25,12 +25,13 @@ https://aws.amazon.com/blogs/aws/new-p2-instance-type-for-amazon-ec2-up-to-16-gp
 from fabric.api import local, env, run, put, cd, task, \
     sudo, settings, warn_only, lcd, path, get
 from fabric.contrib import project
+from time import sleep
 import boto3
 import os
 
 tgt_ami = 'ami-b04e92d0'
 AWS_REGION = 'us-west-2'
-AWS_AVAILABILITY_ZONE = 'us-west-2a'
+AWS_AVAILABILITY_ZONE = 'us-west-2b'
 #import ssh public key to AWS
 my_aws_key = 'michael'
 instance_name = "mygpu"
@@ -70,67 +71,76 @@ def vpc_cleanup():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
-    #Clean up subnets
-    for subnet in ec2_client.describe_subnets()['Subnets']:
-        subnet_id = subnet['SubnetId']
-        print 'Subnet ID {}'.format(subnet_id)
+    #Delete Subnets
+    for subnet in ec2_resource.subnets.all():
+        print 'Subnet ID {}'.format(subnet.id)
         try:
-            ec2_client.delete_subnet(SubnetId=subnet_id)
-            print '{} deleted'.format(subnet_id)
+            ec2_client.delete_subnet(SubnetId=subnet.id)
+            print '{} deleted'.format(subnet.id)
         except:
-            print '{} not deleted'.format(subnet_id) 
-            
-    #Detach Internet Gateways
-    for vpc in ec2_client.describe_vpcs()['Vpcs']:
-        vpc_id = vpc['VpcId']
-        for internet_gateway in ec2_client.describe_internet_gateways()['InternetGateways']:
-            gateway_id = internet_gateway['InternetGatewayId']
-            try:
-                ec2_client.detach_internet_gateway(InternetGatewayId=gateway_id, VpcId=vpc_id)
-                print '{} detached'.format(gateway_id)
-            except:
-            	print '{} not detached'.format(gateway_id)
-                
-    #Clean up VPCs
-    for vpc in ec2_client.describe_vpcs()['Vpcs']:
-        vpc_id = vpc['VpcId']
-        
-        for internet_gateway in ec2_client.describe_internet_gateways()['InternetGateways']:
-            gateway_id = internet_gateway['InternetGatewayId']
-            print 'Gateway ID {}'.format(gateway_id)
-            ec2_client.delete_internet_gateway(InternetGatewayId=gateway_id)
-            try:
-                ec2_client.delete_internet_gateway(InternetGatewayId=gateway_id)
-                print '{} deleted'.format(gateway_id)
-            except:
-                print '{} not deleted'.format(gateway_id)
+            print '{} not deleted'.format(subnet.id)
 
-        #Delete VPCs
-        print 'VPC ID {}'.format(vpc_id)
+    #Detach Gateways
+    for vpc in ec2_resource.vpcs.all():
+        for gateway in ec2_resource.internet_gateways.all():
+            try:
+                ec2_client.detach_internet_gateway(InternetGatewayId=gateway.id, VpcId=vpc.id)
+                print '{} detached'.format(gateway.id)
+            except:
+                print '{} not detached'.format(gateway.id)
+
+    #Delete Gateways
+    for gateway in ec2_resource.internet_gateways.all():
         try:
-            ec2_client.delete_vpc(VpcId=vpc_id)
-            print '{} deleted'.format(vpc_id)
-	except:
-            print '{} not deleted'.format(vpc_id)
-        
-@task
-def launch():
+            ec2_client.delete_internet_gateway(InternetGatewayId=gateway.id)
+            print '{} deleted'.format(gateway.id)
+        except:
+            print '{} not deleted'.format(gateway.id)
+
+    #Release IP Address
+
+    #Delete Router Table
+    for route_table in ec2_resource.route_tables.all():
+        try:
+            ec2_client.delete_route_table(RouteTableId=route_table.id)
+            print '{} deleted'.format(route_table.id)
+        except:
+            print '{} not deleted'.format(route_table.id)
+            
+    #Finally, Delete VPC
+    for vpc in ec2_resource.vpcs.all():
+        try:
+            ec2_client.delete_vpc(VpcId=vpc.id)
+            print '{} deleted'.format(vpc.id)
+        except:
+            print '{} not deleted'.format(vpc.id)
+
+def setup_network():
+    use_dry_run = False
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
-
-    vpc = ec2_resource.create_vpc(CidrBlock='10.0.0.0/24')
-    subnet = vpc.create_subnet(CidrBlock='10.0.0.0/25', AvailabilityZone=AWS_AVAILABILITY_ZONE)
-    gateway = ec2_resource.create_internet_gateway()
-    gateway.attach_to_vpc(VpcId=vpc.vpc_id)
     
-#    address = ec2_resource.VpcAddress('eipalloc')
-#    address.associate('address')
+    #Create a VPC
+    vpc = ec2_resource.create_vpc(DryRun=use_dry_run, CidrBlock='10.0.0.0/24')
+    #Crete Network ACL -- probably don't need this right? default is to allow all inbound and outbound traffic
+    # create_network_acl(VpcId=vpc.id)
+    #Create the subnet for the VPC
+    subnet = vpc.create_subnet(DryRun=use_dry_run, CidrBlock='10.0.0.0/25', AvailabilityZone=AWS_AVAILABILITY_ZONE)
+    #Create an Internet Gateway
+    gateway = ec2_resource.create_internet_gateway(DryRun=use_dry_run)
+    gateway.attach_to_vpc(DryRun=use_dry_run, VpcId=vpc.vpc_id)
+    #Create a Route table and add the route
+    route_table = ec2_client.create_route_table(DryRun=use_dry_run, VpcId=vpc.vpc_id)
+    route_table_id = route_table['RouteTable']['RouteTableId']
+    ec2_client.create_route(DryRun=use_dry_run, DestinationCidrBlock='0.0.0.0/0',RouteTableId=route_table_id,GatewayId=gateway.internet_gateway_id)
+    return vpc, subnet
 
-    ##############################################################
-    #Create a parameter server connected to the VPC
-    param_server_name = 'param_server'
-    param_server_type = 'm4.large'
-    param_spot_bid = '0.25'
+#Boot Spot Instance 
+def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_type, subnet, instance_count):
+    use_dry_run = False
+    param_server_name = server_name
+    param_server_type = server_instance_type
+    param_spot_bid = '3'
     launch_specification = {
         'ImageId': tgt_ami,
         'KeyName': my_aws_key,
@@ -152,46 +162,81 @@ def launch():
             'AvailabilityZone': AWS_AVAILABILITY_ZONE,
         },
     }
-    
-    param_instances = ec2_client.request_spot_instances(SpotPrice=param_spot_bid, InstanceCount=2,
+
+    param_instances = ec2_client.request_spot_instances(DryRun=use_dry_run,SpotPrice=param_spot_bid, InstanceCount=instance_count,
                                                  LaunchSpecification=launch_specification)
-    for instance in  param_instances['SpotInstanceRequests']:
-        instance_id = instance['InstanceId']
+    spot_request_id = param_instances['SpotInstanceRequests']
+
+    all_instances = []
+    while all_instances == []:
+        all_instances = ec2_client.describe_spot_instance_requests()['SpotInstanceRequests']
+        print all_instances
+        print 'checked describe spot instances'
+        sleep(10)
         
-        #Associate addreses with the instance
-        elastic_ip = ec2_client.allocate_address(Domain='vpc')
-        print elastic_ip
-        elastic1_public = elastic_ip['PublicIp']
-        elastic1_allocation = elastic_ip['AllocationId']
-        ec2_resource.associate_address(InstanceId=instance_id, PublicIp=elastic1_public, AllocationId=elastic1_allocation)
+    return param_instances
 
-    return
+#Boot Reserved Instance
+def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, subnet, instance_count):
+    use_dry_run = False
 
-    ############################################################################
+    BlockDeviceMappings=[
+        {
+            'DeviceName': '/dev/xvda',
+            'Ebs': {
+                'VolumeSize': 100,
+                'DeleteOnTermination': True,
+                'VolumeType': 'standard',
+                'SnapshotId' : 'snap-c87f35ec'
+            },
+        },
+    ]
+    
     #Create a cluster of p2.xlarge instances
-    instances = ec2.request_spot_instances(ImageId=tgt_ami, MinCount=1, MaxCount=1,
-                                     KeyName=my_aws_key, InstanceType=INSTANCE_TYPE, 
+    instances = ec2_resource.create_instances(ImageId=tgt_ami, MinCount=instance_count, MaxCount=instance_count,
+                                     KeyName=my_aws_key, InstanceType=INSTANCE_TYPE, SubnetId=subnet.subnet_id,
                                      BlockDeviceMappings = BlockDeviceMappings,
                                      EbsOptimized=True
     )
 
-    inst = instances[0]
-    print inst
+    for inst in instances:
+        inst.wait_until_running()
+        inst.reload()
+        inst.create_tags(
+            Resources=[
+                inst.instance_id
+	    ],
+            Tags=[
+                {
+                    'Key': 'Name',
+                    'Value': instance_name
+                },
+            ]
+        )
+        #Associate addreses with the instance
+        elastic_ip = ec2_client.allocate_address(Domain='vpc')
+        print 'IP address is {}'.format(elastic_ip)
+        elastic_public = elastic_ip['PublicIp']
+        elastic_allocation = elastic_ip['AllocationId']
+        ec2_client.associate_address(InstanceId=inst.instance_id, PublicIp=elastic_public)
 
-    inst.wait_until_running()
-    inst.reload()
-    inst.create_tags(
-        Resources=[
-            inst.instance_id
-        ],
-        Tags=[
-            {
-                'Key': 'Name',
-                'Value': instance_name
-            },
-        ]
-    )
+    return instances
+    
+@task
+def launch():
+    #For Debugging
+    use_dry_run = False
+    
+    ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
+    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
+    vpc,subnet = setup_network()
+
+    #Create a parameter server connected to the VPC
+    #setup_spot_instance(ec2_client, ec2_resource, 'param_server', 'm4.large', subnet, 2)
+    setup_reserved_instance(ec2_client, ec2_resource, 'param_server', 'm4.large', subnet, 2)
+    
+    return
 
 @task
 def ssh():
