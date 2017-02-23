@@ -98,7 +98,14 @@ def vpc_cleanup():
             print '{} not deleted'.format(gateway.id)
 
     #Release IP Address
-
+    for address in ec2_client.describe_addresses()['Addresses']:
+        allocation_id = address['AllocationId']
+        try:
+            ec2_client.release_address(AllocationId=allocation_id)
+            print '{} deleted'.format(allocation_id)
+        except:
+            print '{} not deleted'.format(allocation_id)
+    
     #Delete Router Table
     for route_table in ec2_resource.route_tables.all():
         try:
@@ -194,7 +201,7 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
     
     #Create a cluster of p2.xlarge instances
     instances = ec2_resource.create_instances(ImageId=tgt_ami, MinCount=instance_count, MaxCount=instance_count,
-                                     KeyName=my_aws_key, InstanceType=INSTANCE_TYPE, SubnetId=subnet.subnet_id,
+                                     KeyName=my_aws_key, InstanceType=server_instance_type, SubnetId=subnet.subnet_id,
                                      BlockDeviceMappings = BlockDeviceMappings,
                                      EbsOptimized=True
     )
@@ -218,7 +225,7 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
         print 'IP address is {}'.format(elastic_ip)
         elastic_public = elastic_ip['PublicIp']
         elastic_allocation = elastic_ip['AllocationId']
-        ec2_client.associate_address(InstanceId=inst.instance_id, PublicIp=elastic_public)
+        ec2_client.associate_address(InstanceId=inst.instance_id, AllocationId=elastic_allocation)
 
     return instances
     
