@@ -133,6 +133,7 @@ def setup_network():
     # create_network_acl(VpcId=vpc.id)
     #Create the subnet for the VPC
     subnet = vpc.create_subnet(DryRun=use_dry_run, CidrBlock='10.0.0.0/25', AvailabilityZone=AWS_AVAILABILITY_ZONE)
+    ec2_client.modify_subnet_attribute(SubnetId=subnet.subnet_id, MapPublicIpOnLaunch={'Value':True})
     #Create an Internet Gateway
     gateway = ec2_resource.create_internet_gateway(DryRun=use_dry_run)
     gateway.attach_to_vpc(DryRun=use_dry_run, VpcId=vpc.vpc_id)
@@ -221,11 +222,11 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
             ]
         )
         #Associate addreses with the instance
-        elastic_ip = ec2_client.allocate_address(Domain='vpc')
-        print 'IP address is {}'.format(elastic_ip)
-        elastic_public = elastic_ip['PublicIp']
-        elastic_allocation = elastic_ip['AllocationId']
-        ec2_client.associate_address(InstanceId=inst.instance_id, AllocationId=elastic_allocation)
+        #elastic_ip = ec2_client.allocate_address(Domain='vpc')
+        #print 'IP address is {}'.format(elastic_ip)
+        #elastic_public = elastic_ip['PublicIp']
+        #elastic_allocation = elastic_ip['AllocationId']
+        #ec2_client.associate_address(InstanceId=inst.instance_id, AllocationId=elastic_allocation)
 
     return instances
     
