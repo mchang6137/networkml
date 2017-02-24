@@ -71,6 +71,14 @@ def vpc_cleanup():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
+    #Delete security groups
+    for security_group in ec2_resource.security_groups.all():
+        print 'Security Group {}'.format(security_group.group_id)
+        try:
+            ec2_client.delete_security_group(GroupId=security_group.group_id)
+            print '{} deleted'.format(security_group.group_id)
+        except:
+            print '{} not deleted'.format(security_group.group_id)
     #Delete Subnets
     for subnet in ec2_resource.subnets.all():
         print 'Subnet ID {}'.format(subnet.id)
@@ -105,7 +113,7 @@ def vpc_cleanup():
             print '{} deleted'.format(allocation_id)
         except:
             print '{} not deleted'.format(allocation_id)
-    
+
     #Delete Router Table
     for route_table in ec2_resource.route_tables.all():
         try:
@@ -129,8 +137,22 @@ def setup_network():
     
     #Create a VPC
     vpc = ec2_resource.create_vpc(DryRun=use_dry_run, CidrBlock='10.0.0.0/24')
-    #Crete Network ACL -- probably don't need this right? default is to allow all inbound and outbound traffic
-    # create_network_acl(VpcId=vpc.id)
+    ec2_client.enable_vpc_classic_link(VpcId=vpc.vpc_id)
+    ec2_client.modify_vpc_attribute(VpcId=vpc.vpc_id, EnableDnsSupport={'Value':True})
+    ec2_client.modify_vpc_attribute(VpcId=vpc.vpc_id, EnableDnsHostnames={'Value':True})
+    
+    #Create an EC2 Security Group
+    ip_permissions = [
+        {
+            'IpProtocol': '-1',
+            'FromPort': -1,
+            'ToPort': -1,
+            'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+            }]
+    security_group = ec2_client.create_security_group(GroupName='gpu_group', Description='Allow_all_ingress_egress', VpcId=vpc.vpc_id)
+    group_id = security_group['GroupId']
+#    ec2_client.authorize_security_group_egress(GroupId=group_id, IpPermissions=ip_permissions)
+    ec2_client.authorize_security_group_ingress(GroupId=group_id, IpPermissions=ip_permissions) 
     #Create the subnet for the VPC
     subnet = vpc.create_subnet(DryRun=use_dry_run, CidrBlock='10.0.0.0/25', AvailabilityZone=AWS_AVAILABILITY_ZONE)
     ec2_client.modify_subnet_attribute(SubnetId=subnet.subnet_id, MapPublicIpOnLaunch={'Value':True})
@@ -140,8 +162,9 @@ def setup_network():
     #Create a Route table and add the route
     route_table = ec2_client.create_route_table(DryRun=use_dry_run, VpcId=vpc.vpc_id)
     route_table_id = route_table['RouteTable']['RouteTableId']
+    ec2_client.associate_route_table(SubnetId=subnet.subnet_id, RouteTableId=route_table_id)
     ec2_client.create_route(DryRun=use_dry_run, DestinationCidrBlock='0.0.0.0/0',RouteTableId=route_table_id,GatewayId=gateway.internet_gateway_id)
-    return vpc, subnet
+    return vpc, subnet, security_group
 
 #Boot Spot Instance 
 def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_type, subnet, instance_count):
@@ -185,7 +208,7 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
     return param_instances
 
 #Boot Reserved Instance
-def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, subnet, instance_count):
+def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count):
     use_dry_run = False
 
     BlockDeviceMappings=[
@@ -202,7 +225,7 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
     
     #Create a cluster of p2.xlarge instances
     instances = ec2_resource.create_instances(ImageId=tgt_ami, MinCount=instance_count, MaxCount=instance_count,
-                                     KeyName=my_aws_key, InstanceType=server_instance_type, SubnetId=subnet.subnet_id,
+                                              KeyName=my_aws_key, InstanceType=server_instance_type, SubnetId=subnet.subnet_id, SecurityGroupIds=[security_group['GroupId']],
                                      BlockDeviceMappings = BlockDeviceMappings,
                                      EbsOptimized=True
     )
@@ -221,6 +244,8 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
                 },
             ]
         )
+
+#        ec2_client.attach_classic_link_vpc(InstanceId=inst.instance_id, VpcId=vpc.vpc_id, Groups=[security_group['GroupId']])
         #Associate addreses with the instance
         #elastic_ip = ec2_client.allocate_address(Domain='vpc')
         #print 'IP address is {}'.format(elastic_ip)
@@ -238,11 +263,11 @@ def launch():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
-    vpc,subnet = setup_network()
+    vpc,subnet, security_group = setup_network()
 
     #Create a parameter server connected to the VPC
     #setup_spot_instance(ec2_client, ec2_resource, 'param_server', 'm4.large', subnet, 2)
-    setup_reserved_instance(ec2_client, ec2_resource, 'param_server', 'm4.large', subnet, 2)
+    setup_reserved_instance(ec2_client, ec2_resource, 'param_server', 'm4.large', vpc, subnet, security_group, 2)
     
     return
 
