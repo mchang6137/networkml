@@ -272,7 +272,9 @@ def launch():
     vpc = ec2_resource.Vpc('vpc-3eee8359')
     subnet = ec2_resource.Subnet('subnet-a15688e8')
     security_group = {'GroupId':'sg-d0743fa8'}
-
+    all_param_server_ips = []
+    all_worker_ips = []
+    
     #Launch Parameter servers
     for param_servers in range(NUM_PARAM_SERVERS):
         instance_ref = NUM_PARAM_SERVERS + param_servers
@@ -280,7 +282,8 @@ def launch():
         instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, 'i3.large', vpc, subnet, security_group, 1, 200)
         for instance in instances:
             print 'Parameter server setup at {}'.format(instance.public_ip_address)
-    
+            all_param_server_ips.append(instance)
+            
     #Launch GPUs
     for instance_num in range(NUM_GPUS):
         instance_ref = NUM_GPUS + instance_num
@@ -288,7 +291,29 @@ def launch():
         instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, 'p2.xlarge', vpc, subnet, security_group, 1, 200)
         for instance in instances:
             print 'GPU setup at {}'.format(instance.public_ip_address)
+            all_worker_ips.append(instance)
 
+    worker_string = ''
+    for worker in all_worker_ips:
+        worker_string += '{}:2222,'.format(worker)
+    worker_string = worker_string[:-1]
+
+    param_string = ''
+    for param_server in all_param_server_ips:
+        param_string += '{}:2222,'.format(param_server)
+    param_string = param_string[:-1]
+            
+    #Print Command to Run Tensorflow 
+    worker_count = 0
+    for worker in all_worker_ips:
+        print 'bazel-bin/inception/imagenet_distributed_train --batch_size=32 --data_dir=$HOME/imagenet-data --job_name=''worker'' --task_id={} --ps_hosts={} --worker_hosts={}'.format(worker_count, ps_string, worker_string)
+        worker_count += 1
+
+    param_count = 0
+    for param_server in all_param_server_ips:
+        print 'CUDA_VISIBLE_DEVICES='''' bazel-bin/inception/imagenet_distributed_train --batch_size=32 --job_name=''ps'' --task_id={} --ps_hosts={} --worker_hosts={}'.format(param_count, ps_string, worker_string)
+        param_count += 1
+        
 @task
 def ssh():
     print env.host_string
@@ -359,7 +384,9 @@ def inception_setup():
     s3_config_file = 's3_config_file'
 
     put(s3_config_file, '$HOME')
-    sudo("s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/")
+    sudo('mkdir $HOME/imagenet_train')
+    with cd("$HOME/imagenet_train"):
+        sudo("s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/" "$HOME/imagenet_train")
 
     #Install TF0.12.1 GPU Version
     #TODO: install only the CPU version on Tensorflow
