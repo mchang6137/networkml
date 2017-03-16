@@ -32,15 +32,19 @@ import os
 tgt_ami = 'ami-b04e92d0'
 AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
+
 #import ssh public key to AWS
 my_aws_key = 'michael'
-instance_name = "mygpu"
+instance_name = "mygpu7"
+NUM_GPUS=4
+NUM_PARAM_SERVER=1
 role_name = instance_name
 param_server = "param_server"
-num_gpus = 2
+
 CONDA_DIR = "$HOME/anaconda"
 INSTANCE_TYPE = 'p2.xlarge'
 PARAM_SERVER_TYPE = 'm4.large'
+
 USER = os.environ['USER']
 # this is a dumb hack but whatever
 if os.path.exists("fabfile_{}.py".format(USER)):
@@ -57,12 +61,13 @@ def get_target_instance():
     for i in ec2.instances.all():
         if i.state['Name'] == 'running':
             d = tags_to_dict(i.tags)
+            print d['Name']
             if d['Name'] == instance_name:
                 res.append('ec2-user@{}'.format(i.public_dns_name))
     print "found", res
     return {role_name : res}
 
-#env.roledefs.update(get_target_instance())
+env.roledefs.update(get_target_instance())
 #env.hosts = ['ec2-35-167-153-191.us-west-2.compute.amazonaws.com']
 #env.disable_known_hosts = True
 
@@ -208,7 +213,7 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
     return param_instances
 
 #Boot Reserved Instance
-def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count):
+def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count, volume_size):
     use_dry_run = False
 
     BlockDeviceMappings=[
@@ -254,7 +259,8 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
         #ec2_client.associate_address(InstanceId=inst.instance_id, AllocationId=elastic_allocation)
 
     return instances
-    
+
+#MODIFIED TO ALLOW MORE MACHINES TO JOIN VPC
 @task
 def launch():
     #For Debugging
@@ -263,13 +269,25 @@ def launch():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
-    vpc,subnet, security_group = setup_network()
+    vpc = ec2_resource.Vpc('vpc-3eee8359')
+    subnet = ec2_resource.Subnet('subnet-a15688e8')
+    security_group = {'GroupId':'sg-d0743fa8'}
 
-    #Create a parameter server connected to the VPC
-    #setup_spot_instance(ec2_client, ec2_resource, 'param_server', 'm4.large', subnet, 2)
-    setup_reserved_instance(ec2_client, ec2_resource, 'param_server', 'm4.large', vpc, subnet, security_group, 2)
+    #Launch Parameter servers
+    for param_servers in range(NUM_PARAM_SERVERS):
+        instance_ref = NUM_PARAM_SERVERS + param_servers
+        inst_name = '{}{}'.format('param_server', instance_ref)
+        instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, 'i3.large', vpc, subnet, security_group, 1, 200)
+        for instance in instances:
+            print 'Parameter server setup at {}'.format(instance.public_ip_address)
     
-    return
+    #Launch GPUs
+    for instance_num in range(NUM_GPUS):
+        instance_ref = NUM_GPUS + instance_num
+        inst_name = '{}{}'.format(instance_name, instance_ref)
+        instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, 'p2.xlarge', vpc, subnet, security_group, 1, 200)
+        for instance in instances:
+            print 'GPU setup at {}'.format(instance.public_ip_address)
 
 @task
 def ssh():
@@ -322,22 +340,29 @@ def cuda_setup():
 
 #Still need to configure s3cmd through s3cmd --configure
 @task
+@parallel
 def inception_setup():
     #Install bazel
     run("wget https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-jdk7-installer-linux-x86_64.sh")
     run("chmod +x bazel-0.4.3-jdk7-installer-linux-x86_64.sh")
-    sudo("yum install java-1.7.0-openjdk-devel")
+    sudo("yum install -y java-1.7.0-openjdk-devel")
     run("JAVA_HOME=/usr/lib/jvm/java-openjdk/")
     run("export JAVA_HOME")
     run("PATH=$PATH:$JAVA_HOME/bin")
     run("export PATH")
-    run("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
+    sudo("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
 
     #Install s3cmd
-    sudo("yum --enablerepo=epel install s3cmd")
+    sudo("yum --enablerepo=epel install -y s3cmd")
     
+    #Configure s3cmd
+    s3_config_file = 's3_config_file'
 
-    #Install TF0.12.1
+    put(s3_config_file, '$HOME')
+    sudo("s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/")
+
+    #Install TF0.12.1 GPU Version
+    #TODO: install only the CPU version on Tensorflow
     run("TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl")
     sudo("sudo pip install --upgrade $TF_BINARY_URL")
 
@@ -348,8 +373,8 @@ def inception_setup():
         run("git checkout 91c7b91f834a5a857e8168b96d6db3b93d7b9c2a")
     
 @task
+@parallel
 def cuda_setup8():
-
     run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/370.28/NVIDIA-Linux-x86_64-370.28.run")
     run("wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run")
     run("mv NVIDIA-Linux-x86_64-370.28.run driver.run")
@@ -374,6 +399,7 @@ def cuda_setup8():
     sudo('ldconfig')
 
 @task
+@parallel
 def anaconda_setup():
     run("wget https://repo.continuum.io/archive/Anaconda2-4.2.0-Linux-x86_64.sh")
     run("chmod +x Anaconda2-4.2.0-Linux-x86_64.sh")
@@ -387,10 +413,12 @@ def anaconda_setup():
 #TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.0rc0-cp27-none-linux_x86_64.whl"
 TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl"
 @task
+@parallel
 def tf_setup():
     run("pip install --ignore-installed --upgrade {}".format(TF_URL))
 
 @task
+@parallel
 def keras_setup():
     run("conda install -y h5py")
     run("pip install keras")
@@ -411,6 +439,7 @@ def terminate():
             insts.append(i)
 
 @task
+@parallel
 def torch_setup():
     # TODO: make this idempotent. Add a line here to check if 
     # there's a torch directory, and, if so, delete it.
