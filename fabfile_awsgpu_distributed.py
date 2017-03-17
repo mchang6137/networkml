@@ -3,27 +3,24 @@ fabric file to help with launching EC2 P2 instancesand
 getting GPU support set up. Also installs latest
 anaconda and then tensorflow. Use:
 
-fab -f fabfile_awsgpu.py launch
+fab -f fabfile_awsgpu_distributed.py launch
 
 # wait until you can ssh into the instance with
-fab -f fabfile_awsgpu.py -R mygpu ssh
+fab -f fabfile_awsgpu_distributed.py -R mygpu ssh
 
 # install everything
-fab -f fabfile_awsgpu.py -R mygpu basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup
+fab -f fabfile_awsgpu_distributed.py -R mygpu basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup
 
 
 # when you're done, terminate
-fab -f fabfile_awsgpu.py -R mygpu terminate
+fab -f fabfile_awsgpu_distributed.py -R mygpu terminate
 
 
 Took inspiration from:
 https://aws.amazon.com/blogs/aws/new-p2-instance-type-for-amazon-ec2-up-to-16-gpus/
 
 """
-
-
-from fabric.api import local, env, run, put, cd, task, \
-    sudo, settings, warn_only, lcd, path, get
+from fabric.api import *
 from fabric.contrib import project
 from time import sleep
 import boto3
@@ -35,41 +32,55 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
 #import ssh public key to AWS
 my_aws_key = 'michael'
-instance_name = "mygpu7"
-NUM_GPUS=4
-NUM_PARAM_SERVER=1
-role_name = instance_name
-param_server = "param_server"
+worker_base_name = "mygpu"
+ps_base_name = "ps"
+NUM_GPUS=1
+NUM_PARAM_SERVERS=1
+all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
-INSTANCE_TYPE = 'p2.xlarge'
-PARAM_SERVER_TYPE = 'm4.large'
+WORKER_TYPE = 'p2.xlarge'
+PS_TYPE = 'i3.large'
 
 USER = os.environ['USER']
+
 # this is a dumb hack but whatever
 if os.path.exists("fabfile_{}.py".format(USER)):
     exec("from fabfile_{} import *".format(USER))
-
 
 def tags_to_dict(d):
     return {a['Key'] : a['Value'] for a in d}
 
 def get_target_instance():
-    res = []
+    role_to_host = {}
+    ec2 = boto3.resource('ec2', region_name=AWS_REGION)
+
+    for i in ec2.instances.all():
+        if i.state['Name'] == 'running':
+            d = tags_to_dict(i.tags)
+            if d['Name'] in env.roles:
+                role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
+                env.hosts.extend(['ec2-user@{}'.format(i.public_dns_name)])
+            elif len(env.roles) == 0:
+                role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
+                env.hosts.extend(['ec2-user@{}'.format(i.public_dns_name)])
+    print "found", role_to_host
+    return role_to_host
+
+env.roledefs.update(get_target_instance())
+print env.roles
+print env.hosts
+
+env.disable_known_hosts = True
+
+@task
+def get_active_instances():
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
     for i in ec2.instances.all():
         if i.state['Name'] == 'running':
             d = tags_to_dict(i.tags)
             print d['Name']
-            if d['Name'] == instance_name:
-                res.append('ec2-user@{}'.format(i.public_dns_name))
-    print "found", res
-    return {role_name : res}
-
-env.roledefs.update(get_target_instance())
-#env.hosts = ['ec2-35-167-153-191.us-west-2.compute.amazonaws.com']
-#env.disable_known_hosts = True
 
 @task
 def vpc_cleanup():
@@ -260,7 +271,6 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
 
     return instances
 
-#MODIFIED TO ALLOW MORE MACHINES TO JOIN VPC
 @task
 def launch():
     #For Debugging
@@ -268,53 +278,50 @@ def launch():
     
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
+    vpc, subnet, security_group = setup_network()
 
-    vpc = ec2_resource.Vpc('vpc-3eee8359')
-    subnet = ec2_resource.Subnet('subnet-a15688e8')
-    security_group = {'GroupId':'sg-d0743fa8'}
     all_param_server_ips = []
     all_worker_ips = []
     
     #Launch Parameter servers
     for param_servers in range(NUM_PARAM_SERVERS):
-        instance_ref = NUM_PARAM_SERVERS + param_servers
-        inst_name = '{}{}'.format('param_server', instance_ref)
-        instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, 'i3.large', vpc, subnet, security_group, 1, 200)
+        inst_name = '{}{}'.format(ps_base_name, param_servers)
+        instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, vpc, subnet, security_group, 1, 200)
         for instance in instances:
             print 'Parameter server setup at {}'.format(instance.public_ip_address)
             all_param_server_ips.append(instance)
             
     #Launch GPUs
     for instance_num in range(NUM_GPUS):
-        instance_ref = NUM_GPUS + instance_num
-        inst_name = '{}{}'.format(instance_name, instance_ref)
-        instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, 'p2.xlarge', vpc, subnet, security_group, 1, 200)
+        inst_name = '{}{}'.format(worker_base_name, instance_num)
+        instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, WORKER_TYPE, vpc, subnet, security_group, 1, 200)
         for instance in instances:
             print 'GPU setup at {}'.format(instance.public_ip_address)
             all_worker_ips.append(instance)
 
     worker_string = ''
     for worker in all_worker_ips:
-        worker_string += '{}:2222,'.format(worker)
+        worker_string += '{}:2222,'.format(worker.public_ip_address)
     worker_string = worker_string[:-1]
 
-    param_string = ''
+    ps_string = ''
     for param_server in all_param_server_ips:
-        param_string += '{}:2222,'.format(param_server)
-    param_string = param_string[:-1]
+        ps_string += '{}:2222,'.format(param_server.public_ip_address)
+    ps_string = ps_string[:-1]
             
     #Print Command to Run Tensorflow 
     worker_count = 0
     for worker in all_worker_ips:
-        print 'bazel-bin/inception/imagenet_distributed_train --batch_size=32 --data_dir=$HOME/imagenet-data --job_name=''worker'' --task_id={} --ps_hosts={} --worker_hosts={}'.format(worker_count, ps_string, worker_string)
+        print 'bazel-bin/inception/imagenet_distributed_train --batch_size=32 --data_dir=$HOME/imagenet-data --job_name=\'worker\' --task_id={} --ps_hosts={} --worker_hosts={}'.format(worker_count, ps_string, worker_string)
         worker_count += 1
 
     param_count = 0
     for param_server in all_param_server_ips:
-        print 'CUDA_VISIBLE_DEVICES='''' bazel-bin/inception/imagenet_distributed_train --batch_size=32 --job_name=''ps'' --task_id={} --ps_hosts={} --worker_hosts={}'.format(param_count, ps_string, worker_string)
+        print 'CUDA_VISIBLE_DEVICES=\'\' bazel-bin/inception/imagenet_distributed_train --batch_size=32 --job_name=\'ps\' --task_id={} --ps_hosts={} --worker_hosts={}'.format(param_count, ps_string, worker_string)
         param_count += 1
         
 @task
+@parallel
 def ssh():
     print env.host_string
     local("ssh -A " + env.host_string)
@@ -329,6 +336,7 @@ def copy_model():
     local("scp " + env.host_string+":/tmp/model.ckpt /tmp/")
 
 @task
+@parallel
 def basic_setup():
     print env.host_string
     print env.hosts
@@ -337,11 +345,9 @@ def basic_setup():
     run("sudo yum install -q -y emacs tmux  gcc g++ dstat htop")
     run("sudo yum install -y kernel-devel-`uname -r`")
 
-
-
 @task
+@parallel
 def cuda_setup():
-
     run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/352.99/NVIDIA-Linux-x86_64-352.99.run")
     run("wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run")
     run("chmod +x NVIDIA-Linux-x86_64-352.99.run")
@@ -460,10 +466,15 @@ def terminate():
         print i
         print i.state['Name']
         if i.state['Name'] == 'running':
-            #d = tags_to_dict(i.tags)
-            #if d['Name'] == instance_name:
-            i.terminate()
-            insts.append(i)
+            d = tags_to_dict(i.tags)
+            if d['Name'] in env.roles:
+                i.terminate()
+                insts.append(i)
+            #Remove all hosts if no roles specified
+            elif len(env.roles) == 0:
+                i.terminate()
+                print 'terminated'
+                insts.append(i)
 
 @task
 @parallel
@@ -490,6 +501,7 @@ def torch_setup():
             run('./install.sh -b')
 
 @task
+@parallel
 def torch_preroll():
     # Install libjpeg-8d from source
     with cd('/tmp'):
@@ -512,6 +524,7 @@ def torch_preroll():
         sudo('pip install ipython')
 
 @task
+@parallel
 def torch_setup_solo():
     # TODO: make this idempotent. Add a line here to check if 
     # there's a torch directory, and, if so, delete it.
