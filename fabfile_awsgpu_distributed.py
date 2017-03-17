@@ -9,7 +9,7 @@ fab -f fabfile_awsgpu_distributed.py launch
 fab -f fabfile_awsgpu_distributed.py -H mygpu ssh
 
 # install everything
-fab -f fabfile_awsgpu_distributed.py -H mygpu basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup
+fab -f fabfile_awsgpu_distributed.py -H mygpu basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup s3_setup
 #Ignore the Name lookup error!
 
 # when you're done, terminate
@@ -70,9 +70,11 @@ def get_target_instance():
     return role_to_host
 
 env.disable_known_hosts = True
+env.warn_only = True
 env.roledefs.update(get_target_instance())
 print env.roles
 print env.hosts
+
 
 @task
 def get_active_instances():
@@ -385,8 +387,8 @@ def inception_setup():
     run("git clone https://github.com/tensorflow/models.git")
     with cd("~/models/inception/"):
         run("git checkout 91c7b91f834a5a857e8168b96d6db3b93d7b9c2a")
-        run("bazel build inception/imagenet_train")
-        run("bazel build inception/imagenet_distributed_train")
+#        run("bazel build inception/imagenet_train")
+#        run("bazel build inception/imagenet_distributed_train")
 
 @task
 @parallel
