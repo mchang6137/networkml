@@ -6,15 +6,14 @@ anaconda and then tensorflow. Use:
 fab -f fabfile_awsgpu_distributed.py launch
 
 # wait until you can ssh into the instance with
-fab -f fabfile_awsgpu_distributed.py -R mygpu ssh
+fab -f fabfile_awsgpu_distributed.py -H mygpu ssh
 
 # install everything
-fab -f fabfile_awsgpu_distributed.py -R mygpu basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup
-
+fab -f fabfile_awsgpu_distributed.py -H mygpu basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup
+#Ignore the Name lookup error!
 
 # when you're done, terminate
 fab -f fabfile_awsgpu_distributed.py -R mygpu terminate
-
 
 Took inspiration from:
 https://aws.amazon.com/blogs/aws/new-p2-instance-type-for-amazon-ec2-up-to-16-gpus/
@@ -34,7 +33,7 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'michael'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
-NUM_GPUS=1
+NUM_GPUS=2
 NUM_PARAM_SERVERS=1
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
@@ -51,27 +50,29 @@ if os.path.exists("fabfile_{}.py".format(USER)):
 def tags_to_dict(d):
     return {a['Key'] : a['Value'] for a in d}
 
+#Roles and hosts should have the same names
 def get_target_instance():
     role_to_host = {}
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
+    host_list = []
     for i in ec2.instances.all():
         if i.state['Name'] == 'running':
             d = tags_to_dict(i.tags)
-            if d['Name'] in env.roles:
+            if d['Name'] in env.hosts:
                 role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
-                env.hosts.extend(['ec2-user@{}'.format(i.public_dns_name)])
-            elif len(env.roles) == 0:
+                host_list.append('ec2-user@{}'.format(i.public_dns_name))
+            elif len(env.hosts) == 0:
                 role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
-                env.hosts.extend(['ec2-user@{}'.format(i.public_dns_name)])
+                host_list.append('ec2-user@{}'.format(i.public_dns_name))
+    env.hosts.extend(host_list)
     print "found", role_to_host
     return role_to_host
 
+env.disable_known_hosts = True
 env.roledefs.update(get_target_instance())
 print env.roles
 print env.hosts
-
-env.disable_known_hosts = True
 
 @task
 def get_active_instances():
@@ -260,15 +261,6 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
                 },
             ]
         )
-
-#        ec2_client.attach_classic_link_vpc(InstanceId=inst.instance_id, VpcId=vpc.vpc_id, Groups=[security_group['GroupId']])
-        #Associate addreses with the instance
-        #elastic_ip = ec2_client.allocate_address(Domain='vpc')
-        #print 'IP address is {}'.format(elastic_ip)
-        #elastic_public = elastic_ip['PublicIp']
-        #elastic_allocation = elastic_ip['AllocationId']
-        #ec2_client.associate_address(InstanceId=inst.instance_id, AllocationId=elastic_allocation)
-
     return instances
 
 @task
@@ -383,27 +375,33 @@ def inception_setup():
     run("export PATH")
     sudo("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
 
-    #Install s3cmd
-    sudo("yum --enablerepo=epel install -y s3cmd")
-    
-    #Configure s3cmd
-    s3_config_file = 's3_config_file'
-
-    put(s3_config_file, '$HOME')
-    sudo('mkdir $HOME/imagenet_train')
-    with cd("$HOME/imagenet_train"):
-        sudo("s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/" "$HOME/imagenet_train")
-
     #Install TF0.12.1 GPU Version
     #TODO: install only the CPU version on Tensorflow
-    run("TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl")
-    sudo("sudo pip install --upgrade $TF_BINARY_URL")
+#    run("TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl")
+#    sudo("sudo pip install --upgrade $TF_BINARY_URL")
 
     #Download inception
     #May need to checkout a different version
     run("git clone https://github.com/tensorflow/models.git")
     with cd("~/models/inception/"):
         run("git checkout 91c7b91f834a5a857e8168b96d6db3b93d7b9c2a")
+        run("bazel build inception/imagenet_train")
+        run("bazel build inception/imagenet_distributed_train")
+
+@task
+@parallel
+def s3_setup():
+    #Install s3cmd
+    sudo("yum --enablerepo=epel install -y s3cmd")
+
+    #Configure s3cmd
+    s3_config_file = 's3_config_file'
+
+    put(s3_config_file, '~/')
+    run('mkdir ~/imagenet-train')
+    with cd("~/imagenet-train"):
+        run('s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/ .')
+        run('tar -xzvf validation_of.tar.gz')
     
 @task
 @parallel
