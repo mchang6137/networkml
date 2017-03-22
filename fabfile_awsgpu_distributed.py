@@ -39,7 +39,8 @@ all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_
 
 CONDA_DIR = "$HOME/anaconda"
 WORKER_TYPE = 'p2.xlarge'
-PS_TYPE = 'm4.2xlarge'
+#Parameter Server with 10Gpbs
+PS_TYPE = 'c4.8xlarge'
 
 USER = os.environ['USER']
 
