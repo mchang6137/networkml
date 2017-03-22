@@ -9,7 +9,7 @@ fab -f fabfile_awsgpu_distributed.py launch
 fab -f fabfile_awsgpu_distributed.py -H mygpu ssh
 
 # install everything
-fab -f fabfile_awsgpu_distributed.py -H mygpu basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup s3_setup
+fab -f fabfile_awsgpu_distributed.py -H mygpuX basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup s3_setup
 #Ignore the Name lookup error!
 
 # when you're done, terminate
@@ -33,13 +33,13 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'michael'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
-NUM_GPUS=2
+NUM_GPUS=8
 NUM_PARAM_SERVERS=1
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
 WORKER_TYPE = 'p2.xlarge'
-PS_TYPE = 'i3.large'
+PS_TYPE = 'm4.2xlarge'
 
 USER = os.environ['USER']
 
@@ -400,8 +400,8 @@ def s3_setup():
     s3_config_file = 's3_config_file'
 
     put(s3_config_file, '~/')
-    run('mkdir ~/imagenet-train')
-    with cd("~/imagenet-train"):
+    run('mkdir ~/imagenet-data')
+    with cd("~/imagenet-data"):
         run('s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/ .')
         run('tar -xzvf validation_of.tar.gz')
     
