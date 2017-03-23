@@ -9,9 +9,7 @@ Use fabfile_awsgpu.py for single machine training and fabfile_awsgpu_distributed
 
 First go into the file, set the aws_public key, aws availability zone, number of workers (NUM_GPUs), and number of parameter servers (NUM_PARAM_SERVERS).
 
-'''
-fab -f fabfile_awsgpu_distributed.py launch
-'''
+'fab -f fabfile_awsgpu_distributed.py launch'
 
 This will output the IP addresses of each of the machines in the cluster as well as the commands to run the Inception network in each of the machines. This will save you a lot of time. I promise. For example:
 '''bazel-bin/inception/imagenet_distributed_train --batch_size=32 --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=0 --ps_hosts=52.39.229.61:2222,52.42.52.251:2222,52.42.62.149:2222,35.161.217.103:2222 --worker_hosts=52.35.4.26:2222,35.161.245.253:2222,52.42.69.24:2222,52.42.51.73:2222,52.35.60.20:2222,52.27.160.29:2222,34.208.113.168:2222,35.161.206.237:2222'''
