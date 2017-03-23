@@ -51,4 +51,4 @@ When you're done, terminate. This will terminate all machines and clean up the V
 'fab -f fabfile_awsgpu_distributed.py terminate'
 'fab -f fabfile_awsgpu_distributed.py vpc_cleanup'
 
-Go do better things in your life than setting up AWS machines.
+# Go do better things in your life than setting up AWS machines.
