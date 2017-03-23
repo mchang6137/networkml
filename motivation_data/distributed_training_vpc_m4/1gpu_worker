@@ -1,0 +1,36 @@
+INFO:tensorflow:Worker 0: 2017-03-22 00:32:08.712523: step 0, loss = 13.12(1.6 examples/sec; 20.575  sec/batch)
+INFO:tensorflow:Worker 0: 2017-03-22 00:33:10.173664: step 30, loss = 13.74(15.2 examples/sec; 2.100  sec/batch)
+INFO:tensorflow:global_step/sec: 0.406852
+INFO:tensorflow:Worker 0: 2017-03-22 00:34:11.494603: step 60, loss = 13.40(15.5 examples/sec; 2.066  sec/batch)
+INFO:tensorflow:Running Summary operation on the chief.
+INFO:tensorflow:Finished running Summary operation.
+INFO:tensorflow:Worker 0: 2017-03-22 00:35:20.916202: step 90, loss = 13.56(16.1 examples/sec; 1.990  sec/batch)
+INFO:tensorflow:global_step/sec: 0.458233
+INFO:tensorflow:Worker 0: 2017-03-22 00:36:22.153090: step 120, loss = 12.87(15.6 examples/sec; 2.054  sec/batch)
+INFO:tensorflow:Worker 0: 2017-03-22 00:37:23.673867: step 150, loss = 12.68(15.9 examples/sec; 2.017  sec/batch)
+INFO:tensorflow:global_step/sec: 0.483604
+INFO:tensorflow:Running Summary operation on the chief.
+INFO:tensorflow:Finished running Summary operation.
+INFO:tensorflow:Worker 0: 2017-03-22 00:38:30.203701: step 180, loss = 12.83(15.1 examples/sec; 2.114  sec/batch)
+INFO:tensorflow:Worker 0: 2017-03-22 00:39:31.703236: step 210, loss = 12.84(15.8 examples/sec; 2.027  sec/batch)
+INFO:tensorflow:global_step/sec: 0.466667
+INFO:tensorflow:Worker 0: 2017-03-22 00:40:32.958062: step 240, loss = 12.75(15.8 examples/sec; 2.025  sec/batch)
+INFO:tensorflow:Running Summary operation on the chief.
+INFO:tensorflow:Finished running Summary operation.
+INFO:tensorflow:Worker 0: 2017-03-22 00:41:39.519799: step 270, loss = 12.71(15.5 examples/sec; 2.070  sec/batch)
+INFO:tensorflow:global_step/sec: 0.473491
+INFO:tensorflow:Worker 0: 2017-03-22 00:42:45.059235: step 300, loss = 12.66(15.3 examples/sec; 2.088  sec/batch)
+INFO:tensorflow:global_step/sec: 0.468159
+INFO:tensorflow:Worker 0: 2017-03-22 00:43:46.389308: step 330, loss = 12.62(15.9 examples/sec; 2.013  sec/batch)
+INFO:tensorflow:Running Summary operation on the chief.
+INFO:tensorflow:Finished running Summary operation.
+INFO:tensorflow:Worker 0: 2017-03-22 00:44:53.570992: step 360, loss = 12.56(15.6 examples/sec; 2.054  sec/batch)
+INFO:tensorflow:global_step/sec: 0.466524
+INFO:tensorflow:Worker 0: 2017-03-22 00:45:55.196115: step 390, loss = 12.80(15.3 examples/sec; 2.091  sec/batch)
+INFO:tensorflow:Running Summary operation on the chief.
+INFO:tensorflow:Finished running Summary operation.
+INFO:tensorflow:Worker 0: 2017-03-22 00:47:02.013168: step 420, loss = 12.48(15.9 examples/sec; 2.011  sec/batch)
+INFO:tensorflow:global_step/sec: 0.466416
+INFO:tensorflow:Worker 0: 2017-03-22 00:48:03.497316: step 450, loss = 12.72(15.6 examples/sec; 2.046  sec/batch)
+INFO:tensorflow:Worker 0: 2017-03-22 00:49:05.186950: step 480, loss = 12.68(15.5 examples/sec; 2.068  sec/batch)
+INFO:tensorflow:global_step/sec: 0.483735

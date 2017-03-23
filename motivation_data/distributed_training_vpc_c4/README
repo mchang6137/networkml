@@ -1,0 +1,2 @@
+These are fixed number of workers (8) with a single parameter server.
+Batch size is varied between 8 and 128. c4 machine has 10Gb of network bandwidth

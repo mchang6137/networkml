@@ -1,0 +1,3 @@
+tensorflow:Worker 2: 2017-03-21 23:51:12.688312: step 270, loss = 12.43(6.9 examples/sec; 4.631  sec/batch)
+INFO:tensorflow:Worker 2: 2017-03-21 23:53:32.601457: step 300, loss = 12.67(6.8 examples/sec; 4.675  sec/batch)
+INFO:tensorflow:Worker 2: 2017-03-21 23:55:56.012424: step 330, loss = 12.29(6.9 examples/sec; 4.630  sec/batch)~
