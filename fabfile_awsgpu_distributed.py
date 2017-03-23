@@ -9,11 +9,13 @@ fab -f fabfile_awsgpu_distributed.py launch
 fab -f fabfile_awsgpu_distributed.py -H mygpu ssh
 
 # install everything
-fab -f fabfile_awsgpu_distributed.py -H mygpuX basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup s3_setup
+#For example, if you set NUM_GPUS=4 and NUM_PARAM_SERVERS=2, you would start in the following way
+fab -f fabfile_awsgpu_distributed.py -H mygpu0,mygpu1,mygpu2,mygpu3,ps0,ps1 basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup s3_setup
 #Ignore the Name lookup error!
 
-# when you're done, terminate
-fab -f fabfile_awsgpu_distributed.py -R mygpu terminate
+# when you're done, terminate. This will terminate all machines!
+fab -f fabfile_awsgpu_distributed.py terminate
+fab -f fabfile_awsgpu_distributed.py vpc_cleanup
 
 Took inspiration from:
 https://aws.amazon.com/blogs/aws/new-p2-instance-type-for-amazon-ec2-up-to-16-gpus/
@@ -285,7 +287,7 @@ def launch():
         for instance in instances:
             print 'Parameter server setup at {}'.format(instance.public_ip_address)
             all_param_server_ips.append(instance)
-            
+    
     #Launch GPUs
     for instance_num in range(NUM_GPUS):
         inst_name = '{}{}'.format(worker_base_name, instance_num)
@@ -376,7 +378,7 @@ def inception_setup():
     run("export JAVA_HOME")
     run("PATH=$PATH:$JAVA_HOME/bin")
     run("export PATH")
-    sudo("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
+    run("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
 
     #Install TF0.12.1 GPU Version
     #TODO: install only the CPU version on Tensorflow
