@@ -1,4 +1,6 @@
 """
+Specifically for setting up a single machine with multiple GPUs. For distributed, see fabfile_awsgpu.py
+
 fabric file to help with launching EC2 P2 instancesand
 getting GPU support set up. Also installs latest
 anaconda and then tensorflow. Use:
@@ -30,10 +32,8 @@ import os
 
 tgt_ami = 'ami-b04e92d0'
 AWS_REGION = 'us-west-2'
-#my_aws_key = 'AKIAJUCHALCSOWV722FQ' #'ec2-us-west-2'
-#my_aws_key = 'AKIAIWNNIXMDOGLF3BDQ'
 my_aws_key = 'michael'
-instance_name = "param_server"
+instance_name = "mygpu"
 role_name = instance_name
 CONDA_DIR = "$HOME/anaconda"
 INSTANCE_TYPE = 'p2.xlarge'
@@ -126,8 +126,6 @@ def basic_setup():
     run("sudo yum install -q -y emacs tmux  gcc g++ dstat htop")
     run("sudo yum install -y kernel-devel-`uname -r`")
 
-
-
 @task
 def cuda_setup():
 
@@ -173,6 +171,9 @@ def inception_setup():
     #Download inception
     #May need to checkout a different version
     run("git clone https://github.com/tensorflow/models.git")
+    #Git Checkout
+    with cd("/usr/local"):
+        run("git checkout 91c7b91f834a5a857e8168b96d6db3b93d7b9c2a")
 
 @task
 def cuda_setup8():
