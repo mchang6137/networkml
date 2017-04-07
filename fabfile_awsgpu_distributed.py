@@ -8,10 +8,16 @@ fab -f fabfile_awsgpu_distributed.py launch
 # wait until you can ssh into the instance with
 fab -f fabfile_awsgpu_distributed.py -H mygpu ssh
 
-# install everything
+# install everything except S3
 #For example, if you set NUM_GPUS=4 and NUM_PARAM_SERVERS=2, you would start in the following way
-fab -f fabfile_awsgpu_distributed.py -H mygpu0,mygpu1,mygpu2,mygpu3,ps0,ps1 basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup s3_setup
+fab -f fabfile_awsgpu_distributed.py -H mygpu0,mygpu1,mygpu2,mygpu3,ps0,ps1 basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup
 #Ignore the Name lookup error!
+
+#To download from s3, create a file in the same directory as this script, titled s3_config_file
+The file should look like 
+access_key = YOUR ACCESS KEY
+secret_key = YOUR SECRET KEY
+bucket_location = YOUR BUCKET ZONE
 
 # when you're done, terminate. This will terminate all machines!
 fab -f fabfile_awsgpu_distributed.py terminate
@@ -35,8 +41,8 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'michael'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
-NUM_GPUS=8
-NUM_PARAM_SERVERS=1
+NUM_GPUS=1
+NUM_PARAM_SERVERS=0
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
@@ -316,6 +322,25 @@ def launch():
     for param_server in all_param_server_ips:
         print 'CUDA_VISIBLE_DEVICES=\'\' bazel-bin/inception/imagenet_distributed_train --batch_size=32 --job_name=\'ps\' --task_id={} --ps_hosts={} --worker_hosts={}'.format(param_count, ps_string, worker_string)
         param_count += 1
+
+#Automates the running of the experiment
+@task
+@parallel
+def run_worker_experiment():
+    with cd("~/models/inception/"):
+        print 'hi'
+
+@task
+@parallel
+def run_ps_experiment():
+    with cd("~/models/inception/"):
+	print 'hi'
+
+
+@task
+@parallel
+def stop_inception_experiment():
+    print 'hi'
         
 @task
 @parallel
@@ -380,18 +405,11 @@ def inception_setup():
     run("export PATH")
     run("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
 
-    #Install TF0.12.1 GPU Version
-    #TODO: install only the CPU version on Tensorflow
-#    run("TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl")
-#    sudo("sudo pip install --upgrade $TF_BINARY_URL")
-
-    #Download inception
-    #May need to checkout a different version
     run("git clone https://github.com/tensorflow/models.git")
     with cd("~/models/inception/"):
         run("git checkout 91c7b91f834a5a857e8168b96d6db3b93d7b9c2a")
-#        run("bazel build inception/imagenet_train")
-#        run("bazel build inception/imagenet_distributed_train")
+        run("bazel build inception/imagenet_train")
+        run("bazel build inception/imagenet_distributed_train")
 
 @task
 @parallel
@@ -470,11 +488,11 @@ def terminate():
         print i.state['Name']
         if i.state['Name'] == 'running':
             d = tags_to_dict(i.tags)
-            if d['Name'] in env.roles:
+            if d['Name'] in env.hosts:
                 i.terminate()
                 insts.append(i)
             #Remove all hosts if no roles specified
-            elif len(env.roles) == 0:
+            elif len(env.hosts) == 0:
                 i.terminate()
                 print 'terminated'
                 insts.append(i)
