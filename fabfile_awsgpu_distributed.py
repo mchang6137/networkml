@@ -33,7 +33,8 @@ from time import sleep
 import boto3
 import os
 
-tgt_ami = 'ami-b04e92d0'
+#tgt_ami = 'ami-b04e92d0'
+tgt_ami = 'ami-8ca83fec'
 AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
@@ -41,14 +42,15 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'michael'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
-NUM_GPUS=1
-NUM_PARAM_SERVERS=0
+NUM_GPUS=2
+NUM_PARAM_SERVERS=1
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
 WORKER_TYPE = 'p2.xlarge'
 #Parameter Server with 10Gpbs
 PS_TYPE = 'c4.8xlarge'
+#PS_TYPE = 'm4.2xlarge'
 
 USER = os.environ['USER']
 
@@ -211,7 +213,7 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
                     'VolumeSize': 50,
                     'DeleteOnTermination': True,
                     'VolumeType': 'standard',
-                    'SnapshotId' : 'snap-c87f35ec'
+                    #'SnapshotId' : 'snap-c87f35ec'
                 },
             },
         ],
@@ -246,7 +248,7 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
                 'VolumeSize': 100,
                 'DeleteOnTermination': True,
                 'VolumeType': 'standard',
-                'SnapshotId' : 'snap-c87f35ec'
+                #'SnapshotId' : 'snap-c87f35ec'
             },
         },
     ]
@@ -429,9 +431,10 @@ def s3_setup():
 @task
 @parallel
 def cuda_setup8():
-    run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/370.28/NVIDIA-Linux-x86_64-370.28.run")
+    #run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/370.28/NVIDIA-Linux-x86_64-370.28.run")
+    run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.51/NVIDIA-Linux-x86_64-375.51.run")
     run("wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run")
-    run("mv NVIDIA-Linux-x86_64-370.28.run driver.run")
+    run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
     run("mv cuda_8.0.44_linux-run cuda.run")
     run("chmod +x driver.run")
     run("chmod +x cuda.run")
