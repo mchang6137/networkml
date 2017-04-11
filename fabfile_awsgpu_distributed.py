@@ -39,7 +39,7 @@ AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
 #import ssh public key to AWS
-my_aws_key = 'michael'
+my_aws_key = 'qiyin'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
 NUM_GPUS=2
@@ -465,6 +465,7 @@ def anaconda_setup():
     run("conda upgrade -q -y --all")
     run("conda install -q -y pandas scikit-learn scikit-image matplotlib seaborn ipython")
     run("pip install ruffus glob2 awscli")
+    run("source .bash_profile")
 
 #TF_URL = "https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.11.0rc1-cp27-none-linux_x86_64.whl"
 #TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.0rc0-cp27-none-linux_x86_64.whl"
@@ -473,6 +474,39 @@ TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.
 @parallel
 def tf_setup():
     run("pip install --ignore-installed --upgrade {}".format(TF_URL))
+
+
+@task
+@parallel
+def modified_tf_setup():
+    run("git clone -b r0.12 https://github.com/Joranson/modifiedTF.git")
+    run("mv modifiedTF tensorflow")
+    run("pip install --ignore-installed --upgrade ~/tensorflow/wheel/tensorflow-0.12.1-cp27-cp27mu-linux_x86_64.whl")
+
+@task
+@parallel
+def modified_inception_setup():
+    #Install bazel
+    run("wget https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-jdk7-installer-linux-x86_64.sh")
+    run("chmod +x bazel-0.4.3-jdk7-installer-linux-x86_64.sh")
+    sudo("yum install -y java-1.7.0-openjdk-devel")
+    run("JAVA_HOME=/usr/lib/jvm/java-openjdk/")
+    run("export JAVA_HOME")
+    run("PATH=$PATH:$JAVA_HOME/bin")
+    run("export PATH")
+    run("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
+
+    #Install TF0.12.1 GPU Version
+    #TODO: install only the CPU version on Tensorflow
+#    run("TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl")
+#    sudo("sudo pip install --upgrade $TF_BINARY_URL")
+
+    #Download inception
+    #May need to checkout a different version
+    run("git clone -b fewerLayers https://github.com/Joranson/modifiedInception.git")
+    run("mv modifiedInception models")
+    with cd("/home/ec2-user/models/inception"):
+        run("bazel build inception/imagenet_distributed_train")
 
 @task
 @parallel
