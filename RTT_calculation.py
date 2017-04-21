@@ -1,5 +1,8 @@
 import csv
 import argparse
+import experiment_setting as exp
+import actual_results as actual
+import matplotlib.pylab as plt
 
 def model_distributed(num_trials, model_param, infra_param):
     trial_RTT = []
@@ -106,6 +109,7 @@ def gpu_compute_time(model_params, infra_params, trial_index):
     num_params = model_params['num_parameters'][trial_index]
     batch_size = model_params['batch_size'][trial_index]
 
+    #Number of layers, not number of parameters?
     runtime = 0.017 * batch_size / num_params
     return runtime
 
@@ -124,43 +128,68 @@ def prep_variables(num_trials, params):
 
     return params
 
+def plot_results(experiment_str, setting_str, result, independent_var):
+    assert len(result) == len(independent_var)
+    prediction_result = {}
+    for x in range(len(result)):
+        prediction_result[independent_var[x]] = result[x]
+
+    plt.title('Time/Iteration for {}, varying {}'.format(setting_str, experiment_str), fontname="Times New Roman", size=20)
+    plt.ylabel('Time/Iteration in seconds', fontname="Times New Roman", size=16)
+    plt.xlabel('{}'.format(experiment_str), fontname="Times New Roman", size=16)
+
+    actual_mean = []
+    actual_std = []
+    if setting_str == 'single':
+        actual_mean, actual_std = actual.get_single_results(experiment_str, independent_var)
+    elif setting_str == 'distributed':
+        actual_mean, actual_std = actual.get_distributed_results(experiment_str, independent_var)
+                                                    
+    font = {'family':'serif','serif':['Times']}
+    actual_line_color = '#990000'
+    prediction_line_color = 'black'    
+    error_length = 1
+
+    plt.plot(*zip(*sorted(prediction_result.items())), color=prediction_line_color)
+    line, = plt.plot(independent_var, actual_mean, lw=3, color=actual_line_color)
+    plt.errorbar(independent_var, actual_mean, actual_std, lw=error_length, color=actual_line_color)
+    plt.grid()
+    plt.show()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("setting", help="Options: distributed or single")
+    parser.add_argument("exp", help="Options: batchsize, num_worker, num_ps")
     args = parser.parse_args()
 
-    #Each param dict maps to a list of elements. The 0th element in the list corresponds to the 0th trial, while the 1st element corresponds to the 1st trial, etc.
+    independent_var = []
+    if args.exp == 'batchsize':
+        num_trials, model_params, infra_params = exp.vary_batch_size()
+        independent_var = model_params['batch_size']
+    elif args.exp == 'worker':
+        num_trials, model_params, infra_params = exp.vary_worker_size()
+        independent_var = infra_params['num_workers']
+    elif args.exp == 'num_ps':
+        num_trials, model_params, infra_params = exp.vary_ps_size()
+        independent_var = infra_params['num_ps']
+    else:
+        print 'Invalid experiment'
+        exit()
 
-    num_trials = 3
-    
-    model_params = {}
-    #Average size of parameter in bytes (b) 
-    model_params['parameter_size'] = [528000]
-    #Number of training parameters (k)
-    model_params['num_parameters'] = [196]
-    #Number of training examples handled by each worker (i)
-    model_params['batch_size'] = [32, 48, 64]
-
-    infra_params = {}
-    #Number of Workers
-    infra_params['num_workers'] = [8]
-    #Minimum bandwidth over all workers in Gbps
-    infra_params['worker_net_bandwidth'] = [1]
-    #Minimum bandwidth over all parameter servers in Gbps
-    infra_params['ps_net_bandwidth'] = [10]
-    #Bandwidth of the PCIe for single machine case in Gbps
-    infra_params['pcie_bandwidth'] = [40]
-    #Latency over the network in ms
-    infra_params['Network_latency'] = [0.01]
-    
+    assert len(independent_var) == num_trials
 
     infra_params = prep_variables(num_trials, infra_params)
     model_params = prep_variables(num_trials, model_params)
 
+    all_RTT = []
     if args.setting == 'distributed':
-        model_distributed(num_trials, model_params, infra_params)
+        all_RTT = model_distributed(num_trials, model_params, infra_params)
     else:
-        model_single(num_trials, model_params, infra_params)
+        all_RTT = model_single(num_trials, model_params, infra_params)
+
+    plot_results(args.exp, args.setting, all_RTT, independent_var)
+
+    
     
     
     
