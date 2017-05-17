@@ -3,6 +3,8 @@ import numpy as np
 import time
 
 ps_list = ['34.210.149.71:2222', '54.68.71.35:2222', '52.10.74.229:2222', '34.210.167.242:2222']
+#Comment out the worker from the worker list that is not running the experiments
+worker_list = ['34.208.216.67', '35.164.63.183']
 worker_cores = 32
 
 def run(cmd):
@@ -14,6 +16,12 @@ def run_dist(batch_size, n_worker, n_ps):
   run("rm -rf /tmp/tf_run; mkdir /tmp/tf_run; rm -rf /tmp/imagenet_train/")
   run("sync; echo 3 | sudo tee /proc/sys/vm/drop_caches")
   wk_str = ",".join(["localhost:222" + str(i) for i in range(n_worker)])
+  wk_str += ","
+  for worker in worker_list:
+    wk_str += ",".join(["{}:222".format(worker) + str(i) for i in range(n_worker)])
+    wk_str += ","
+  wk_str = wk_str[:-1]
+    
   ps_str = ''
   for ps_ip in ps_list[:n_ps]:
     ps_str += ps_ip + ','
@@ -79,10 +87,13 @@ def execute(batch_size, n_worker, n_ps, dist, json):
 
 def run_all(dist, json):
   run("echo \"\n\n\nTime dist batch worker ps avg std\" >> result.txt")
-  num_workers = 8
+  num_workers_per_machine = 4
   num_ps = [1,2,3,4]
   for num_ps in num_ps:
-    execute(32, num_workers, num_ps, dist, json)
+    execute(32, num_workers_per_machine, num_ps, dist, json)
+    #Wait 200 seconds between experiments when running distributed
+    time.sleep(200)
+    
 
 run_all(dist = True, json = False)
 
