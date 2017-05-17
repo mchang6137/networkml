@@ -42,8 +42,8 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'qiyin'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
-NUM_GPUS=2
-NUM_PARAM_SERVERS=1
+NUM_GPUS=1
+NUM_PARAM_SERVERS=0
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
