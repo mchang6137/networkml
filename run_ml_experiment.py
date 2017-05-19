@@ -3,11 +3,14 @@ from fabric.contrib import project
 import time
 import boto3
 import os
+import numpy as np
 
 #Experiment Settings
-exp_wait_time = 700
-worker_per_machine = 4
+#Change this!!!
+worker_per_machine = 2
 batch_size = 32
+num_ps = 1
+num_machines = 4
 
 #Environment settings that were originally setup
 tgt_ami = 'ami-8ca83fec'
@@ -16,16 +19,17 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'michael'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
-NUM_GPUS=2
+NUM_GPUS=4
 NUM_PARAM_SERVERS=4
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.8xlarge'
+WORKER_TYPE = 'p2.xlarge'
 #Parameter Server with 10Gpbs
 PS_TYPE = 'c4.8xlarge'
 
 USER = os.environ['USER']
+dns_hostname = {}
 
 # this is a dumb hack but whatever
 if os.path.exists("fabfile_{}.py".format(USER)):
@@ -44,9 +48,11 @@ def get_target_instance():
         if i.state['Name'] == 'running':
             d = tags_to_dict(i.tags)
             if d['Name'] in env.hosts:
+                dns_hostname[i.public_dns_name] = d['Name']
                 role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
                 host_list.append('ec2-user@{}'.format(i.public_dns_name))
             elif len(env.hosts) == 0:
+                dns_hostname[i.public_dns_name] = d['Name']
                 role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
                 host_list.append('ec2-user@{}'.format(i.public_dns_name))
     env.hosts.extend(host_list)
@@ -61,47 +67,51 @@ env.roledefs.update(get_target_instance())
 @task
 @parallel
 def run_ps():
+    try:
+        dns_result = env.host_string.split('@')[1]
+	host_string = dns_hostname[dns_result]
+    except:
+        exit()
+        
     run("rm -rf /tmp/tf_run; mkdir /tmp/tf_run; rm -rf /tmp/imagenet_train/")
     run("sync; echo 3 | sudo tee /proc/sys/vm/drop_caches")
     
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
-    host_string = ''
-
-    if env.hosts[0][:2] == 'ps':
-        host_string = env.hosts[0]
-    else:
-        print 'exiting!!!!'
-        exit()
     
     all_worker = get_all_workers()
     all_ps = get_all_ps()
+
+    task_id = int(host_string[-1])
     
     #Start all the parameter servers across all machines
     my_ip = get_my_ip(host_string)
-    task_id = all_ps.index(my_ip)
 
-    #Start all the parameter servers, it doesn't matter how many they are registering
     ps_str = ''
-    ps_str = ",".join(x + ":2222" for x in all_ps)
+    for	ps_index in range(num_ps):
+	ps_ip =	all_ps['ps' + str(ps_index)]
+	ps_str += (ps_ip + ':2222,')
+    ps_str = ps_str[:-1]
 
-    #Assign 
+    #Assign
     wkr_str = ''
-    for worker in all_worker:
+    for machine_index in range(num_machines):
+        worker = all_worker['mygpu' + str(machine_index)]
         wkr_str += ','.join(worker+':'+str(x+2200) for x in range(worker_per_machine))
         wkr_str += ','
     wkr_str = wkr_str[:-1]
-
+    
     command = "CUDA_VISIBLE_DEVICES='' nohup $HOME/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --job_name='ps' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/ps%s.log &" % (batch_size, task_id, ps_str, wkr_str, task_id)
     print command
     import sys
     run(command, shell=True, shell_escape=True, stderr=sys.stdout, pty=False)
 
+#Returns a dict from hoststring -> IP Address
 def get_all_workers():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
-    all_worker = []
+    all_worker = {}
     all_reservations = [x for x in ec2_client.describe_instances()['Reservations']]
     for reservation in all_reservations:
         try:
@@ -109,17 +119,19 @@ def get_all_workers():
             ip = ''
             if instance_type != PS_TYPE:
                 ip = reservation['Instances'][0]['PublicIpAddress']
-                all_worker.append(ip)
+                instance_name = reservation['Instances'][0]['Tags'][0]['Value']
+                all_worker[instance_name] = ip
         except:
             continue
     return all_worker
 
+#Returns a dict from hoststring -> IP address
 def get_all_ps():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
     #Start all the parameter servers across all machines
-    all_ps = []
+    all_ps = {}
 
     all_reservations = [x for x in ec2_client.describe_instances()['Reservations']]
     for reservation in all_reservations:
@@ -128,7 +140,8 @@ def get_all_ps():
             ip = ''
             if instance_type == PS_TYPE:
                 ip = reservation['Instances'][0]['PublicIpAddress']
-                all_ps.append(ip)
+                instance_name = reservation['Instances'][0]['Tags'][0]['Value']
+                all_ps[instance_name] = ip
         except:
             continue
 
@@ -151,10 +164,7 @@ def get_my_ip(host_string):
 @task
 @parallel
 def run_worker():
-    num_workers_per_machine = 2
-    num_ps = [1,2,4,8]
-    for ps in num_ps:
-        execute(32, num_workers_per_machine, ps)
+    execute(32, worker_per_machine, num_ps)
 
 def execute(batch_size, n_worker, n_ps):
     wait_time = 700
@@ -167,10 +177,14 @@ def execute(batch_size, n_worker, n_ps):
     print r_str
     run("echo \"%s\" >> result.txt" % r_str)
 
+@task
+@parallel
 def collect():
   s = []
-  #with open("/tmp/tf_run/worker0.log") as f:
-  with open("$HOME/models/inception") as f:
+  results_file = '/tmp/tf_run/worker0log_{}permachine_{}ps_{}machines'.format(worker_per_machine, num_ps,num_machines)
+  path = get('/tmp/tf_run/worker0.log', results_file)
+
+  with open(results_file) as f:
     for l in f:
       try:
         if l.endswith("sec/batch)\n"):
@@ -185,17 +199,16 @@ def collect():
   return [np.mean(s), np.std(s)]
 
 def run_dist(n_ps):
+    try:
+        dns_result = env.host_string.split('@')[1]
+        host_string = dns_hostname[dns_result]
+    except:
+	exit()
+    
     run("rm -rf /tmp/tf_run; mkdir /tmp/tf_run; rm -rf /tmp/imagenet_train/")
     run("sync; echo 3 | sudo tee /proc/sys/vm/drop_caches")
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
-    
-    host_string = ''
-    if env.hosts[0][:2] == 'my':
-        host_string = env.hosts[0]
-    else:
-        print 'exiting!!!!'
-        exit()
 
     #Task range should be based on mygpuX, where X is an integer.
     #The tasks on a particular machine should be given by X * workers_per_machine to (X+1) * workers_per_machine
@@ -203,18 +216,21 @@ def run_dist(n_ps):
     all_worker = get_all_workers()
     all_ps = get_all_ps()
 
-    #Start all the parameter servers across all machines
     my_ip = get_my_ip(host_string)
     gpu_num = int(host_string[-1])
     task_id = gpu_num * worker_per_machine
 
     #Start all the parameter servers, it doesn't matter how many they are registering
     ps_str = ''
-    ps_str = ",".join(x + ":2222" for x in all_ps[:n_ps])
+    for ps_index in range(num_ps):
+        ps_ip = all_ps['ps' + str(ps_index)]
+        ps_str += (ps_ip + ':2222,')
+    ps_str = ps_str[:-1]
 
     #Assign
     wkr_str = ''
-    for worker in all_worker:
+    for machine_index in range(num_machines):
+        worker = all_worker['mygpu' + str(machine_index)]
         wkr_str += ','.join(worker+':'+str(x+2200) for x in range(worker_per_machine))
         wkr_str += ','
     wkr_str = wkr_str[:-1]
@@ -225,6 +241,17 @@ def run_dist(n_ps):
         core_str += str(i+8) + "," + str(i + 24)
         taskid = task_id + i
     
-        m = run("CUDA_VISIBLE_DEVICES=%s taskset -c %s nohup /home/ec2-user/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, core_str, batch_size, taskid, ps_str, wkr_str, taskid), pty=False, shell=True, stderr-sys.stdout,shell_escape=True)
+        command = "CUDA_VISIBLE_DEVICES=%s taskset -c %s nohup /home/ec2-user/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, core_str, batch_size, taskid, ps_str, wkr_str, taskid)
+
+        import sys
+        run(command, shell=True, shell_escape=True, stderr=sys.stdout, pty=False)
         run("echo 512 > hi.txt &")
         run("sleep 1")
+
+@task
+@parallel
+def tester():
+    print dns_hostname
+    print ' this is the host string' + env.host_string
+    print env.hosts
+
