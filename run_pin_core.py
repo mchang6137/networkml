@@ -2,9 +2,9 @@ import os
 import numpy as np
 import time
 
-ps_list = ['34.210.149.71:2222', '54.68.71.35:2222', '52.10.74.229:2222', '34.210.167.242:2222']
+ps_list = ['35.161.233.122:2222','52.37.20.60:2222','34.208.111.70:2222','52.25.42.28:2222']
 #Comment out the worker from the worker list that is not running the experiments
-worker_list = ['34.208.216.67', '35.164.63.183']
+worker_list = ['35.164.63.183','34.208.216.67']
 worker_cores = 32
 
 def run(cmd):
@@ -15,8 +15,9 @@ def run(cmd):
 def run_dist(batch_size, n_worker, n_ps):
   run("rm -rf /tmp/tf_run; mkdir /tmp/tf_run; rm -rf /tmp/imagenet_train/")
   run("sync; echo 3 | sudo tee /proc/sys/vm/drop_caches")
-  wk_str = ",".join(["localhost:222" + str(i) for i in range(n_worker)])
-  wk_str += ","
+  #wk_str = ",".join(["localhost:222" + str(i) for i in range(n_worker)])
+  #wk_str += ","
+  wk_str = ''
   for worker in worker_list:
     wk_str += ",".join(["{}:222".format(worker) + str(i) for i in range(n_worker)])
     wk_str += ","
@@ -32,7 +33,7 @@ def run_dist(batch_size, n_worker, n_ps):
     core_str = str(i) + "," + str(i + 16) + ","
     core_str += str(i+8) + "," + str(i + 16 + 8)
     
-    run("CUDA_VISIBLE_DEVICES=%s taskset -c %s $HOME/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, core_str, batch_size, i, ps_str, wk_str, i))
+    run("CUDA_VISIBLE_DEVICES=%s taskset -c %s $HOME/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, core_str, batch_size, i+8, ps_str, wk_str, i))
     run("sleep 1")
 
 def run_one(batch_size, n_worker):
@@ -87,13 +88,10 @@ def execute(batch_size, n_worker, n_ps, dist, json):
 
 def run_all(dist, json):
   run("echo \"\n\n\nTime dist batch worker ps avg std\" >> result.txt")
-  num_workers_per_machine = 4
-  num_ps = [1,2,3,4]
+  num_workers_per_machine = 8
+  num_ps = [3]
   for num_ps in num_ps:
     execute(32, num_workers_per_machine, num_ps, dist, json)
-    #Wait 200 seconds between experiments when running distributed
-    time.sleep(200)
-    
 
 run_all(dist = True, json = False)
 
