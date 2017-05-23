@@ -7,9 +7,9 @@ import numpy as np
 
 #Experiment Settings
 #Change this!!!
-worker_per_machine = 2
+worker_per_machine = 4
 batch_size = 32
-num_ps = 1
+num_ps = 4
 num_machines = 4
 
 #Environment settings that were originally setup
@@ -24,7 +24,7 @@ NUM_PARAM_SERVERS=4
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.xlarge'
+WORKER_TYPE = 'p2.8xlarge'
 #Parameter Server with 10Gpbs
 PS_TYPE = 'c4.8xlarge'
 
@@ -163,6 +163,11 @@ def get_my_ip(host_string):
 
 @task
 @parallel
+def cleanup():
+    run("pkill -f imagenet_distributed_train.py")
+    
+@task
+@parallel
 def run_worker():
     execute(32, worker_per_machine, num_ps)
 
@@ -217,7 +222,9 @@ def run_dist(n_ps):
     all_ps = get_all_ps()
 
     my_ip = get_my_ip(host_string)
-    gpu_num = int(host_string[-1])
+    print 'host string is {}'.format(host_string)
+    import re
+    gpu_num = int(re.findall(r'\d+',host_string)[0])
     task_id = gpu_num * worker_per_machine
 
     #Start all the parameter servers, it doesn't matter how many they are registering
@@ -240,8 +247,10 @@ def run_dist(n_ps):
         core_str = str(i) + "," + str(i + 16) + ","
         core_str += str(i+8) + "," + str(i + 24)
         taskid = task_id + i
-    
-        command = "CUDA_VISIBLE_DEVICES=%s taskset -c %s nohup /home/ec2-user/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, core_str, batch_size, taskid, ps_str, wkr_str, taskid)
+
+        command = "CUDA_VISIBLE_DEVICES=%s nohup /home/ec2-user/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, batch_size, taskid, ps_str, wkr_str, taskid)
+                
+        #command = "CUDA_VISIBLE_DEVICES=%s taskset -c %s nohup /home/ec2-user/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, core_str, batch_size, taskid, ps_str, wkr_str, taskid)
 
         import sys
         run(command, shell=True, shell_escape=True, stderr=sys.stdout, pty=False)
