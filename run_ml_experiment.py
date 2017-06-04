@@ -5,13 +5,6 @@ import boto3
 import os
 import numpy as np
 
-#Experiment Settings
-#Change this!!!
-worker_per_machine = 4
-batch_size = 32
-num_ps = 4
-num_machines = 4
-
 #Environment settings that were originally setup
 tgt_ami = 'ami-8ca83fec'
 AWS_REGION = 'us-west-2'
@@ -19,7 +12,7 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'michael'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
-NUM_GPUS=4
+NUM_GPUS=2
 NUM_PARAM_SERVERS=4
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
@@ -66,7 +59,13 @@ env.roledefs.update(get_target_instance())
 #Start the parameter servers before starting the workers
 @task
 @parallel
-def run_ps():
+def run_ps(worker_per_machine=8, batch_size=32, num_ps=4, num_machines=1):
+    run("pkill -f imagenet_distributed_train.py")
+    worker_per_machine = int(worker_per_machine)
+    batch_size = int(batch_size)
+    num_ps = int(num_ps)
+    num_machines = int(num_machines)
+    
     try:
         dns_result = env.host_string.split('@')[1]
 	host_string = dns_hostname[dns_result]
@@ -168,12 +167,17 @@ def cleanup():
     
 @task
 @parallel
-def run_worker():
-    execute(32, worker_per_machine, num_ps)
+def run_worker(worker_per_machine, batch_size, num_ps, num_machines):
+    run("pkill -f imagenet_distributed_train.py")
+    worker_per_machine = int(worker_per_machine)
+    batch_size = int(batch_size)
+    num_ps = int(num_ps)
+    num_machines = int(num_machines)
+    execute(worker_per_machine, batch_size, num_ps, num_machines)
 
-def execute(batch_size, n_worker, n_ps):
+def execute(worker_per_machine, batch_size, num_ps, num_machines):
     wait_time = 700
-    run_dist(n_ps)
+    run_dist(worker_per_machine, batch_size, num_ps, num_machines)
     time.sleep(wait_time)
     run("pkill -f imagenet_distributed_train.py")
     
@@ -203,7 +207,7 @@ def collect():
           print "Err %s" % e, l
   return [np.mean(s), np.std(s)]
 
-def run_dist(n_ps):
+def run_dist(worker_per_machine, batch_size, num_ps, num_machines):
     try:
         dns_result = env.host_string.split('@')[1]
         host_string = dns_hostname[dns_result]
@@ -244,13 +248,18 @@ def run_dist(n_ps):
 
     for i in range(worker_per_machine):
         print "worker", i
-        core_str = str(i) + "," + str(i + 16) + ","
-        core_str += str(i+8) + "," + str(i + 24)
         taskid = task_id + i
 
-        command = "CUDA_VISIBLE_DEVICES=%s nohup /home/ec2-user/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, batch_size, taskid, ps_str, wkr_str, taskid)
+        #Assign 4 cores per process
+        core_start = i * 4
+        core_str = str(core_start) + "," #+ str(core_start + 16) 
+        core_str += str(core_start + 1) + "," #+ str(core_start + 17)
+        core_str += str(core_start + 2) + "," #+ str(core_start + 18) + ","
+        core_str += str(core_start + 3) #+ "," + str(core_start + 19) 
+
+        #command = "CUDA_VISIBLE_DEVICES=%s nohup /home/ec2-user/models/distr_vgg/bazel-bin/vgg/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, batch_size, taskid, ps_str, wkr_str, taskid)
                 
-        #command = "CUDA_VISIBLE_DEVICES=%s taskset -c %s nohup /home/ec2-user/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, core_str, batch_size, taskid, ps_str, wkr_str, taskid)
+        command = "CUDA_VISIBLE_DEVICES=%s taskset -c %s nohup /home/ec2-user/models/inception/bazel-bin/inception/imagenet_distributed_train --batch_size=%s --data_dir=$HOME/imagenet-data --job_name='worker' --task_id=%s --ps_hosts=%s --worker_hosts=%s &> /tmp/tf_run/worker%s.log &" % (i, core_str, batch_size, taskid, ps_str, wkr_str, taskid)
 
         import sys
         run(command, shell=True, shell_escape=True, stderr=sys.stdout, pty=False)
