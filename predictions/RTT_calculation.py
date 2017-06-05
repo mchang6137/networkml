@@ -21,7 +21,7 @@ def model_distributed(num_trials, model_param, infra_param):
         distribution_steps.append(network_overhead(model_param, infra_param, trial_num))
         distribution_steps.append(deserialization_time(model_param, infra_param, trial_num))
         RTT_distribution = calculate_pipeline_time(distribution_steps, model_param, trial_num)
-        additional_time += calculate_dequeue_time(model_param, infra_param, trial_num)
+        additional_time += distributed_dequeue_time(model_param, infra_param, trial_num)
         trial_dequeue.append(additional_time)
         trial_dist_RTT.append(RTT_distribution)
         
@@ -56,7 +56,7 @@ def model_single(num_trials, model_param, infra_param):
         distribution_steps.append(pcie_overhead(model_param, infra_param, trial_num))
         RTT_distribution = calculate_pipeline_time(distribution_steps, model_param, trial_num)
         trial_dist_RTT.append(RTT_distribution)
-        additional_time += calculate_dequeue_time(model_param, infra_param, trial_num)
+        additional_time += single_dequeue_time(model_param, infra_param, trial_num)
         trial_dequeue.append(additional_time)
         
         aggregation_steps = []
@@ -86,14 +86,22 @@ def pretty_print_results(RTT, RTT_distribution, RTT_aggregation, model_params, i
     print 'The calculated RTT was {} seconds\n\n'.format(RTT)
 
 #Non-pipelined time of the forward pass
-def calculate_forwardpass_time(model_param, infra_param, trial_index):
+def calculate_forwardpass_time(model_params, infra_param, trial_index):
     batch_size = model_params['batch_size'][trial_index]
     fp = 0.0117 * batch_size + 0.06
     print 'For batch size {} fp time was {}'.format(batch_size, fp)
     return fp
 
-#Non-pipelined time of the dequeue time
-def calculate_dequeue_time(model_param, infra_param, trial_index):
+#Non-pipelined time for the dequeue time of a single machine
+def single_dequeue_time(model_params, infra_params, trial_index):
+    batch_size = model_params['batch_size'][trial_index]
+    worker_per_machine = float(infra_params['num_workers'][trial_index]) /  infra_params['num_machines'][trial_index]
+    dequeue_time = 3.0/50 * worker_per_machine + 19.0/4800 * batch_size - 7.0/30
+    print 'For batch size {}, workers {} dequeue time was {}'.format(batch_size, worker_per_machine, dequeue_time)
+    return dequeue_time
+
+#Non-pipelined time of the dequeue time for the distributed
+def distributed_dequeue_time(model_params, infra_params, trial_index):
     batch_size = model_params['batch_size'][trial_index]
     worker_per_machine = float(infra_params['num_workers'][trial_index]) /  infra_params['num_machines'][trial_index]
     dequeue_time = 3.0/50 * worker_per_machine + 19.0/4800 * batch_size - 7.0/30
@@ -182,22 +190,6 @@ def prep_variables(num_trials, params):
 
     return params
 
-def plot_stackbar(agg_RTT, dist_RTT, dequeue_time, fp_pass, independent_var):
-    assert len(agg_RTT) == len(independent_var)
-    
-    width = 5
-    #ind = np.arange(len(agg_RTT))
-
-    p1 = plt.bar(independent_var, agg_RTT, width, color='blue')
-    p2 = plt.bar(independent_var, dist_RTT, width, bottom=agg_RTT, color='red')
-    p3 = plt.bar(independent_var, dequeue_time, width, bottom=np.array(dist_RTT) + np.array(agg_RTT), color='green')
-    p4 = plt.bar(independent_var, fp_pass, width, bottom=np.array(dist_RTT) + np.array(agg_RTT) + np.array(dequeue_time), color='yellow')
-
-    plt.legend((p1[0], p2[0], p3[0], p4[0]), ('Aggregation', 'Distribution', 'Dequeue time', 'Forward pass'), loc="upper left")
-    plt.ylim((0, 4))
-
-    plt.show()
-
 def plot_results(experiment_str, setting_str, result, independent_var):
     assert len(result) == len(independent_var)
     prediction_result = {}
@@ -264,40 +256,16 @@ if __name__ == "__main__":
     parser.add_argument("exp", help="Options: batchsize, num_worker, num_ps, num_machines")
     args = parser.parse_args()
 
-    num_workers_list = [16]
-    num_machines_list = [1,2,4,8,16]
+    num_workers_list = [8]
+    num_machines_list = [1,2,4,8]
     num_ps_list = [1,2,3,4]
     machine_type = ['p2.8xlarge']
 
-    all_lines = []
-    #Should always be set to number of experiments + 1 colors
-    plt.gca().set_color_cycle(['red', 'green', 'blue', 'yellow','black', 'purple', 'orange'])
+    #plot.plot_ps_to_workerpermachine_stackbar(num_workers_list, num_machines_list, num_ps_list, machine_type)
+    plot.plot_ps_to_workerpermachine(num_workers_list, num_machines_list, num_ps_list, machine_type)
 
-    #Plot the distributed cases
-    for num_machines in num_machines_list:
-        exp_type = 'num_ps'
-        num_trials, model_params, infra_params, independent_var = get_exp_params(exp_type, num_machines=[num_machines], num_ps=num_ps_list, num_workers=num_workers_list)
-        assert len(independent_var) == num_trials
 
-        all_RTT = model_distributed(num_trials, model_params, infra_params)[0]
-        line = plot.plot_single(all_RTT, independent_var, plot_label='{} machines'.format(num_machines))
-        all_lines.append(line)
-
-    #Plot the single machine case
-    exp_type = 'num_ps'
-    num_trials, model_params, infra_params, independent_var = get_exp_params(exp_type,num_machines=[1], num_ps=num_ps_list, num_workers=num_workers_list)
-    all_RTT = model_single(num_trials, model_params, infra_params)[0]
-    line = plot.plot_single(all_RTT, independent_var, plot_label='Single Machine')
-    all_lines.append(line)
-
-    font = {'family':'serif','serif':['Times']}
-    plt.title('Iteration Time', fontname="Times New Roman", size=20)
-    plt.ylabel('Time/Iteration in seconds', fontname="Times New Roman", size=16)
-    plt.xlabel('Number of PS', fontname="Times New Roman", size=16)
-    plt.legend(handles=all_lines)
-    plt.grid()
-    plt.show()
-
+    
 
     
     
