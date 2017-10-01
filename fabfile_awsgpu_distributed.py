@@ -39,18 +39,17 @@ AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
 #import ssh public key to AWS
-my_aws_key = 'qiyin'
+my_aws_key = 'michael'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
 NUM_GPUS=1
-NUM_PARAM_SERVERS=0
+NUM_PARAM_SERVERS=4
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.xlarge'
+WORKER_TYPE = 'p2.8xlarge'
 #Parameter Server with 10Gpbs
 PS_TYPE = 'c4.8xlarge'
-#PS_TYPE = 'm4.2xlarge'
 
 USER = os.environ['USER']
 
@@ -101,9 +100,24 @@ def vpc_cleanup():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
+    all_default_vpc = []
+    vpc_response = ec2_client.describe_account_attributes(AttributeNames=['default-vpc'])
+    
+    for account_information in vpc_response['AccountAttributes']:
+        if account_information['AttributeName'] == 'default_vpc':
+            for attribute_value in account_information['AttributeValues']:
+                all_default_vpc.append(attribute_value['AttributeValue']):
+
+    print 'Default VPCs are {}'.format(all_default_vpc)
+    if len(all_default_vpc) == 0:
+        print 'There are no default VPCs detected! Exiting to prevent fucking irreparable damage'
+        exit()
+
     #Delete security groups
     for security_group in ec2_resource.security_groups.all():
         print 'Security Group {}'.format(security_group.group_id)
+        if security_group.vpc_id in all_default_vpc:
+            continue
         try:
             ec2_client.delete_security_group(GroupId=security_group.group_id)
             print '{} deleted'.format(security_group.group_id)
@@ -111,6 +125,8 @@ def vpc_cleanup():
             print '{} not deleted'.format(security_group.group_id)
     #Delete Subnets
     for subnet in ec2_resource.subnets.all():
+        if subnet.vpc_id in all_default_vpc:
+            continue
         print 'Subnet ID {}'.format(subnet.id)
         try:
             ec2_client.delete_subnet(SubnetId=subnet.id)
@@ -120,6 +136,8 @@ def vpc_cleanup():
 
     #Detach Gateways
     for vpc in ec2_resource.vpcs.all():
+        if vpc in all_default_vpc:
+            continue
         for gateway in ec2_resource.internet_gateways.all():
             try:
                 ec2_client.detach_internet_gateway(InternetGatewayId=gateway.id, VpcId=vpc.id)
@@ -146,6 +164,8 @@ def vpc_cleanup():
 
     #Delete Router Table
     for route_table in ec2_resource.route_tables.all():
+        if route_table.vpc_id in all_default_vpc:
+            continue
         try:
             ec2_client.delete_route_table(RouteTableId=route_table.id)
             print '{} deleted'.format(route_table.id)
@@ -154,6 +174,8 @@ def vpc_cleanup():
             
     #Finally, Delete VPC
     for vpc in ec2_resource.vpcs.all():
+        if vpc.id in all_default_vpc:
+            continue
         try:
             ec2_client.delete_vpc(VpcId=vpc.id)
             print '{} deleted'.format(vpc.id)
@@ -424,9 +446,11 @@ def s3_setup():
 
     put(s3_config_file, '~/')
     run('mkdir ~/imagenet-data')
+
     with cd("~/imagenet-data"):
         run('s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/ .')
         run('tar -xzvf validation_of.tar.gz')
+
     
 @task
 @parallel
