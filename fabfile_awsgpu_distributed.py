@@ -43,13 +43,13 @@ my_aws_key = 'michael'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
 NUM_GPUS=1
-NUM_PARAM_SERVERS=4
+NUM_PARAM_SERVERS=1
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.8xlarge'
+WORKER_TYPE = 'm4.large'
 #Parameter Server with 10Gpbs
-PS_TYPE = 'c4.8xlarge'
+PS_TYPE = 'm3.large'
 
 USER = os.environ['USER']
 
@@ -68,21 +68,25 @@ def get_target_instance():
     host_list = []
     for i in ec2.instances.all():
         if i.state['Name'] == 'running':
-            d = tags_to_dict(i.tags)
-            if d['Name'] in env.hosts:
-                role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
-                host_list.append('ec2-user@{}'.format(i.public_dns_name))
-            elif len(env.hosts) == 0:
-                role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
-                host_list.append('ec2-user@{}'.format(i.public_dns_name))
+            if i.tags != None:
+                d = tags_to_dict(i.tags)
+                if d['Name'] in env.hosts:
+                    role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
+                    host_list.append('ec2-user@{}'.format(i.public_dns_name))
+                elif len(env.hosts) == 0:
+                    role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
+                    host_list.append('ec2-user@{}'.format(i.public_dns_name))
     env.hosts.extend(host_list)
+    env.roles = role_to_host.keys()
     print "found", role_to_host
     return role_to_host
 
 env.disable_known_hosts = True
 env.warn_only = True
 env.roledefs.update(get_target_instance())
+print 'env.roles:'
 print env.roles
+print 'env.hosts'
 print env.hosts
 
 
@@ -95,6 +99,7 @@ def get_active_instances():
             d = tags_to_dict(i.tags)
             print d['Name']
 
+# TODO: vpc_cleanup isn't actually cleaning up anything
 @task
 def vpc_cleanup():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
@@ -104,9 +109,9 @@ def vpc_cleanup():
     vpc_response = ec2_client.describe_account_attributes(AttributeNames=['default-vpc'])
     
     for account_information in vpc_response['AccountAttributes']:
-        if account_information['AttributeName'] == 'default_vpc':
+        if account_information['AttributeName'] == 'default-vpc':
             for attribute_value in account_information['AttributeValues']:
-                all_default_vpc.append(attribute_value['AttributeValue']):
+                all_default_vpc.append(attribute_value['AttributeValue'])
 
     print 'Default VPCs are {}'.format(all_default_vpc)
     if len(all_default_vpc) == 0:
@@ -240,7 +245,7 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
             },
         ],
         'SubnetId': subnet.subnet_id,
-        'EbsOptimized': True,
+        'EbsOptimized': False,
         'Placement': {
             'AvailabilityZone': AWS_AVAILABILITY_ZONE,
         },
@@ -248,16 +253,19 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
 
     param_instances = ec2_client.request_spot_instances(DryRun=use_dry_run,SpotPrice=param_spot_bid, InstanceCount=instance_count,
                                                  LaunchSpecification=launch_specification)
-    spot_request_id = param_instances['SpotInstanceRequests']
+    spot_request_id = param_instances['SpotInstanceRequests'][0]['SpotInstanceRequestId']
 
     all_instances = []
-    while all_instances == []:
-        all_instances = ec2_client.describe_spot_instance_requests()['SpotInstanceRequests']
+    while all_instances == [] or all_instances['State'] == 'open':
+        all_instances = ec2_client.describe_spot_instance_requests(SpotInstanceRequestIds=[spot_request_id])
+        all_instances = all_instances['SpotInstanceRequests'][0]
+        if all_instances['State'] == None:
+            all_instances = []
         print all_instances
         print 'checked describe spot instances'
-        sleep(10)
+        sleep(20)
         
-    return param_instances
+    return all_instances
 
 #Boot Reserved Instance
 def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count, volume_size):
@@ -313,10 +321,14 @@ def launch():
     #Launch Parameter servers
     for param_servers in range(NUM_PARAM_SERVERS):
         inst_name = '{}{}'.format(ps_base_name, param_servers)
-        instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, vpc, subnet, security_group, 1, 200)
-        for instance in instances:
-            print 'Parameter server setup at {}'.format(instance.public_ip_address)
-            all_param_server_ips.append(instance)
+        instance = setup_spot_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, subnet, 1)
+        instance_id = instance['InstanceId']
+        instance_description = ec2_client.describe_instances(InstanceIds=[instance_id])
+        print '\n'
+        print instance_description
+        print 'Parameter server setup at {}'.format(instance_description['Reservations'][0]['Instances'][0]['PublicIpAddress'])
+        print '\n'
+        all_param_server_ips.append(instance)
     
     #Launch GPUs
     for instance_num in range(NUM_GPUS):
@@ -333,7 +345,10 @@ def launch():
 
     ps_string = ''
     for param_server in all_param_server_ips:
-        ps_string += '{}:2222,'.format(param_server.public_ip_address)
+        # TODO: clean up this (duplicates code in first for loop of this func)
+        instance_id = param_server['InstanceId']
+        instance_description = ec2_client.describe_instances(InstanceIds=[instance_id])
+        ps_string += '{}:2222,'.format(instance_description['Reservations'][0]['Instances'][0]['PublicIpAddress'])
     ps_string = ps_string[:-1]
             
     #Print Command to Run Tensorflow 
@@ -548,10 +563,11 @@ def terminate():
         print i
         print i.state['Name']
         if i.state['Name'] == 'running':
-            d = tags_to_dict(i.tags)
-            if d['Name'] in env.hosts:
-                i.terminate()
-                insts.append(i)
+            if i.tags != None:
+                d = tags_to_dict(i.tags)
+                if d['Name'] in env.hosts:
+                    i.terminate()
+                    insts.append(i)
             #Remove all hosts if no roles specified
             elif len(env.hosts) == 0:
                 i.terminate()
