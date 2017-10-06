@@ -6,11 +6,11 @@ anaconda and then tensorflow. Use:
 fab -f fabfile_awsgpu_distributed.py launch
 
 # wait until you can ssh into the instance with
-fab -f fabfile_awsgpu_distributed.py -H mygpu ssh
+fab -f fabfile_awsgpu_distributed.py -R mygpu ssh
 
 # install everything except S3
 #For example, if you set NUM_GPUS=4 and NUM_PARAM_SERVERS=2, you would start in the following way
-fab -f fabfile_awsgpu_distributed.py -H mygpu0,mygpu1,mygpu2,mygpu3,ps0,ps1 basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup
+fab -f fabfile_awsgpu_distributed.py -R mygpu0,mygpu1,mygpu2,mygpu3,ps0,ps1 basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup
 #Ignore the Name lookup error!
 
 #To download from s3, create a file in the same directory as this script, titled s3_config_file
@@ -39,7 +39,7 @@ AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
 #import ssh public key to AWS
-my_aws_key = 'michael'
+my_aws_key = 'lisa'
 worker_base_name = "mygpu"
 ps_base_name = "ps"
 NUM_GPUS=1
@@ -70,34 +70,38 @@ def get_target_instance():
         if i.state['Name'] == 'running':
             if i.tags != None:
                 d = tags_to_dict(i.tags)
-                if d['Name'] in env.hosts:
-                    role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
-                    host_list.append('ec2-user@{}'.format(i.public_dns_name))
-                elif len(env.hosts) == 0:
-                    role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
-                    host_list.append('ec2-user@{}'.format(i.public_dns_name))
-    env.hosts.extend(host_list)
-    env.roles = role_to_host.keys()
+                role_to_host[d['Name']] = ['ec2-user@{}'.format(i.public_dns_name)]
+                host_list.append('ec2-user@{}'.format(i.public_dns_name))
+                # if d['Name'] in env.hosts: # LISANOTE: assume one to one mapping of role to host
+                #     role_to_host[d['Name']] = ['ec2-user@{}'.format(i.public_dns_name)]
+                #     host_list.append('ec2-user@{}'.format(i.public_dns_name))
+                # elif len(env.hosts) == 0:
+                #     role_to_host[d['Name']] = ['ec2-user@{}'.format(i.public_dns_name)]
+                #     host_list.append('ec2-user@{}'.format(i.public_dns_name))
+    # env.hosts.extend(host_list)
+    # env.roles = role_to_host.keys()
     print "found", role_to_host
     return role_to_host
 
 env.disable_known_hosts = True
 env.warn_only = True
 env.roledefs.update(get_target_instance())
-print 'env.roles:'
-print env.roles
-print 'env.hosts'
-print env.hosts
+# print 'env.roles:'
+# print env.roles
+# print 'env.hosts'
+# print env.hosts
 
 
 @task
+@runs_once
 def get_active_instances():
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
     for i in ec2.instances.all():
-        if i.state['Name'] == 'running':
-            d = tags_to_dict(i.tags)
-            print d['Name']
+        if i.tags != None:
+            if i.state['Name'] == 'running':
+                d = tags_to_dict(i.tags)
+                print d['Name']
 
 # TODO: vpc_cleanup isn't actually cleaning up anything
 @task
@@ -261,11 +265,11 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
         all_instances = all_instances['SpotInstanceRequests'][0]
         if all_instances['State'] == None:
             all_instances = []
-        print all_instances
+        # print all_instances
         print 'checked describe spot instances'
-        sleep(20)
+        # sleep(20)
         
-    return all_instances
+    return ec2_resource.Instance(all_instances['InstanceId'])
 
 #Boot Reserved Instance
 def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count, volume_size):
@@ -322,11 +326,11 @@ def launch():
     for param_servers in range(NUM_PARAM_SERVERS):
         inst_name = '{}{}'.format(ps_base_name, param_servers)
         instance = setup_spot_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, subnet, 1)
-        instance_id = instance['InstanceId']
-        instance_description = ec2_client.describe_instances(InstanceIds=[instance_id])
+        # instance_id = instance['InstanceId']
+        # instance_description = ec2_client.describe_instances(InstanceIds=[instance_id])
         print '\n'
-        print instance_description
-        print 'Parameter server setup at {}'.format(instance_description['Reservations'][0]['Instances'][0]['PublicIpAddress'])
+        # print instance_description
+        print 'Parameter server setup at {}'.format(instance.public_ip_address)
         print '\n'
         all_param_server_ips.append(instance)
     
@@ -346,9 +350,7 @@ def launch():
     ps_string = ''
     for param_server in all_param_server_ips:
         # TODO: clean up this (duplicates code in first for loop of this func)
-        instance_id = param_server['InstanceId']
-        instance_description = ec2_client.describe_instances(InstanceIds=[instance_id])
-        ps_string += '{}:2222,'.format(instance_description['Reservations'][0]['Instances'][0]['PublicIpAddress'])
+        ps_string += '{}:2222,'.format(param_server.public_ip_address)
     ps_string = ps_string[:-1]
             
     #Print Command to Run Tensorflow 
@@ -384,9 +386,11 @@ def stop_inception_experiment():
 @task
 @parallel
 def ssh():
+    print '\n'
     print env.host_string
-    local("ssh -A " + env.host_string)
+    local('ssh -A ' + env.host_string)
     print env.host_string
+    print '\n'
 
 @task
 def tensorboard():
@@ -555,24 +559,26 @@ def keras_setup():
 
 
 @task
+@runs_once
 def terminate():
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
     insts = []
     for i in ec2.instances.all():
-        print i
-        print i.state['Name']
-        if i.state['Name'] == 'running':
-            if i.tags != None:
-                d = tags_to_dict(i.tags)
-                if d['Name'] in env.hosts:
-                    i.terminate()
-                    insts.append(i)
-            #Remove all hosts if no roles specified
-            elif len(env.hosts) == 0:
-                i.terminate()
-                print 'terminated'
-                insts.append(i)
+        i.terminate()
+        # print i
+        # print i.state['Name']
+        # if i.state['Name'] == 'running':
+        #     if i.tags != None:
+        #         d = tags_to_dict(i.tags)
+        #         if d['Name'] in env.hosts:
+        #             i.terminate()
+        #             insts.append(i)
+        #     #Remove all hosts if no roles specified
+        #     elif len(env.hosts) == 0:
+        #         i.terminate()
+        #         print 'terminated'
+        #         insts.append(i)
 
 @task
 @parallel
