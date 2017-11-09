@@ -7,7 +7,7 @@ Fabric file to help with launching EC2 P2 instances and getting GPU support set 
 
 First go into the file, set the aws_public_key, aws availability zone, number of workers (`NUM_GPUs`), and number of parameter servers (`NUM_PARAM_SERVERS`).
 
-'fab -f fabfile_awsgpu_distributed.py launch'
+`fab -f fabfile_awsgpu_distributed.py launch`
 
 This will output the IP addresses of each of the machines in the cluster as well as the commands to run the Inception network in each of the machines. This will save you a lot of time. I promise.
 
@@ -32,7 +32,7 @@ num_gpus represents how many workers you want to use to train the model in this 
 ## Installing TF GPU Dependencies
 Wait until you can ssh into the machines before installing dependencies:
 
-`fab -f fabfile_awsgpu_distributed.py -H mygpu ssh`
+`fab -f fabfile_awsgpu_distributed.py -R mygpu0 ssh`
 
 To install dependencies, if you set NUM_GPUS=4 and NUM_PARAM_SERVERS=2, you would start in the following way:
 
@@ -41,9 +41,13 @@ To install dependencies, if you set NUM_GPUS=4 and NUM_PARAM_SERVERS=2, you woul
 Run the setups in this order:
 
 `basic_setup`,
+
 `cuda_setup8`,
+
 `anaconda_setup`,
+
 `tf_setup`,
+
 `inception_setup`
 
 ## Setting up s3 bucket download
@@ -68,6 +72,7 @@ If you want other people to access your machine, simply go the .ssh/credentials 
 When you're done, terminate. This will terminate all machines and clean up the VPC that you set up.
 
 `fab -f fabfile_awsgpu_distributed.py terminate`
+
 `fab -f fabfile_awsgpu_distributed.py vpc_cleanup`
 
 # Go do better things in your life than setting up AWS machines.
