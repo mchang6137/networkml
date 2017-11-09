@@ -5,19 +5,32 @@ anaconda and then tensorflow. Use:
 
 fab -f fabfile_awsgpu_distributed.py launch
 
+After launch completes, the commands necessary to run the inception model will be printed out.
+Store them somewhere, as you'll need them to run the experiments.
+
 # wait until you can ssh into the instance with
-fab -f fabfile_awsgpu_distributed.py -H mygpu ssh
+fab -f fabfile_awsgpu_distributed.py ssh -R mygpu0
 
 # install everything except S3
-#For example, if you set NUM_GPUS=4 and NUM_PARAM_SERVERS=2, you would start in the following way
-fab -f fabfile_awsgpu_distributed.py -H mygpu0,mygpu1,mygpu2,mygpu3,ps0,ps1 basic_setup cuda_setup8 anaconda_setup tf_setup inception_setup
-#Ignore the Name lookup error!
+#For example, if you set NUM_GPUS=4 and NUM_PARAM_SERVERS=2, you would run the setups in the following way
+fab -f fabfile_awsgpu_distributed.py -R mygpu0,mygpu1,mygpu2,mygpu3,ps0,ps1 <setup_name>
+
+# Run the setups on both the parameter servers and the gpus in this order:
+
+basic_setup
+cuda_setup8
+anaconda_setup
+tf_setup
+inception_setup
 
 #To download from s3, create a file in the same directory as this script, titled s3_config_file
 The file should look like 
 access_key = YOUR ACCESS KEY
 secret_key = YOUR SECRET KEY
 bucket_location = YOUR BUCKET ZONE
+
+# Then, to obtain the data from the s3 bucket, run s3_setup on ONLY gpus, like this:
+# fab -f fabfile_awsgpu_distributed.py -R mygpu0,mygpu1,mygpu2,mygpu3 s3_setup
 
 # when you're done, terminate. This will terminate all machines!
 fab -f fabfile_awsgpu_distributed.py terminate
@@ -39,17 +52,17 @@ AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
 #import ssh public key to AWS
-my_aws_key = 'michael'
-worker_base_name = "mygpu"
-ps_base_name = "ps"
-NUM_GPUS=1
-NUM_PARAM_SERVERS=4
+my_aws_key = 'pranay'
+worker_base_name = "gpranayu"
+ps_base_name = "pranayserver"
+NUM_GPUS=2
+NUM_PARAM_SERVERS=1
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.8xlarge'
+WORKER_TYPE = 'p2.xlarge'
 #Parameter Server with 10Gpbs
-PS_TYPE = 'c4.8xlarge'
+PS_TYPE = 'g3.4xlarge'
 
 USER = os.environ['USER']
 
@@ -65,37 +78,42 @@ def get_target_instance():
     role_to_host = {}
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
+    # d['Name'] = role
+
     host_list = []
     for i in ec2.instances.all():
         if i.state['Name'] == 'running':
-            d = tags_to_dict(i.tags)
-            if d['Name'] in env.hosts:
-                role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
+            if i.tags != None:
+                d = tags_to_dict(i.tags)
+                role = d['Name']
+                if role not in role_to_host:
+                    role_to_host[role] = []
+                role_to_host[role].append('ec2-user@{}'.format(i.public_dns_name))
                 host_list.append('ec2-user@{}'.format(i.public_dns_name))
-            elif len(env.hosts) == 0:
-                role_to_host[d['Name']] = 'ec2-user@{}'.format(i.public_dns_name)
-                host_list.append('ec2-user@{}'.format(i.public_dns_name))
-    env.hosts.extend(host_list)
-    print "found", role_to_host
+    print "ROLES TO HOSTS"
+    print role_to_host
+    print("\n")
     return role_to_host
 
 env.disable_known_hosts = True
 env.warn_only = True
 env.roledefs.update(get_target_instance())
-print env.roles
-print env.hosts
 
 
 @task
+@runs_once
 def get_active_instances():
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
     for i in ec2.instances.all():
         if i.state['Name'] == 'running':
-            d = tags_to_dict(i.tags)
-            print d['Name']
+            if i.tags != None:
+                d = tags_to_dict(i.tags)
+                print d['Name']
+                print '{}:2222,'.format(i.public_ip_address)[:-1]
 
 @task
+@runs_once
 def vpc_cleanup():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
@@ -104,9 +122,9 @@ def vpc_cleanup():
     vpc_response = ec2_client.describe_account_attributes(AttributeNames=['default-vpc'])
     
     for account_information in vpc_response['AccountAttributes']:
-        if account_information['AttributeName'] == 'default_vpc':
+        if account_information['AttributeName'] == 'default-vpc':
             for attribute_value in account_information['AttributeValues']:
-                all_default_vpc.append(attribute_value['AttributeValue']):
+                all_default_vpc.append(attribute_value['AttributeValue'])
 
     print 'Default VPCs are {}'.format(all_default_vpc)
     if len(all_default_vpc) == 0:
@@ -219,7 +237,7 @@ def setup_network():
     return vpc, subnet, security_group
 
 #Boot Spot Instance 
-def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_type, subnet, instance_count):
+def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_type, subnet, security_group, instance_count):
     use_dry_run = False
     param_server_name = server_name
     param_server_type = server_instance_type
@@ -239,8 +257,9 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
                 },
             },
         ],
+        'SecurityGroupIds': [security_group['GroupId']],
         'SubnetId': subnet.subnet_id,
-        'EbsOptimized': True,
+        'EbsOptimized': False,
         'Placement': {
             'AvailabilityZone': AWS_AVAILABILITY_ZONE,
         },
@@ -248,16 +267,15 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
 
     param_instances = ec2_client.request_spot_instances(DryRun=use_dry_run,SpotPrice=param_spot_bid, InstanceCount=instance_count,
                                                  LaunchSpecification=launch_specification)
-    spot_request_id = param_instances['SpotInstanceRequests']
+
+    spot_request_id = param_instances['SpotInstanceRequests'][0]['SpotInstanceRequestId']
 
     all_instances = []
-    while all_instances == []:
-        all_instances = ec2_client.describe_spot_instance_requests()['SpotInstanceRequests']
-        print all_instances
-        print 'checked describe spot instances'
-        sleep(10)
+    while all_instances == [] or all_instances['State'] == 'open':
+        all_instances = ec2_client.describe_spot_instance_requests(SpotInstanceRequestIds=[spot_request_id])
+        all_instances = all_instances['SpotInstanceRequests'][0]
         
-    return param_instances
+    return all_instances
 
 #Boot Reserved Instance
 def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count, volume_size):
@@ -312,11 +330,32 @@ def launch():
     
     #Launch Parameter servers
     for param_servers in range(NUM_PARAM_SERVERS):
-        inst_name = '{}{}'.format(ps_base_name, param_servers)
-        instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, vpc, subnet, security_group, 1, 200)
-        for instance in instances:
-            print 'Parameter server setup at {}'.format(instance.public_ip_address)
-            all_param_server_ips.append(instance)
+
+        try:
+            inst_name = '{}{}'.format(ps_base_name, param_servers)
+            instance_obj = setup_spot_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, subnet, security_group, 1)
+            instance_id = instance_obj['InstanceId']
+            spot_instance = ec2_resource.Instance(instance_id)
+            spot_instance.wait_until_running()
+            spot_instance.reload()
+            spot_instance.create_tags(
+                Resources=[
+                    instance_id
+            ],
+                Tags=[
+                    {
+                        'Key': 'Name',
+                        'Value': inst_name
+                    },
+                ]
+            )
+            print 'Parameter server setup at {}'.format(spot_instance.public_ip_address)
+            all_param_server_ips.append(spot_instance)
+        except Exception as e:
+            print e
+            print 'Error setting up Parameter Server spot instance. Terminating'
+            return
+
     
     #Launch GPUs
     for instance_num in range(NUM_GPUS):
@@ -369,9 +408,7 @@ def stop_inception_experiment():
 @task
 @parallel
 def ssh():
-    print env.host_string
-    local("ssh -A " + env.host_string)
-    print env.host_string
+    local("ssh -A " + env.host_string, capture=False)
 
 @task
 def tensorboard():
@@ -385,37 +422,16 @@ def copy_model():
 @parallel
 def basic_setup():
     print env.host_string
-    print env.hosts
     run("sudo yum update -q -y")
     run("sudo yum groupinstall 'Development Tools' -q -y")
-    run("sudo yum install -q -y emacs tmux  gcc g++ dstat htop")
-    run("sudo yum install -y kernel-devel-`uname -r`")
+    run("sudo yum install -q -y emacs tmux gcc g++ dstat htop")
+    reboot()
 
 @task
 @parallel
-def cuda_setup():
-    run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/352.99/NVIDIA-Linux-x86_64-352.99.run")
-    run("wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run")
-    run("chmod +x NVIDIA-Linux-x86_64-352.99.run")
-    run("chmod +x cuda_7.5.18_linux.run")
-    sudo("./NVIDIA-Linux-x86_64-352.99.run --silent") # still requires a few prompts
-    sudo("./cuda_7.5.18_linux.run --silent --toolkit --samples")   # Don't install driver, just install CUDA and sample
-    #
-    sudo("nvidia-smi -pm 1")
-    sudo("nvidia-smi -acp 0")
-    sudo("nvidia-smi --auto-boost-permission=0")
-    sudo("nvidia-smi -ac 2505,875")
+def reboot():
+    run("sudo reboot")
 
-    # cudnn
-    with cd("/usr/local"):
-        sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
-        sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
-
-    sudo('echo "/usr/local/cuda/lib64/" >> /etc/ld.so.conf')
-    sudo('echo "/usr/local/cuda/extras/CPUTI/lib64/" >> /etc/ld.so.conf')
-    sudo('ldconfig')
-
-#Still need to configure s3cmd through s3cmd --configure
 @task
 @parallel
 def inception_setup():
@@ -430,10 +446,14 @@ def inception_setup():
     run("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
 
     run("git clone https://github.com/tensorflow/models.git")
-    with cd("~/models/inception/"):
-        run("git checkout 91c7b91f834a5a857e8168b96d6db3b93d7b9c2a")
+    with cd("~/models/research/inception"):
         run("bazel build inception/imagenet_train")
         run("bazel build inception/imagenet_distributed_train")
+
+@task
+@parallel
+def remove_tmp():
+    sudo("rm -rf /tmp/imagenet_train")
 
 @task
 @parallel
@@ -455,7 +475,6 @@ def s3_setup():
 @task
 @parallel
 def cuda_setup8():
-    #run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/370.28/NVIDIA-Linux-x86_64-370.28.run")
     run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.51/NVIDIA-Linux-x86_64-375.51.run")
     run("wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run")
     run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
@@ -472,8 +491,19 @@ def cuda_setup8():
 
     # cudnn
     with cd("/usr/local"):
-        sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
-        sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
+        # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
+        # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
+
+        # CUDNN_TAR_FILE="cudnn-8.0-linux-x64-v6.0.tgz"
+        sudo("wget http://developer.download.nvidia.com/compute/redist/cudnn/v6.0/cudnn-8.0-linux-x64-v6.0.tgz")
+        sudo("tar xvf cudnn-8.0-linux-x64-v6.0.tgz")
+        sudo("cp -P cuda/include/cudnn.h /usr/local/cuda-8.0/include")
+        sudo("cp -P cuda/lib64/libcudnn* /usr/local/cuda-8.0/lib64/")
+        sudo("chmod a+r /usr/local/cuda-8.0/lib64/libcudnn*")
+
+        # set environment variables
+        run("export PATH=/usr/local/cuda-8.0/bin${PATH:+:${PATH}}")
+        run("export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64\${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}")
 
     sudo('echo "/usr/local/cuda/lib64/" >> /etc/ld.so.conf')
     sudo('echo "/usr/local/cuda/extras/CPUTI/lib64/" >> /etc/ld.so.conf')
@@ -491,9 +521,7 @@ def anaconda_setup():
     run("pip install ruffus glob2 awscli")
     run("source .bash_profile")
 
-#TF_URL = "https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.11.0rc1-cp27-none-linux_x86_64.whl"
-#TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.0rc0-cp27-none-linux_x86_64.whl"
-TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl"
+TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.3.0-cp27-none-linux_x86_64.whl"
 @task
 @parallel
 def tf_setup():
@@ -540,23 +568,19 @@ def keras_setup():
 
 
 @task
-def terminate():
+@runs_once
+def terminate(everything=False):
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
-    insts = []
     for i in ec2.instances.all():
-        print i
-        print i.state['Name']
         if i.state['Name'] == 'running':
-            d = tags_to_dict(i.tags)
-            if d['Name'] in env.hosts:
+            if everything:
+                print(i)
                 i.terminate()
-                insts.append(i)
-            #Remove all hosts if no roles specified
-            elif len(env.hosts) == 0:
-                i.terminate()
-                print 'terminated'
-                insts.append(i)
+            elif i.tags != None:
+                d = tags_to_dict(i.tags)
+                if 'pranay' in d['Name']:
+                    i.terminate()
 
 @task
 @parallel
