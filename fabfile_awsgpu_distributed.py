@@ -597,7 +597,7 @@ def terminate(everything=False):
                 i.terminate()
             elif i.tags != None:
                 d = tags_to_dict(i.tags)
-                if 'pranay' in d['Name']:
+                if my_aws_key in d['Name']:
                     i.terminate()
 
 @task
