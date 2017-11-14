@@ -4,6 +4,7 @@ import argparse
 # Example Line that is read: 1510608248590 Send data with estimated 512 bytes. Edge name: edge_19288_gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/tuple/control_dependency. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:ps/replica:0/task:0/device:CPU:0
 def split_result_line(results):
     results = results.replace('\n', '')
+    results = results[1:]
     try:
         send_time = float(results.split(' ')[0])
 
@@ -46,6 +47,7 @@ if __name__ == "__main__":
             lines = f.readlines()
 
             for line in lines:
+
                 send_time, send_bytes, src_device, dst_device = split_result_line(line)
                 if send_time is None:
                     continue
