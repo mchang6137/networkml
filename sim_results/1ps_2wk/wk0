@@ -1,4 +1,4 @@
- estimated 128128 bytes. Edge name: edge_4113_SparseToDense. src_device: /job:worker/replica:0/task:0/device:CPU:0. dst_device: /job:worker/replica:0/task:0/device:GPU:0
+ 1510619735649 Send data with estimated 128128 bytes. Edge name: edge_4113_SparseToDense. src_device: /job:worker/replica:0/task:0/device:CPU:0. dst_device: /job:worker/replica:0/task:0/device:GPU:0
  1510619735649 Send data with estimated 128 bytes. Edge name: edge_9668_inception_v3/conv0/BatchNorm/moments/Squeeze. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:ps/replica:0/task:0/device:CPU:0
  1510619735650 Send data with estimated 128 bytes. Edge name: edge_9638_inception_v3/conv0/BatchNorm/moments/Squeeze_1. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:ps/replica:0/task:0/device:CPU:0
  1510619735650 Send data with estimated 128 bytes. Edge name: edge_9608_inception_v3/conv1/BatchNorm/moments/Squeeze. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:ps/replica:0/task:0/device:CPU:0
