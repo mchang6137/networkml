@@ -55,7 +55,7 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'pranay'
 worker_base_name = "gpranayu"
 ps_base_name = "pranayserver"
-NUM_GPUS=2
+NUM_GPUS=4
 NUM_PARAM_SERVERS=1
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
@@ -434,6 +434,12 @@ def reboot():
 
 @task
 @parallel
+def bandwidth_tools_setup():
+    # run("sudo yum --enablerepo=epel install iperf iperf3")
+    run("git clone https://github.com/tioguda/wondershaper")
+
+@task
+@parallel
 def inception_setup():
     #Install bazel
     run("wget https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-jdk7-installer-linux-x86_64.sh")
@@ -521,10 +527,16 @@ def anaconda_setup():
     run("pip install ruffus glob2 awscli")
     run("source .bash_profile")
 
-TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.3.0-cp27-none-linux_x86_64.whl"
+TF_GPU_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.3.0-cp27-none-linux_x86_64.whl"
 @task
 @parallel
-def tf_setup():
+def tf_gpu_setup():
+    run("pip install --ignore-installed --upgrade {}".format(TF_GPU_URL))
+
+TF_URL="https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl"
+@task
+@parallel
+def tf_non_gpu_setup():
     run("pip install --ignore-installed --upgrade {}".format(TF_URL))
 
 
