@@ -47,7 +47,9 @@ import boto3
 import os
 
 #tgt_ami = 'ami-b04e92d0'
-tgt_ami = 'ami-8ca83fec'
+# tgt_ami = 'ami-8ca83fec'
+# tgt_ami = 'ami-bec91fc6'
+tgt_ami = 'ami-0d7da775' # -- OUR AMI
 AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
@@ -55,14 +57,14 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'pranay'
 worker_base_name = "gpranayu"
 ps_base_name = "pranayserver"
-NUM_GPUS=4
+NUM_GPUS=1
 NUM_PARAM_SERVERS=1
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.xlarge'
+WORKER_TYPE = 'c4.2xlarge'
 #Parameter Server with 10Gpbs
-PS_TYPE = 'g3.4xlarge'
+PS_TYPE = 'm4.xlarge'
 
 USER = os.environ['USER']
 
@@ -458,6 +460,41 @@ def inception_setup():
 
 @task
 @parallel
+def updated_inception_setup():
+    run("wget https://github.com/bazelbuild/bazel/releases/download/0.7.0/bazel-0.7.0-installer-linux-x86_64.sh")
+    run("chmod +x bazel-0.7.0-installer-linux-x86_64.sh")
+    sudo("yum install -y java-1.8.0-openjdk-devel")
+    run("JAVA_HOME=/usr/lib/jvm/java-openjdk/")
+    run("export JAVA_HOME")
+    run("PATH=$PATH:$JAVA_HOME/bin")
+    run("export PATH")
+    run("./bazel-0.7.0-installer-linux-x86_64.sh --user")
+
+    run("git clone https://github.com/tensorflow/models.git")
+    with cd("~/models/research/inception"):
+        run("bazel build inception/imagenet_train")
+        run("bazel build inception/imagenet_distributed_train")
+
+@task
+@parallel
+def copy_worker_output_script():
+    local("scp worker_output.py ec2-user@" + env.host +":~/vgg/distr_vgg")
+
+
+@task
+@parallel
+# To run, ssh into gpu's/ps's, cd into `vgg/distr_vgg` and run the commands saved from basic_setup
+# (Make sure to replace starting segment with bazel-bin/vgg/imagenet_distributed_train)
+def vgg_setup():
+    run("conda update dask -y") # Ran into error on gpu
+    run("git clone https://github.com/mchang6137/models.git vgg")
+    with cd("~/vgg/"):
+        run("git checkout -b vgg_impl origin/vgg_impl")
+        with cd("distr_vgg/"):
+            run("bazel build vgg/imagenet_distributed_train")
+
+@task
+@parallel
 def remove_tmp():
     sudo("rm -rf /tmp/imagenet_train")
 
@@ -533,7 +570,7 @@ TF_GPU_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1
 def tf_gpu_setup():
     run("pip install --ignore-installed --upgrade {}".format(TF_GPU_URL))
 
-TF_URL="https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl"
+TF_URL="https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.3.0-cp27-none-linux_x86_64.whl"
 @task
 @parallel
 def tf_non_gpu_setup():
