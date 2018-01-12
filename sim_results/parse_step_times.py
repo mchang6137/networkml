@@ -1,5 +1,7 @@
 import csv
 import argparse
+import os.path
+import re
 
 import matplotlib.pylab as plt
 
@@ -8,17 +10,19 @@ import matplotlib.pylab as plt
 # Example Line that is read: 1510608248590 Send data with estimated 512 bytes. Edge name: edge_19288_gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/tuple/control_dependency. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:ps/replica:0/task:0/device:CPU:0
 
 # Model Types
-supported_models = ['vgg16', 'inception-v3']
+supported_models = ['vgg16', 'inception-v3', 'resnet-200', 'resnet-101']
 
 # Parses the full edge name
-# Deprecate this
+# Probably should be deprecated
 def parse_edge_name(train_op, model_name):
     if model_name == 'vgg16':
         return parse_vgg_model(train_op)
     elif model_name == 'inception-v3':
         return parse_inception_model(train_op)
-    elif model_name = 'resnet':
-        return parse_resnet_model(train_op)
+    elif model_name == 'resnet-200':
+        return parse_inception_model(train_op)
+    elif model_name == 'resnet-101':
+        return parse_inception_model(train_op)
     else:
         print 'Invalid model name'
         exit()
@@ -157,6 +161,13 @@ def detect_distribution_events(sorted_events,
                 elif model_name == 'inception-v3':
                     if raw_edge_name == 'mixed_35x35x256a/branch5x5/Conv/weights/Regularizer/L2Regularizer/value':
                         return distribution_events
+                elif model_name == 'resnet-200':
+                    if raw_edge_name == 'resnet_v2_200/block3/unit_26/bottleneck_v2/conv3/kernel/Regularizer/l2_regularizer':
+                        return distribution_events
+                elif model_name == 'resnet-101':
+                    print 'Resnet-100 distribution step is not supported yet. Exiting...'
+                    exit()
+                        
 
     print 'A Valid distribution set of events have not been found'
     exit()
@@ -185,6 +196,10 @@ def detect_aggregation_events(sorted_events,
                 in_aggregation = True
             elif model_name == 'vgg16' and raw_edge_name == 'vgg/conv0/BatchNorm/moments/Squeeze':
                 in_aggregation = True
+            elif model_name == 'resnet-200' and raw_edge_name == 'gradients/resnet_v2_200/logits/BiasAdd_grad/tuple/control_dependency_1':
+                in_aggregation = True
+            elif model_name == 'resnet-101' and raw_edge_name == 'resnet_v2_101/postnorm/Const_2':
+                in_aggregation = True
 
             if in_aggregation:
                 aggregation_events.append(event)
@@ -193,11 +208,16 @@ def detect_aggregation_events(sorted_events,
 	    # This IS MODEL SPECIFIC
             if in_aggregation:
                 if model_name == 'vgg16':
-                    # Hard code this!
                     if raw_edge_name == 'gradients/AddN_41':
                         return aggregation_events
                 elif model_name == 'inception-v3':
                     if raw_edge_name == 'gradients/AddN_304':
+                        return aggregation_events
+                elif model_name == 'resnet-200':
+                    if raw_edge_name == 'gradients/AddN_269':
+                        return aggregation_events
+                elif model_name == 'resnet-101':
+                    if raw_edge_name == 'gradients/AddN_137':
                         return aggregation_events
 
     print 'There is no complete aggregation grouping in this dataset. Exiting..'
@@ -296,8 +316,6 @@ def split_result_line(raw_events, model_name):
 
     event_result = []
     for results in event_list:
-        print results
-        
         # Retrieve the send time
         send_time_str = raw_events.split(' ')[0]
         try:
@@ -306,7 +324,6 @@ def split_result_line(raw_events, model_name):
             continue
 
         # Retrieve the edge of the message
-        import re
         try:
             regex = re.compile('edge_([0-9]*)')
             edge_num = int(regex.findall(results)[0])
@@ -350,28 +367,43 @@ def split_result_line(raw_events, model_name):
     return event_result
 
 # Compare the bytes sent between the nodes
-def compare_bytes_sent(sorted_time_events):
-    worker_device = '/job:worker/replica:0/task:1/device:GPU:0'
-    ps_device = '/job:ps/replica:0/task:0/device:CPU:0'
-
+def compare_bytes_sent(sorted_time_events, worker_set, ps_set):
     total_bytes_worker_ps = 0
     for event in sorted_time_events:
-        send_time, send_bytes, edge_num, src_device, dst_device = event
-        if src_device == worker_device and dst_device == ps_device:
+        send_time, send_bytes, edge_num, src_device, dst_device, raw_edgename = event
+        if src_device in worker_set and dst_device in ps_set:
             total_bytes_worker_ps += send_bytes
+        else:
+            print event
 
     total_bytes_ps_worker = 0
     for event in sorted_time_events:
-        send_time, send_bytes, edge_num, src_device, dst_device = event
-        if src_device == ps_device and dst_device == worker_device:
+        send_time, send_bytes, edge_num, src_device, dst_device, raw_edgename = event
+        if src_device in ps_set and dst_device in worker_set:
             total_bytes_ps_worker += send_bytes
 
     print 'Worker to Parameter server is {}'.format(total_bytes_worker_ps / (10 ** 9))
     print 'Parameter Server to worker is {}'.format(total_bytes_ps_worker / (10 ** 9))
 
+# Determines how the model is split between the parameter servers
+def find_ps_partition(sorted_time_events, worker_of_interest, ps_set):
+    ps_to_bytes = dict.fromkeys(ps_set, 0)
+    ps_to_count = dict.fromkeys(ps_set, 0)
+    
+    for event in sorted_time_events:
+        send_bytes = event[1]
+        src_device = event[3]
+        dst_device = event[4]
+        
+        if src_device == worker_of_interest and dst_device in ps_set:
+            ps_to_bytes[dst_device] += send_bytes
+            ps_to_count[dst_device] += 1
+
+    return ps_to_bytes, ps_to_count
+
 
 # Calculate the amount of time leftover as a result of network contention
-def compare_times(sorted_time_events, num_workers, ps_bandwidth, for_aggregation=True):
+def compare_times(sorted_time_events, num_workers, ps_bandwidth, for_aggregation=True, for_multicast=False):
     most_recent_send_event = 0
 
     time_byte = {}
@@ -397,7 +429,13 @@ def compare_times(sorted_time_events, num_workers, ps_bandwidth, for_aggregation
 
         bytes_to_send = time_byte[sorted_times[time_index]]
         bits_to_send = bytes_to_send * 8
-        gb_to_send = num_workers * bits_to_send / (10 ** 9)
+        if for_multicast is True and for_aggregation is False:
+            gb_to_send = bits_to_send / (10 ** 9)
+        else:
+            gb_to_send = num_workers * bits_to_send / (10 ** 9)
+            
+            
+            
         gb_to_send += outstanding_gb
 
         bandwidth = gb_to_send / float(times_to_send)
@@ -446,7 +484,7 @@ def plot_send_times(flow_event_time, worker_device, ps_device):
     plt.show()
 
 # plots the amount of remaining bits
-def plot_worker_remaining_bits(distr_events, agg_events, bandwidth, model_name):
+def plot_worker_remaining_bits(distr_events, agg_events, multicast_events, bandwidth, model_name):
     all_lines = []
     
     distr_lists = sorted(distr_events.items())
@@ -459,11 +497,98 @@ def plot_worker_remaining_bits(distr_events, agg_events, bandwidth, model_name):
     agg_line, = plt.plot(x,y,label='Aggregation')
     all_lines.append(agg_line)
 
+    multicast_lists = sorted(multicast_events.items())
+    x,y = zip(*multicast_lists)
+    multicast_line, = plt.plot(x,y,label='Distribution with Multicast')
+    all_lines.append(multicast_line)
+    
     plt.legend(handles=all_lines)
     plt.title('{}, Param server bandwidth = {}gbps'.format(model_name, bandwidth))
     plt.xlabel('Number of workers')
     plt.ylabel('Network overhead (sec)')
     plt.show()
+
+# Includes the total events and separates it the events out by step
+def parse_result_file_iteration(result_file_list, model_name):
+    time_event = []
+    step_events = {}
+    step_events[0] = {}
+
+    for result_file in result_file_list:
+        current_step = 0
+	if os.path.isfile(result_file) is False:
+            continue
+        with open(result_file) as f:
+            lines = f.readlines()
+            events = []
+            relevant_lines = []
+            for line in lines:
+                if ': step ' in line:
+                    # Read the current step (sometimes steps are skipped)
+                    try:
+                        regex = re.compile('step ([0-9]*)')
+                        current_step = int(regex.findall(line)[0])
+                    except:
+                        print line
+                        exit()
+                    step_events[current_step] = {}
+                events = parse_raw_line(line, model_name)
+                for event in events:
+                    raw_edgename = event[5]
+                    step_events[current_step][raw_edgename] = event
+                    
+    return step_events
+
+def parse_result_file(result_file_list, model_name):
+    device_set = []
+    src_device_event = {}
+    src_dst_count = {}
+    src_dst_bytes = {}
+    # Present results based on occurance
+    time_event = []
+    
+    for result_file in result_file_list:
+        if os.path.isfile(result_file) is False:
+            continue
+        with open(result_file) as f:
+            lines = f.readlines()
+
+            for line in lines:
+                time_event += parse_raw_line(line, model_name)
+
+    return time_event
+
+# Parses each line, accounting for weird formatting issues.
+def parse_raw_line(line, model_name):
+    time_event = []
+
+    split_line = split_result_line(line, model_name)
+    for result in split_line:
+        send_time, send_bytes, edge_dict, src_device, dst_device, raw_edgename = result
+        if send_time is None:
+            continue
+        
+        # Store the results by time
+        event_tuple = (send_time, send_bytes, edge_dict, src_device, dst_device, raw_edgename)
+        time_event.append(event_tuple)
+        
+    return time_event
+
+def separate_device_list(device_set):
+    # Sort the tuple by time_event
+    worker_device_set = []
+    ps_device_set = []
+
+    for device in device_set:
+        # Change to CPU if doing per core training
+        if 'GPU' in device and 'job:worker' in device:
+            worker_device_set.append(device)
+        elif 'CPU' in device and 'job:ps' in device:
+            ps_device_set.append(device)
+        else:
+            print 'Device {} not an important device'.format(device)
+            
+    return worker_device_set, ps_device_set
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -487,83 +612,56 @@ if __name__ == "__main__":
         file_name = base_file + '/ps' + str(ps_index)
         result_file_list.append(file_name)
 
-    # Present results by device
-    device_set = []
-    src_device_event = {}
-    src_dst_count = {}
-    src_dst_bytes = {}
-    # Present results based on occurance
-    time_event = []
+    time_event, device_set = parse_result_file(result_file_list, args.model_name)
 
-    for result_file in result_file_list:
-        with open(result_file) as f:
-            lines = f.readlines()
-
-            for line in lines:
-                split_line = split_result_line(line, args.model_name)
-
-                for result in split_line:
-                    send_time, send_bytes, edge_dict, src_device, dst_device, raw_edgename = result
-                    if send_time is None:
-                        continue
-
-                    if src_device not in device_set: device_set.append(src_device)
-                    if dst_device not in device_set: device_set.append(dst_device)
-
-                    # Record per-flow information
-                    flow = (src_device, dst_device)
-                    if flow not in src_dst_count: src_dst_count[flow] = 0
-                    if flow not in src_dst_bytes: src_dst_bytes[flow] = 0
-                    src_dst_count[flow] += 1
-                    src_dst_bytes[flow] += (send_bytes * 8 / (10 ** 9))
-                
-                    # Store the results by time
-                    event_tuple = (send_time, send_bytes, edge_dict, src_device, dst_device, raw_edgename)
-                    time_event.append(event_tuple)
-                    
     # Sort the tuple by 
     time_event = sorted(time_event, key=lambda x: x[0])
 
-    # Sort the tuple by time_event
-    worker_device_set = []
-    ps_device_set = []
+    device_set = []
+    for event in time_event:
+        src_device = event[3]
+        dst_device = event[4]
+        if src_device not in device_set: device_set.append(src_device)
+        if dst_device not in device_set: device_set.append(dst_device)
 
-    for device in device_set:
-        # Change to CPU if doing per core training
-        if 'GPU' in device and 'job:worker' in device:
-            worker_device_set.append(device)
-        elif 'CPU' in device and 'job:ps' in device:
-            ps_device_set.append(device)
-        else:
-            print 'Device {} not an important device'.format(device)
+    worker_device_set, ps_device_set = separate_device_list(device_set)
+
+    dist_worker_extrapolate = ['/job:worker/replica:0/task:0/device:GPU:0']
+    agg_worker_extrapolate = ['/job:worker/replica:0/task:1/device:GPU:0']
 
     distribution_events = detect_distribution_events(time_event,
                                                      args.model_name,
-                                                     worker_device_set,
+                                                     dist_worker_extrapolate,
                                                      ps_device_set,
                                                      project_more_workers=False)
     
     # For aggregation, just aggregate across workers
     aggregation_events = detect_aggregation_events(time_event,
                                                    args.model_name,
-                                                   ['/job:worker/replica:0/task:1/device:GPU:0'],
+                                                   agg_worker_extrapolate,
                                                    ps_device_set,
-                                                   project_more_workers=False)
+                                                   project_more_workers=True)
 
+    # ALWAYS RUN THIS TO ENSURE YOU'VE SELECTED THE RIGHT PLACES\
+    # Insert an exit() to see what is supposed to happen
+    compare_bytes_sent(distribution_events, dist_worker_extrapolate, ps_device_set)
+    compare_bytes_sent(aggregation_events, agg_worker_extrapolate, ps_device_set)
+    
     num_workers_to_consider = range(16)
     # In Gbps
     ps_bandwidth_to_consider = float(args.ps_bandwidth)
 
     distr_wk_bits = {}
+    multicast_distr_wk_bits = {}
     agg_wk_bits = {}
 
     for num_workers in num_workers_to_consider:
         distr_wk_bits[num_workers] = compare_times(distribution_events, num_workers, ps_bandwidth_to_consider, for_aggregation=False)
+        multicast_distr_wk_bits[num_workers] = compare_times(distribution_events, num_workers, ps_bandwidth_to_consider, for_aggregation=False, for_multicast=True)
         agg_wk_bits[num_workers] = compare_times(aggregation_events, num_workers, ps_bandwidth_to_consider, for_aggregation=True)
 
-    plot_worker_remaining_bits(distr_wk_bits, agg_wk_bits, ps_bandwidth_to_consider, args.model_name)
+    plot_worker_remaining_bits(distr_wk_bits, agg_wk_bits, multicast_distr_wk_bits, ps_bandwidth_to_consider, args.model_name)
     exit()
-
             
     '''
     Plotting section of the code!!
