@@ -313,7 +313,7 @@ def launch():
         print 'GPU setup at {}'.format(instance.public_ip_address)
         worker_instances.append(instance)
 
-    ensure_status_checks(ec2_client, all_instance_ids)
+    ensure_status_checks(ec2_client, list(all_instance_ids))
 
     worker_string = ''
     for worker in worker_instances:
@@ -348,7 +348,7 @@ def ssh():
 @task
 @parallel
 def add_to_known_hosts(): # Lets you ssh without having to type in "yes" the first time
-    local("ssh -oStrictHostKeyChecking=no " + env.host_string + " uptime", capture=False)
+    local("ssh -oStrictHostKeyChecking=no " + env.host_string, capture=False)
 
 @task
 @parallel
@@ -441,14 +441,18 @@ def unpack_instance_ids():
 
 @task
 def wait_until_running():
-    ec2 = boto3.resource('ec2', region_name=AWS_REGION)
-    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
-    all_instance_ids = unpack_instance_ids()
-    print('All instance IDs:')
-    print(all_instance_ids)
-    for instance_id in all_instance_ids:
-        inst = ec2.Instance(instance_id)
-        inst.wait_until_running()
+    #### TODO: GET WAIT TILL RUNNING TO WORK ####
+
+    # ec2 = boto3.resource('ec2', region_name=AWS_REGION)
+    # ec2_client = boto3.client('ec2', region_name=AWS_REGION)
+    # all_instance_ids = unpack_instance_ids()
+    # print('All instance IDs:')
+    # print(all_instance_ids)
+    # for instance_id in all_instance_ids:
+    #     inst = ec2.Instance(instance_id)
+    #     inst.wait_until_running()
+    
+    sleep(240)
 
     ensure_status_checks(ec2_client, all_instance_ids)
 
@@ -548,15 +552,20 @@ def instance_setup(gpu, model):
     if model not in MODEL_NAMES:
         print('Invalid model: ' + model)
         exit(1)
+    print('Basic setup time.\n')
     basic_setup()
     wait_until_running()
     add_to_known_hosts()
     if gpu:
         cuda_setup8()
+    print('Anaconda time.\n')
     anaconda_setup()
+    print('TF time.\n')
     tf_setup(gpu)
+    print('Bazel time.\n')
     bazel_setup()
     remove_tmp()
+    print(model + ' setup time.\n')
     if model == 'vgg':
         vgg_fresh_setup()
     elif model == 'alexnet':
