@@ -59,13 +59,13 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'pranay'
 worker_base_name = "gpranayu"
 ps_base_name = "pranayserver"
-NUM_GPUS=1
-NUM_PARAM_SERVERS=1
+NUM_GPUS=4
+NUM_PARAM_SERVERS=4
 worker_names = [worker_base_name + str(x) for x in range(NUM_GPUS)]
 ps_names = [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.xlarge'
+WORKER_TYPE = 'g3.4xlarge'
 PS_TYPE = 'i3.large'
 
 USER = os.environ['USER']
@@ -348,7 +348,8 @@ def ssh():
 @task
 @parallel
 def add_to_known_hosts(): # Lets you ssh without having to type in "yes" the first time
-    local("ssh -oStrictHostKeyChecking=no " + env.host_string, capture=False)
+    local("ssh -A -oStrictHostKeyChecking=no " + env.host_string, capture=False)
+    run("exit")
 
 @task
 @parallel
@@ -444,17 +445,17 @@ def wait_until_running():
     #### TODO: GET WAIT TILL RUNNING TO WORK ####
 
     # ec2 = boto3.resource('ec2', region_name=AWS_REGION)
-    # ec2_client = boto3.client('ec2', region_name=AWS_REGION)
-    # all_instance_ids = unpack_instance_ids()
+    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
+    all_instance_ids = unpack_instance_ids()
     # print('All instance IDs:')
     # print(all_instance_ids)
     # for instance_id in all_instance_ids:
     #     inst = ec2.Instance(instance_id)
     #     inst.wait_until_running()
     
-    sleep(240)
+    sleep(180)
 
-    ensure_status_checks(ec2_client, all_instance_ids)
+    # ensure_status_checks(ec2_client, all_instance_ids)
 
 @task
 @parallel
@@ -555,7 +556,7 @@ def instance_setup(gpu, model):
     print('Basic setup time.\n')
     basic_setup()
     wait_until_running()
-    add_to_known_hosts()
+    # add_to_known_hosts()
     if gpu:
         cuda_setup8()
     print('Anaconda time.\n')
@@ -678,5 +679,5 @@ def terminate(everything=False):
                 i.terminate()
             elif i.tags != None:
                 d = tags_to_dict(i.tags)
-                if 'pranay' in d['Name']:
+                if my_aws_key in d['Name']:
                     i.terminate()
