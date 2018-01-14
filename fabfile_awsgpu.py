@@ -32,12 +32,13 @@ import os
 
 tgt_ami = 'ami-b04e92d0'
 AWS_REGION = 'us-west-2'
-my_aws_key = 'michael'
+my_aws_key = 'lisa'
 instance_name = "mygpu"
 role_name = instance_name
 CONDA_DIR = "$HOME/anaconda"
-INSTANCE_TYPE = 'p2.xlarge'
+INSTANCE_TYPE = 'p2.xlarge' # Use p2.8xlarge
 USER = os.environ['USER']
+
 # this is a dumb hack but whatever
 if os.path.exists("fabfile_{}.py".format(USER)):
     exec("from fabfile_{} import *".format(USER))

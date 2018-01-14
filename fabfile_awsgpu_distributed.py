@@ -64,6 +64,7 @@ NUM_PARAM_SERVERS=4
 worker_names = [worker_base_name + str(x) for x in range(NUM_GPUS)]
 ps_names = [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
+# Note: need p2 instances for the nvidia gpu's
 CONDA_DIR = "$HOME/anaconda"
 WORKER_TYPE = 'g3.4xlarge'
 PS_TYPE = 'i3.large'
@@ -95,7 +96,6 @@ env.disable_known_hosts = True
 env.warn_only = True
 env.roledefs.update(get_target_instance())
 
-
 @task
 @runs_once
 def get_active_instances():
@@ -109,7 +109,13 @@ def get_active_instances():
                 print('{}:2222,'.format(i.public_ip_address)[:-1])
                 print('ec2-user@{}'.format(i.public_dns_name))
 
-
+# TODO: vpc_cleanup isn't actually cleaning up anything
+@task
+@runs_once
+def vpc_cleanup():
+    ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
+    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
+    
 ######################## LAUNCH COMMANDS ################################
 
 def setup_network():
@@ -178,15 +184,14 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
 
     param_instances = ec2_client.request_spot_instances(DryRun=use_dry_run,SpotPrice=param_spot_bid, InstanceCount=instance_count,
                                                  LaunchSpecification=launch_specification)
-
     spot_request_id = param_instances['SpotInstanceRequests'][0]['SpotInstanceRequestId']
 
     all_instances = []
     while all_instances == [] or all_instances['State'] == 'open':
         all_instances = ec2_client.describe_spot_instance_requests(SpotInstanceRequestIds=[spot_request_id])
         all_instances = all_instances['SpotInstanceRequests'][0]
-        
     return all_instances
+
 
 #Boot Reserved Instance
 def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count, volume_size):
@@ -274,7 +279,6 @@ def launch():
     
     #Launch Parameter Servers
     for param_servers in range(NUM_PARAM_SERVERS):
-
         try:
             inst_name = '{}{}'.format(ps_base_name, param_servers)
             instance_obj = setup_spot_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, subnet, security_group, 1)
@@ -302,7 +306,6 @@ def launch():
             print e
             print 'Error setting up Parameter Server spot instance. Terminating'
             return
-
     
     #Launch GPUs
     for instance_num in range(NUM_GPUS):
@@ -321,6 +324,7 @@ def launch():
     worker_string = worker_string[:-1]
 
     ps_string = ''
+
     for param_server in ps_instances:
         ps_string += '{}:2222,'.format(param_server.public_ip_address)
     ps_string = ps_string[:-1]
@@ -340,6 +344,20 @@ def launch():
 
 ################################################################
 
+@task
+@parallel
+def stop_inception_experiment():
+    print 'hi'
+
+@task
+@parallel
+def ssh_v():
+    print '\n'
+    print env.host_string
+    local('ssh -A ' + env.host_string + ' -vvv')
+    print env.host_string
+    print '\n'
+        
 @task
 @parallel
 def ssh():
@@ -479,7 +497,8 @@ def s3_setup():
 def cuda_setup8():
     run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.51/NVIDIA-Linux-x86_64-375.51.run")
     run("wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run")
-    run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
+    # run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
+    run("mv NVIDIA-Linux-x86_64-375.66.run driver.run")
     run("mv cuda_8.0.44_linux-run cuda.run")
     run("chmod +x driver.run")
     run("chmod +x cuda.run")
@@ -492,6 +511,11 @@ def cuda_setup8():
     sudo("nvidia-smi -ac 2505,875")
 
     # cudnn
+    # with cd("/usr/local"):
+        # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
+        # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
+    
+    # cudnn again
     with cd("/usr/local"):
         # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
         # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
@@ -581,7 +605,8 @@ def instance_setup(gpu, model):
 
 @task
 @runs_once
-def vpc_cleanup():
+def 
+():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
