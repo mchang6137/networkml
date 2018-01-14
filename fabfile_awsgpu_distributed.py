@@ -187,7 +187,7 @@ def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_t
 
 
 #Boot Reserved Instance
-def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count, volume_size):
+def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count, volume_size, is_worker):
     use_dry_run = False
 
     BlockDeviceMappings=[
@@ -206,7 +206,7 @@ def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_inst
     instances = ec2_resource.create_instances(ImageId=tgt_ami, MinCount=instance_count, MaxCount=instance_count,
                                               KeyName=my_aws_key, InstanceType=server_instance_type, SubnetId=subnet.subnet_id, SecurityGroupIds=[security_group['GroupId']],
                                      BlockDeviceMappings = BlockDeviceMappings,
-                                     EbsOptimized=True
+                                     EbsOptimized=is_worker
     )
 
     instance = instances[0]
@@ -269,42 +269,21 @@ def launch():
     ps_instances = []
     worker_instances = []
     all_instance_ids = []
-    
-    #Launch Parameter Servers
-    for param_servers in range(NUM_PARAM_SERVERS):
-        try:
-            inst_name = '{}{}'.format(ps_base_name, param_servers)
-            instance_obj = setup_spot_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, subnet, security_group, 1)
-            
-            instance_id = instance_obj['InstanceId']
-            all_instance_ids.append(instance_id)
-            
-            spot_instance = ec2_resource.Instance(instance_id)
-            spot_instance.wait_until_running()
-            spot_instance.reload()
-            spot_instance.create_tags(
-                Resources=[
-                    instance_id
-            ],
-                Tags=[
-                    {
-                        'Key': 'Name',
-                        'Value': inst_name
-                    },
-                ]
-            )
-            print 'Parameter server setup at {}'.format(spot_instance.public_ip_address)
-            ps_instances.append(spot_instance)
-        except Exception as e:
-            print e
-            print 'Error setting up Parameter Server spot instance. Terminating'
-            return
+
+    #Launch Paramter Servers
+    for instance_num in range(NUM_PARAM_SERVERS):
+        inst_name = '{}{}'.format(ps_base_name, instance_num)
+        instance = setup_reserved_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, vpc, subnet, security_group, 1, 200, False)
+        
+        all_instance_ids.append(instance.instance_id)
+        print 'PS setup at {}'.format(instance.public_ip_address)
+        ps_instances.append(instance)
     
     #Launch GPUs
     for instance_num in range(NUM_GPUS):
         inst_name = '{}{}'.format(worker_base_name, instance_num)
-        instance = setup_reserved_instance(ec2_client, ec2_resource, inst_name, WORKER_TYPE, vpc, subnet, security_group, 1, 200)
-        
+        instance = setup_reserved_instance(ec2_client, ec2_resource, inst_name, WORKER_TYPE, vpc, subnet, security_group, 1, 200, True)
+
         all_instance_ids.append(instance.instance_id)
         print 'GPU setup at {}'.format(instance.public_ip_address)
         worker_instances.append(instance)
@@ -360,6 +339,7 @@ def basic_setup():
 @task
 @parallel
 def bazel_setup():
+    run("conda update dask -y")
     run("wget https://github.com/bazelbuild/bazel/releases/download/0.7.0/bazel-0.7.0-installer-linux-x86_64.sh")
     run("chmod +x bazel-0.7.0-installer-linux-x86_64.sh")
     sudo("yum install -y java-1.8.0-openjdk-devel")
@@ -531,6 +511,8 @@ def tf_setup(gpu):
 
     run("pip install tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl")
 
+######### AUTOMATE SETUP ##########
+
 @task
 @parallel
 def cpu_setup(model_name):
@@ -571,6 +553,14 @@ def instance_setup(gpu, model):
         inception_setup()
     elif model == 'resnet':
         resnet_setup()
+
+
+########## AUTOMATE EXPERIMENT ###############
+
+@task
+@parallel
+def run_worker_experiment(model):
+    print('yo')
 
 
 ############################################################################
