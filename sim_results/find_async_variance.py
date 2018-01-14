@@ -20,6 +20,17 @@ aggregation_end_dict = {'inception-v3': ['gradients/AddN_304'],
                    'vgg16': ['gradients/AddN_41'],
                    }
 
+# Worker indicates to parameter servers that it is ready to receive the
+# updated parameters. Same for all models.
+trigger_variables = 'sync_rep_local_step/read'
+
+# First step in the back propagation step
+first_back_prop = {'inception-v3': ['gradients/AddN'],
+                   'resnet-200': ['gradients/AddN'],
+                   'resnet-101': ['gradients/AddN'],
+                   'vgg16': ['gradients/vgg/logits/xw_plus_b_grad/tuple/control_dependency_1', 'gradients/AddN'],
+                   }
+
 sync_local_step_time = 'sync_rep_local_step/read'
 
 def plot_variances(all_variance_median, all_variance_90, all_variance_10, model_name):
@@ -37,11 +48,29 @@ def plot_variances(all_variance_median, all_variance_90, all_variance_10, model_
 
 # Plots a dict of worker -> a list of outputs
 def plot_variable_distributions(worker_plot, model_name, title):
+    base_dir = 'async_analysis/{}/'.format(model_name)
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+
+    num_rows = 2
+    num_columns = (len(worker_plot.keys()) / 2) + (len(worker_plot.keys()) % 2)
+    fig, ax = plt.subplots(num_rows, num_columns)
+
+    row_counter = 0
+    col_counter = 0
     for num_workers in worker_plot:
-        plt.hist(worker_plot[num_workers])
-        plt.title('{} for {} workers, {}'.format(title, num_workers, model_name))
-        plt.xlabel('ms after sync dequeue')
-        plt.show()
+        ax[row_counter, col_counter].hist(worker_plot[num_workers])
+        ax[row_counter, col_counter].set_title('{} workers'.format(num_workers))
+
+        col_counter += 1
+        if col_counter == num_columns:
+            row_counter += 1
+            col_counter = 0
+
+    plt.tight_layout()
+    plt.suptitle('{} for {}'.format(title, model_name))
+    plt.savefig('{}_{}_{}_ALL'.format(base_dir, model_name, title))
+    plt.show()
     
 '''
 Iterates through all the iterations in a particular run and determines the variance per variable per machine
@@ -130,6 +159,35 @@ if __name__ == "__main__":
         if candidate in variance_per_setup[2]:
             aggregation_end = candidate
             break
+
+    # Calculate the distribution of the time between
+    # 1.) sync_local_step and first backpropagation step
+    # 2.) first back_propagation step and last back_propagation step
+    sync_local_step_time = 'sync_rep_local_step/read'
+    first_back_prop_event = first_back_prop[args.model_name][0]
+    start_to_first_grad = {}
+    first_grad_to_last_grad = {}
+    for worker_count in all_results_per_setup:
+        try:
+            sync_local_step = all_results_per_setup[worker_count][sync_local_step_time]
+            first_grad = all_results_per_setup[worker_count][first_back_prop_event]
+            last_grad = all_results_per_setup[worker_count][aggregation_end]
+        except KeyError:
+            print worker_count
+            continue
+
+        start_to_first_grad[worker_count] = []
+        first_grad_to_last_grad[worker_count] = []
+
+        for step_num in first_grad:
+            for wk_id in first_grad[step_num]:
+                start_to_first_grad[worker_count].append(first_grad[step_num][wk_id] - sync_local_step[step_num][wk_id])
+                first_grad_to_last_grad[worker_count].append(last_grad[step_num][wk_id] - first_grad[step_num][wk_id])
+
+    plot_variable_distributions(start_to_first_grad, args.model_name, 'Start to first grad')
+    plot_variable_distributions(first_grad_to_last_grad, args.model_name, 'First to last grad')
+    print 'Existing after last plot'
+    exit()
 
     # Calculate the distribution of specific variables relative to a start
     start_latency = {}
