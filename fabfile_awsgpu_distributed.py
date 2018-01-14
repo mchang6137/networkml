@@ -108,13 +108,6 @@ def get_active_instances():
                 print d['Name']
                 print('{}:2222,'.format(i.public_ip_address)[:-1])
                 print('ec2-user@{}'.format(i.public_dns_name))
-
-# TODO: vpc_cleanup isn't actually cleaning up anything
-@task
-@runs_once
-def vpc_cleanup():
-    ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
-    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
     
 ######################## LAUNCH COMMANDS ################################
 
@@ -343,20 +336,6 @@ def launch():
             f.write('\n')
 
 ################################################################
-
-@task
-@parallel
-def stop_inception_experiment():
-    print 'hi'
-
-@task
-@parallel
-def ssh_v():
-    print '\n'
-    print env.host_string
-    local('ssh -A ' + env.host_string + ' -vvv')
-    print env.host_string
-    print '\n'
         
 @task
 @parallel
@@ -495,7 +474,7 @@ def s3_setup():
 @task
 @parallel
 def cuda_setup8():
-    run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.51/NVIDIA-Linux-x86_64-375.51.run")
+    run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.66/NVIDIA-Linux-x86_64-375.66.run")
     run("wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run")
     # run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
     run("mv NVIDIA-Linux-x86_64-375.66.run driver.run")
@@ -509,16 +488,9 @@ def cuda_setup8():
     sudo("nvidia-smi -acp 0")
     sudo("nvidia-smi --auto-boost-permission=0")
     sudo("nvidia-smi -ac 2505,875")
-
-    # cudnn
-    # with cd("/usr/local"):
-        # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
-        # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
     
-    # cudnn again
+    # cudnn
     with cd("/usr/local"):
-        # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
-        # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
 
         # CUDNN_TAR_FILE="cudnn-8.0-linux-x64-v6.0.tgz"
         sudo("wget http://developer.download.nvidia.com/compute/redist/cudnn/v6.0/cudnn-8.0-linux-x64-v6.0.tgz")
@@ -605,8 +577,7 @@ def instance_setup(gpu, model):
 
 @task
 @runs_once
-def 
-():
+def vpc_cleanup():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
