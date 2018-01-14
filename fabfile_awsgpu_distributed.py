@@ -497,17 +497,15 @@ def anaconda_setup():
     run("source .bash_profile")
 
 TF_GPU_URL = "https://raw.githubusercontent.com/mchang6137/tensorflow/master/whl/gpu_whl/tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl"
-@task
-@parallel
-def tf_gpu_setup():
-    run("wget {}".format(TF_GPU_URL))
-    run("pip install tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl")
-
 TF_CPU_URL = "https://raw.githubusercontent.com/mchang6137/tensorflow/master/whl/cpu_whl/tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl"
 @task
 @parallel
-def tf_non_gpu_setup():
-    run("wget {}".format(TF_CPU_URL))
+def tf_setup(gpu):
+    if gpu:
+        run("wget {}".format(TF_GPU_URL))
+    else:
+        run("wget {}".format(TF_CPU_URL))
+
     run("pip install tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl")
 
 @task
@@ -533,10 +531,7 @@ def instance_setup(gpu, model):
     if gpu:
         cuda_setup8()
     anaconda_setup()
-    if gpu:
-        tf_gpu_setup()
-    else:
-        tf_cpu_setup()
+    tf_setup(gpu)
     bazel_setup()
     remove_tmp()
     if model == 'vgg':
