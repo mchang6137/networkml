@@ -332,6 +332,12 @@ def launch():
         for i, param_server in enumerate(ps_instances):
             f.write('CUDA_VISIBLE_DEVICES=\'\' bazel-bin/inception/imagenet_distributed_train --batch_size=32 --job_name=\'ps\' --task_id={} --ps_hosts={} --worker_hosts={} |& tee ps{}.txt\n'.format(i, ps_string, worker_string, i))
         
+
+    with open('all_instance_ids.txt', 'w') as f:
+        for instance_id in all_instance_ids:
+            f.write(instance_id)
+            f.write('\n')
+
 ################################################################
 
 @task
@@ -430,6 +436,22 @@ def remove_tmp():
 def reboot():
     run("sudo reboot")
 
+def unpack_instance_ids():
+    return open("all_instance_ids.txt").read().splitlines()
+
+@task
+def wait_until_running():
+    ec2 = boto3.resource('ec2', region_name=AWS_REGION)
+    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
+    all_instance_ids = unpack_instance_ids()
+    print('All instance IDs:')
+    print(all_instance_ids)
+    for instance_id in all_instance_ids:
+        inst = ec2.Instance(instance_id)
+        inst.wait_until_running()
+
+    ensure_status_checks(ec2_client, all_instance_ids)
+
 @task
 @parallel
 def s3_setup():
@@ -527,6 +549,7 @@ def instance_setup(gpu, model):
         print('Invalid model: ' + model)
         exit(1)
     basic_setup()
+    wait_until_running()
     add_to_known_hosts()
     if gpu:
         cuda_setup8()
