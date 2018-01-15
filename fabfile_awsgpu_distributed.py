@@ -48,6 +48,8 @@ import os
 
 #tgt_ami = 'ami-b04e92d0'
 tgt_ami = 'ami-8ca83fec'
+#tgt_ami = 'ami-bec91fc6'
+
 AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
@@ -55,16 +57,16 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'michael'
 worker_base_name = "gpu"
 ps_base_name = "ps"
-NUM_GPUS=2
-NUM_PARAM_SERVERS=1
+NUM_GPUS=12
+NUM_PARAM_SERVERS=2
 
 all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 # Note: need p2 instances for the nvidia gpu's
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.xlarge'
+WORKER_TYPE = 'g3.4xlarge'
 #Parameter Server with 10Gpbs
-PS_TYPE = 'g3.4xlarge'
+PS_TYPE = 'i3.large'
 
 USER = os.environ['USER']
 
@@ -333,7 +335,10 @@ def launch():
     for param_servers in range(NUM_PARAM_SERVERS):
         try:
             inst_name = '{}{}'.format(ps_base_name, param_servers)
-            instance_obj = setup_spot_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, subnet, security_group, 1)
+            #instance_obj = setup_spot_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, subnet, security_group, 1)
+            reserved_instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, vpc, subnet, security_group, 1, 200)
+
+            '''
             instance_id = instance_obj['InstanceId']
             spot_instance = ec2_resource.Instance(instance_id)
             spot_instance.wait_until_running()
@@ -349,8 +354,10 @@ def launch():
                     },
                 ]
             )
-            print 'Parameter server setup at {}'.format(spot_instance.public_ip_address)
-            all_param_server_ips.append(spot_instance)
+            '''
+            for reserved_instance in reserved_instances:
+                print 'Parameter server setup at {}'.format(reserved_instance.public_ip_address)
+                all_param_server_ips.append(reserved_instance)
         except Exception as e:
             print e
             print 'Error setting up Parameter Server spot instance. Terminating'
@@ -486,8 +493,8 @@ def s3_setup():
 def cuda_setup8():
     run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.51/NVIDIA-Linux-x86_64-375.51.run")
     run("wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run")
-    # run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
-    run("mv NVIDIA-Linux-x86_64-375.66.run driver.run")
+    run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
+    #run("mv NVIDIA-Linux-x86_64-375.66.run driver.run")
     run("mv cuda_8.0.44_linux-run cuda.run")
     run("chmod +x driver.run")
     run("chmod +x cuda.run")
@@ -545,13 +552,19 @@ TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.3.0
 def tf_setup():
     run("pip install --ignore-installed --upgrade {}".format(TF_URL))
 
-
 @task
 @parallel
 def modified_tf_setup():
-    run("git clone -b r0.12 https://github.com/Joranson/modifiedTF.git")
-    run("mv modifiedTF tensorflow")
-    run("pip install --ignore-installed --upgrade ~/tensorflow/wheel/tensorflow-0.12.1-cp27-cp27mu-linux_x86_64.whl")
+    run("sudo rm -r /home/ec2-user/tensorflow/")
+    run("git clone https://github.com/mchang6137/tensorflow.git")
+    run("pip install --ignore-installed --upgrade /home/ec2-user/tensorflow/whl/gpu_whl/tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl")
+
+@task
+@parallel
+def modified_tf_core_setup():
+    sudo("sudo rm -r /home/ec2-user/tensorflow/")
+    run("git clone https://github.com/mchang6137/tensorflow.git")
+    run("pip install --ignore-installed --upgrade /home/ec2-user/tensorflow/whl/cpu_whl/tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl")
 
 @task
 @parallel
@@ -587,7 +600,7 @@ def keras_setup():
 
 @task
 @runs_once
-def terminate(everything=False):
+def terminate(everything=True):
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
     for i in ec2.instances.all():
