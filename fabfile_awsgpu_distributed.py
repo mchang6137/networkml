@@ -45,44 +45,40 @@ from fabric.contrib import project
 from time import sleep
 import boto3
 import os
+import time
 
 #tgt_ami = 'ami-b04e92d0'
 tgt_ami = 'ami-8ca83fec'
-#tgt_ami = 'ami-bec91fc6'
+# tgt_ami = 'ami-bec91fc6'
+# tgt_ami = 'ami-bec91fc6'
+# tgt_ami = 'ami-0d7da775' # -- OUR AMI
 
 AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
 #import ssh public key to AWS
-my_aws_key = 'michael'
-worker_base_name = "gpu"
-ps_base_name = "ps"
-NUM_GPUS=12
-NUM_PARAM_SERVERS=2
-
-all_instance_names = [worker_base_name + str(x) for x in range(NUM_GPUS)] + [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
+my_aws_key = 'pranay'
+worker_base_name = "gpranayu"
+ps_base_name = "pranayserver"
+NUM_GPUS=1
+NUM_PARAM_SERVERS=1
+worker_names = [worker_base_name + str(x) for x in range(NUM_GPUS)]
+ps_names = [ps_base_name + str(x) for x in range(NUM_PARAM_SERVERS)]
 
 # Note: need p2 instances for the nvidia gpu's
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'g3.4xlarge'
-#Parameter Server with 10Gpbs
+WORKER_TYPE = 'p2.xlarge'
+
 PS_TYPE = 'i3.large'
 
 USER = os.environ['USER']
 
-# this is a dumb hack but whatever
-if os.path.exists("fabfile_{}.py".format(USER)):
-    exec("from fabfile_{} import *".format(USER))
-
 def tags_to_dict(d):
     return {a['Key'] : a['Value'] for a in d}
 
-#Roles and hosts should have the same names
 def get_target_instance():
     role_to_host = {}
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
-
-    # d['Name'] = role
 
     host_list = []
     for i in ec2.instances.all():
@@ -94,7 +90,6 @@ def get_target_instance():
                     role_to_host[role] = []
                 role_to_host[role].append('ec2-user@{}'.format(i.public_dns_name))
                 host_list.append('ec2-user@{}'.format(i.public_dns_name))
-    print "ROLES TO HOSTS"
     print role_to_host
     print("\n")
     return role_to_host
@@ -113,12 +108,505 @@ def get_active_instances():
             if i.tags != None:
                 d = tags_to_dict(i.tags)
                 print d['Name']
-                print '{}:2222,'.format(i.public_ip_address)[:-1]
+                print('{}:2222,'.format(i.public_ip_address)[:-1])
+                print('ec2-user@{}'.format(i.public_dns_name))
 
 # TODO: vpc_cleanup isn't actually cleaning up anything
 @task
 @runs_once
 def vpc_cleanup():
+    ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
+    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
+    
+######################## LAUNCH COMMANDS ################################
+
+def setup_network():
+    use_dry_run = False
+    ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
+    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
+    
+    #Create a VPC
+    vpc = ec2_resource.create_vpc(DryRun=use_dry_run, CidrBlock='10.0.0.0/24')
+    ec2_client.enable_vpc_classic_link(VpcId=vpc.vpc_id)
+    ec2_client.modify_vpc_attribute(VpcId=vpc.vpc_id, EnableDnsSupport={'Value':True})
+    ec2_client.modify_vpc_attribute(VpcId=vpc.vpc_id, EnableDnsHostnames={'Value':True})
+    
+    #Create an EC2 Security Group
+    ip_permissions = [
+        {
+            'IpProtocol': '-1',
+            'FromPort': -1,
+            'ToPort': -1,
+            'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+            }]
+    security_group = ec2_client.create_security_group(GroupName='gpu_group', Description='Allow_all_ingress_egress', VpcId=vpc.vpc_id)
+    group_id = security_group['GroupId']
+    ec2_client.authorize_security_group_ingress(GroupId=group_id, IpPermissions=ip_permissions) 
+    #Create the subnet for the VPC
+    subnet = vpc.create_subnet(DryRun=use_dry_run, CidrBlock='10.0.0.0/25', AvailabilityZone=AWS_AVAILABILITY_ZONE)
+    ec2_client.modify_subnet_attribute(SubnetId=subnet.subnet_id, MapPublicIpOnLaunch={'Value':True})
+    #Create an Internet Gateway
+    gateway = ec2_resource.create_internet_gateway(DryRun=use_dry_run)
+    gateway.attach_to_vpc(DryRun=use_dry_run, VpcId=vpc.vpc_id)
+    #Create a Route table and add the route
+    route_table = ec2_client.create_route_table(DryRun=use_dry_run, VpcId=vpc.vpc_id)
+    route_table_id = route_table['RouteTable']['RouteTableId']
+    ec2_client.associate_route_table(SubnetId=subnet.subnet_id, RouteTableId=route_table_id)
+    ec2_client.create_route(DryRun=use_dry_run, DestinationCidrBlock='0.0.0.0/0',RouteTableId=route_table_id,GatewayId=gateway.internet_gateway_id)
+    return vpc, subnet, security_group
+
+#Boot Spot Instance 
+def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_type, subnet, security_group, instance_count):
+    use_dry_run = False
+    param_server_name = server_name
+    param_server_type = server_instance_type
+    param_spot_bid = '3'
+    launch_specification = {
+        'ImageId': tgt_ami,
+        'KeyName': my_aws_key,
+        'InstanceType': param_server_type,
+        'BlockDeviceMappings':[
+            {
+                'DeviceName': '/dev/xvda',
+                'Ebs': {
+                    'VolumeSize': 50,
+                    'DeleteOnTermination': True,
+                    'VolumeType': 'standard',
+                    #'SnapshotId' : 'snap-c87f35ec'
+                },
+            },
+        ],
+        'SecurityGroupIds': [security_group['GroupId']],
+        'SubnetId': subnet.subnet_id,
+        'EbsOptimized': False,
+        'Placement': {
+            'AvailabilityZone': AWS_AVAILABILITY_ZONE,
+        },
+    }
+
+    param_instances = ec2_client.request_spot_instances(DryRun=use_dry_run,SpotPrice=param_spot_bid, InstanceCount=instance_count,
+                                                 LaunchSpecification=launch_specification)
+    spot_request_id = param_instances['SpotInstanceRequests'][0]['SpotInstanceRequestId']
+
+    all_instances = []
+    while all_instances == [] or all_instances['State'] == 'open':
+        all_instances = ec2_client.describe_spot_instance_requests(SpotInstanceRequestIds=[spot_request_id])
+        all_instances = all_instances['SpotInstanceRequests'][0]
+    return all_instances
+
+
+#Boot Reserved Instance
+def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count, volume_size):
+    use_dry_run = False
+
+    BlockDeviceMappings=[
+        {
+            'DeviceName': '/dev/xvda',
+            'Ebs': {
+                'VolumeSize': 100,
+                'DeleteOnTermination': True,
+                'VolumeType': 'standard',
+                #'SnapshotId' : 'snap-c87f35ec'
+            },
+        },
+    ]
+    
+    #Create a cluster of p2.xlarge instances
+    instances = ec2_resource.create_instances(ImageId=tgt_ami, MinCount=instance_count, MaxCount=instance_count,
+                                              KeyName=my_aws_key, InstanceType=server_instance_type, SubnetId=subnet.subnet_id, SecurityGroupIds=[security_group['GroupId']],
+                                     BlockDeviceMappings = BlockDeviceMappings,
+                                     EbsOptimized=True
+    )
+
+    instance = instances[0]
+    instance_id = instance.instance_id
+    instance.wait_until_running()
+    instance.reload()
+    instance.create_tags(
+        Resources=[
+            instance.instance_id
+    ],
+        Tags=[
+            {
+                'Key': 'Name',
+                'Value': instance_name
+            },
+        ]
+    )
+
+    return instance
+    
+
+def ensure_status_checks(ec2_client, ids):
+    print('Checking System Status of ' + str(len(ids)) + ' instances.')
+    current_ids = ids
+
+    while len(current_ids) > 0:
+        time.sleep(5)
+        print('Polling to check all instance statuses...')
+        statuses = ec2_client.describe_instance_status(
+            Filters=[
+                {
+                    'Name': 'system-status.status',
+                    'Values': ['ok', 'initializing']
+                }
+            ],
+            InstanceIds=current_ids
+        )
+
+        for status in statuses['InstanceStatuses']:
+            inst_id = status['InstanceId']
+            system_check = status['SystemStatus']['Status'] == 'ok'
+            instance_check = status['InstanceStatus']['Status'] == 'ok'
+            if system_check and instance_check:
+                current_ids.remove(inst_id)
+
+        if len(current_ids) > 0:
+            print(str(len(current_ids)) + ' instances still initializing.')
+
+    print('All instances are initialized. Let\'s go baby.')
+
+@task
+def launch():
+    #For Debugging
+    use_dry_run = False
+    
+    ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
+    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
+    vpc, subnet, security_group = setup_network()
+
+    ps_instances = []
+    worker_instances = []
+    all_instance_ids = []
+    
+    #Launch Parameter Servers
+    for param_servers in range(NUM_PARAM_SERVERS):
+        try:
+            inst_name = '{}{}'.format(ps_base_name, param_servers)
+            instance_obj = setup_spot_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, subnet, security_group, 1)
+            
+            instance_id = instance_obj['InstanceId']
+            all_instance_ids.append(instance_id)
+            
+            spot_instance = ec2_resource.Instance(instance_id)
+            spot_instance.wait_until_running()
+            spot_instance.reload()
+            spot_instance.create_tags(
+                Resources=[
+                    instance_id
+            ],
+                Tags=[
+                    {
+                        'Key': 'Name',
+                        'Value': inst_name
+                    },
+                ]
+            )
+            print 'Parameter server setup at {}'.format(spot_instance.public_ip_address)
+            ps_instances.append(spot_instance)
+        except Exception as e:
+            print e
+            print 'Error setting up Parameter Server spot instance. Terminating'
+            return
+    
+    #Launch GPUs
+    for instance_num in range(NUM_GPUS):
+        inst_name = '{}{}'.format(worker_base_name, instance_num)
+        instance = setup_reserved_instance(ec2_client, ec2_resource, inst_name, WORKER_TYPE, vpc, subnet, security_group, 1, 200)
+        
+        all_instance_ids.append(instance.instance_id)
+        print 'GPU setup at {}'.format(instance.public_ip_address)
+        worker_instances.append(instance)
+
+    ensure_status_checks(ec2_client, list(all_instance_ids))
+
+    worker_string = ''
+    for worker in worker_instances:
+        worker_string += '{}:2222,'.format(worker.public_ip_address)
+    worker_string = worker_string[:-1]
+
+    ps_string = ''
+
+    for param_server in ps_instances:
+        ps_string += '{}:2222,'.format(param_server.public_ip_address)
+    ps_string = ps_string[:-1]
+            
+    with open('commands.txt', 'w') as f:
+        for i, worker in enumerate(worker_instances):
+            f.write('bazel-bin/inception/imagenet_distributed_train --batch_size=32 --data_dir=$HOME/imagenet-data --job_name=\'worker\' --task_id={} --ps_hosts={} --worker_hosts={} |& tee wk{}.txt\n'.format(i, ps_string, worker_string, i))
+        f.write('\n')
+        for i, param_server in enumerate(ps_instances):
+            f.write('CUDA_VISIBLE_DEVICES=\'\' bazel-bin/inception/imagenet_distributed_train --batch_size=32 --job_name=\'ps\' --task_id={} --ps_hosts={} --worker_hosts={} |& tee ps{}.txt\n'.format(i, ps_string, worker_string, i))
+        
+
+    with open('all_instance_ids.txt', 'w') as f:
+        for instance_id in all_instance_ids:
+            f.write(instance_id)
+            f.write('\n')
+
+################################################################
+
+@task
+@parallel
+def stop_inception_experiment():
+    print 'hi'
+
+@task
+@parallel
+def ssh_v():
+    print '\n'
+    print env.host_string
+    local('ssh -A ' + env.host_string + ' -vvv')
+    print env.host_string
+    print '\n'
+        
+@task
+@parallel
+def ssh():
+    local("ssh -A " + env.host_string, capture=False)
+
+@task
+@parallel
+def add_to_known_hosts(): # Lets you ssh without having to type in "yes" the first time
+    local("ssh -oStrictHostKeyChecking=no " + env.host_string, capture=False)
+
+@task
+@parallel
+def basic_setup():
+    print env.host_string
+    run("sudo yum update -q -y")
+    run("sudo yum groupinstall 'Development Tools' -q -y")
+    run("sudo yum install -q -y emacs tmux gcc g++ dstat htop")
+    run("sudo reboot")
+
+@task
+@parallel
+def bazel_setup():
+    run("wget https://github.com/bazelbuild/bazel/releases/download/0.7.0/bazel-0.7.0-installer-linux-x86_64.sh")
+    run("chmod +x bazel-0.7.0-installer-linux-x86_64.sh")
+    sudo("yum install -y java-1.8.0-openjdk-devel")
+    run("JAVA_HOME=/usr/lib/jvm/java-openjdk/")
+    run("export JAVA_HOME")
+    run("PATH=$PATH:$JAVA_HOME/bin")
+    run("export PATH")
+    run("./bazel-0.7.0-installer-linux-x86_64.sh --user")
+
+@task
+@parallel
+def inception_setup():
+    run("git clone https://github.com/PranayJuneCS/models.git")
+    with cd("~/models/research/inception"):
+        run("bazel build inception/imagenet_train")
+        run("bazel build inception/imagenet_distributed_train")
+
+
+@task
+@parallel
+# To run, ssh into gpu's/ps's, cd into `vgg/distr_vgg` and run the commands saved from basic_setup
+# (Make sure to replace starting segment with bazel-bin/vgg/imagenet_distributed_train)
+def vgg_setup():
+    run("git clone https://github.com/mchang6137/models.git vgg")
+    with cd("~/vgg/"):
+        run("git checkout -b vgg_impl origin/vgg_impl")
+        with cd("distr_vgg/"):
+            run("bazel build vgg/imagenet_distributed_train")
+
+@task
+@parallel
+def vgg_fresh_setup():
+    run("git clone https://github.com/mchang6137/models.git vgg")
+    with cd("~/vgg/"):
+        run("git checkout -b vgg_fresh origin/vgg_fresh")
+        with cd("research/inception"):
+            run("bazel build inception/imagenet_vgg_distributed_train")
+
+@task
+@parallel
+# Go into `resnet/distr_vgg` and run the same commands as you would
+# for vgg_setup. It's a little jank with the naming.
+# Note: The loss bounces around a ton while you train, so it may seem
+# like it's increasing at some points but over a large timeframe
+# (on the order of hundreds of steps) it's decreasing.
+def resnet_setup():
+    run("git clone https://github.com/mchang6137/models.git resnet")
+    with cd("~/resnet/"):
+        run("git checkout -b resnet_impl origin/resnet_impl")
+        with cd("distr_vgg/"):
+            run("bazel build vgg/imagenet_distributed_train")
+
+@task
+@parallel
+# To run, make sure to save the output from launching the instances.
+# It'll be the same commands as running the inception model, but run them
+# in `alexnet/inception/`
+def alexnet_setup():
+    run("git clone https://github.com/mchang6137/models.git alexnet")
+    with cd("~/alexnet/"):
+        run("git checkout -b alexnet_model origin/alexnet_model")
+        with cd("inception/"):
+            run("bazel build inception/imagenet_distributed_train")
+
+@task
+@parallel
+def remove_tmp():
+    run("rm -rf /tmp/imagenet_train")
+
+@task
+@parallel
+def reboot():
+    run("sudo reboot")
+
+def unpack_instance_ids():
+    return open("all_instance_ids.txt").read().splitlines()
+
+@task
+def wait_until_running():
+    #### TODO: GET WAIT TILL RUNNING TO WORK ####
+
+    # ec2 = boto3.resource('ec2', region_name=AWS_REGION)
+    # ec2_client = boto3.client('ec2', region_name=AWS_REGION)
+    # all_instance_ids = unpack_instance_ids()
+    # print('All instance IDs:')
+    # print(all_instance_ids)
+    # for instance_id in all_instance_ids:
+    #     inst = ec2.Instance(instance_id)
+    #     inst.wait_until_running()
+    
+    sleep(240)
+
+    ensure_status_checks(ec2_client, all_instance_ids)
+
+@task
+@parallel
+def s3_setup():
+    #Install s3cmd
+    sudo("yum --enablerepo=epel install -y s3cmd")
+
+    #Configure s3cmd
+    s3_config_file = 's3_config_file'
+
+    put(s3_config_file, '~/')
+    run('mkdir ~/imagenet-data')
+
+    with cd("~/imagenet-data"):
+        run('s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/ .')
+        run('tar -xzvf validation_of.tar.gz')
+
+    
+@task
+@parallel
+def cuda_setup8():
+    run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.51/NVIDIA-Linux-x86_64-375.51.run")
+    run("wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run")
+    run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
+    #run("mv NVIDIA-Linux-x86_64-375.66.run driver.run")
+    run("mv cuda_8.0.44_linux-run cuda.run")
+    run("chmod +x driver.run")
+    run("chmod +x cuda.run")
+    sudo("./driver.run --silent") # still requires a few prompts
+    sudo("./cuda.run --silent --toolkit --samples")   # Don't install driver, just install CUDA and sample
+    #
+    sudo("nvidia-smi -pm 1")
+    sudo("nvidia-smi -acp 0")
+    sudo("nvidia-smi --auto-boost-permission=0")
+    sudo("nvidia-smi -ac 2505,875")
+
+    # cudnn
+    # with cd("/usr/local"):
+        # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
+        # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
+    
+    # cudnn again
+    with cd("/usr/local"):
+        # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
+        # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
+
+        # CUDNN_TAR_FILE="cudnn-8.0-linux-x64-v6.0.tgz"
+        sudo("wget http://developer.download.nvidia.com/compute/redist/cudnn/v6.0/cudnn-8.0-linux-x64-v6.0.tgz")
+        sudo("tar xvf cudnn-8.0-linux-x64-v6.0.tgz")
+        sudo("cp -P cuda/include/cudnn.h /usr/local/cuda-8.0/include")
+        sudo("cp -P cuda/lib64/libcudnn* /usr/local/cuda-8.0/lib64/")
+        sudo("chmod a+r /usr/local/cuda-8.0/lib64/libcudnn*")
+
+        # set environment variables
+        run("export PATH=/usr/local/cuda-8.0/bin${PATH:+:${PATH}}")
+        run("export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64\${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}")
+
+    sudo('echo "/usr/local/cuda/lib64/" >> /etc/ld.so.conf')
+    sudo('echo "/usr/local/cuda/extras/CPUTI/lib64/" >> /etc/ld.so.conf')
+    sudo('ldconfig')
+
+@task
+@parallel
+def anaconda_setup():
+    run("wget https://repo.continuum.io/archive/Anaconda2-4.2.0-Linux-x86_64.sh")
+    run("chmod +x Anaconda2-4.2.0-Linux-x86_64.sh")
+    run("./Anaconda2-4.2.0-Linux-x86_64.sh -b -p {}".format(CONDA_DIR))
+    run('echo "export PATH={}/bin:$PATH" >> .bash_profile'.format(CONDA_DIR))
+    run("conda upgrade -q -y --all")
+    run("conda install -q -y pandas scikit-learn scikit-image matplotlib seaborn ipython")
+    run("pip install ruffus glob2 awscli")
+    run("source .bash_profile")
+
+TF_GPU_URL = "https://raw.githubusercontent.com/mchang6137/tensorflow/master/whl/gpu_whl/tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl"
+TF_CPU_URL = "https://raw.githubusercontent.com/mchang6137/tensorflow/master/whl/cpu_whl/tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl"
+@task
+@parallel
+def tf_setup(gpu):
+    if gpu:
+        run("wget {}".format(TF_GPU_URL))
+    else:
+        run("wget {}".format(TF_CPU_URL))
+    run("pip install tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl")
+
+@task
+@parallel
+def cpu_setup(model_name):
+    instance_setup(gpu=False, model=model_name)
+
+@task
+@parallel
+def gpu_setup(model_name):
+    instance_setup(gpu=True, model=model_name)
+
+MODEL_NAMES = ['vgg', 'alexnet', 'resnet', 'inception']
+
+@task
+@parallel
+def instance_setup(gpu, model):
+    if model not in MODEL_NAMES:
+        print('Invalid model: ' + model)
+        exit(1)
+    print('Basic setup time.\n')
+    basic_setup()
+    wait_until_running()
+    add_to_known_hosts()
+    if gpu:
+        cuda_setup8()
+    print('Anaconda time.\n')
+    anaconda_setup()
+    print('TF time.\n')
+    tf_setup(gpu)
+    print('Bazel time.\n')
+    bazel_setup()
+    remove_tmp()
+    print(model + ' setup time.\n')
+    if model == 'vgg':
+        vgg_fresh_setup()
+    elif model == 'alexnet':
+        alexnet_setup()
+    elif model == 'inception':
+        inception_setup()
+    elif model == 'resnet':
+        resnet_setup()
+
+
+############################################################################
+
+@task
+@runs_once
+def 
+():
     ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
     ec2_client = boto3.client('ec2', region_name=AWS_REGION)
 
@@ -204,400 +692,6 @@ def vpc_cleanup():
         except:
             print '{} not deleted'.format(vpc.id)
 
-def setup_network():
-    use_dry_run = False
-    ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
-    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
-    
-    #Create a VPC
-    vpc = ec2_resource.create_vpc(DryRun=use_dry_run, CidrBlock='10.0.0.0/24')
-    ec2_client.enable_vpc_classic_link(VpcId=vpc.vpc_id)
-    ec2_client.modify_vpc_attribute(VpcId=vpc.vpc_id, EnableDnsSupport={'Value':True})
-    ec2_client.modify_vpc_attribute(VpcId=vpc.vpc_id, EnableDnsHostnames={'Value':True})
-    
-    #Create an EC2 Security Group
-    ip_permissions = [
-        {
-            'IpProtocol': '-1',
-            'FromPort': -1,
-            'ToPort': -1,
-            'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
-            }]
-    security_group = ec2_client.create_security_group(GroupName='gpu_group', Description='Allow_all_ingress_egress', VpcId=vpc.vpc_id)
-    group_id = security_group['GroupId']
-#    ec2_client.authorize_security_group_egress(GroupId=group_id, IpPermissions=ip_permissions)
-    ec2_client.authorize_security_group_ingress(GroupId=group_id, IpPermissions=ip_permissions) 
-    #Create the subnet for the VPC
-    subnet = vpc.create_subnet(DryRun=use_dry_run, CidrBlock='10.0.0.0/25', AvailabilityZone=AWS_AVAILABILITY_ZONE)
-    ec2_client.modify_subnet_attribute(SubnetId=subnet.subnet_id, MapPublicIpOnLaunch={'Value':True})
-    #Create an Internet Gateway
-    gateway = ec2_resource.create_internet_gateway(DryRun=use_dry_run)
-    gateway.attach_to_vpc(DryRun=use_dry_run, VpcId=vpc.vpc_id)
-    #Create a Route table and add the route
-    route_table = ec2_client.create_route_table(DryRun=use_dry_run, VpcId=vpc.vpc_id)
-    route_table_id = route_table['RouteTable']['RouteTableId']
-    ec2_client.associate_route_table(SubnetId=subnet.subnet_id, RouteTableId=route_table_id)
-    ec2_client.create_route(DryRun=use_dry_run, DestinationCidrBlock='0.0.0.0/0',RouteTableId=route_table_id,GatewayId=gateway.internet_gateway_id)
-    return vpc, subnet, security_group
-
-#Boot Spot Instance 
-def setup_spot_instance(ec2_client, ec2_resource, server_name, server_instance_type, subnet, security_group, instance_count):
-    use_dry_run = False
-    param_server_name = server_name
-    param_server_type = server_instance_type
-    param_spot_bid = '3'
-    launch_specification = {
-        'ImageId': tgt_ami,
-        'KeyName': my_aws_key,
-        'InstanceType': param_server_type,
-        'BlockDeviceMappings':[
-            {
-                'DeviceName': '/dev/xvda',
-                'Ebs': {
-                    'VolumeSize': 50,
-                    'DeleteOnTermination': True,
-                    'VolumeType': 'standard',
-                    #'SnapshotId' : 'snap-c87f35ec'
-                },
-            },
-        ],
-        'SecurityGroupIds': [security_group['GroupId']],
-        'SubnetId': subnet.subnet_id,
-        'EbsOptimized': False,
-        'Placement': {
-            'AvailabilityZone': AWS_AVAILABILITY_ZONE,
-        },
-    }
-
-    param_instances = ec2_client.request_spot_instances(DryRun=use_dry_run,SpotPrice=param_spot_bid, InstanceCount=instance_count,
-                                                 LaunchSpecification=launch_specification)
-    spot_request_id = param_instances['SpotInstanceRequests'][0]['SpotInstanceRequestId']
-
-    all_instances = []
-    while all_instances == [] or all_instances['State'] == 'open':
-        all_instances = ec2_client.describe_spot_instance_requests(SpotInstanceRequestIds=[spot_request_id])
-        all_instances = all_instances['SpotInstanceRequests'][0]
-    return all_instances
-
-
-#Boot Reserved Instance
-def setup_reserved_instance(ec2_client, ec2_resource, instance_name, server_instance_type, vpc, subnet, security_group, instance_count, volume_size):
-    use_dry_run = False
-
-    BlockDeviceMappings=[
-        {
-            'DeviceName': '/dev/xvda',
-            'Ebs': {
-                'VolumeSize': 100,
-                'DeleteOnTermination': True,
-                'VolumeType': 'standard',
-                #'SnapshotId' : 'snap-c87f35ec'
-            },
-        },
-    ]
-    
-    #Create a cluster of p2.xlarge instances
-    instances = ec2_resource.create_instances(ImageId=tgt_ami, MinCount=instance_count, MaxCount=instance_count,
-                                              KeyName=my_aws_key, InstanceType=server_instance_type, SubnetId=subnet.subnet_id, SecurityGroupIds=[security_group['GroupId']],
-                                     BlockDeviceMappings = BlockDeviceMappings,
-                                     EbsOptimized=True
-    )
-
-    for inst in instances:
-        inst.wait_until_running()
-        inst.reload()
-        inst.create_tags(
-            Resources=[
-                inst.instance_id
-	    ],
-            Tags=[
-                {
-                    'Key': 'Name',
-                    'Value': instance_name
-                },
-            ]
-        )
-    return instances
-
-@task
-def launch():
-    #For Debugging
-    use_dry_run = False
-    
-    ec2_resource = boto3.resource('ec2', region_name=AWS_REGION)
-    ec2_client = boto3.client('ec2', region_name=AWS_REGION)
-    vpc, subnet, security_group = setup_network()
-
-    all_param_server_ips = []
-    all_worker_ips = []
-    
-    #Launch Parameter servers
-    for param_servers in range(NUM_PARAM_SERVERS):
-        try:
-            inst_name = '{}{}'.format(ps_base_name, param_servers)
-            #instance_obj = setup_spot_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, subnet, security_group, 1)
-            reserved_instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, PS_TYPE, vpc, subnet, security_group, 1, 200)
-
-            '''
-            instance_id = instance_obj['InstanceId']
-            spot_instance = ec2_resource.Instance(instance_id)
-            spot_instance.wait_until_running()
-            spot_instance.reload()
-            spot_instance.create_tags(
-                Resources=[
-                    instance_id
-            ],
-                Tags=[
-                    {
-                        'Key': 'Name',
-                        'Value': inst_name
-                    },
-                ]
-            )
-            '''
-            for reserved_instance in reserved_instances:
-                print 'Parameter server setup at {}'.format(reserved_instance.public_ip_address)
-                all_param_server_ips.append(reserved_instance)
-        except Exception as e:
-            print e
-            print 'Error setting up Parameter Server spot instance. Terminating'
-            return
-    
-    #Launch GPUs
-    for instance_num in range(NUM_GPUS):
-        inst_name = '{}{}'.format(worker_base_name, instance_num)
-        instances = setup_reserved_instance(ec2_client, ec2_resource, inst_name, WORKER_TYPE, vpc, subnet, security_group, 1, 200)
-        for instance in instances:
-            print 'GPU setup at {}'.format(instance.public_ip_address)
-            all_worker_ips.append(instance)
-
-    worker_string = ''
-    for worker in all_worker_ips:
-        worker_string += '{}:2222,'.format(worker.public_ip_address)
-    worker_string = worker_string[:-1]
-
-    ps_string = ''
-    for param_server in all_param_server_ips:
-        # TODO: clean up this (duplicates code in first for loop of this func)
-        ps_string += '{}:2222,'.format(param_server.public_ip_address)
-    ps_string = ps_string[:-1]
-            
-    #Print Command to Run Tensorflow 
-    worker_count = 0
-    for worker in all_worker_ips:
-        print 'bazel-bin/inception/imagenet_distributed_train --batch_size=32 --data_dir=$HOME/imagenet-data --job_name=\'worker\' --task_id={} --ps_hosts={} --worker_hosts={}'.format(worker_count, ps_string, worker_string)
-        worker_count += 1
-
-    param_count = 0
-    for param_server in all_param_server_ips:
-        print 'CUDA_VISIBLE_DEVICES=\'\' bazel-bin/inception/imagenet_distributed_train --batch_size=32 --job_name=\'ps\' --task_id={} --ps_hosts={} --worker_hosts={}'.format(param_count, ps_string, worker_string)
-        param_count += 1
-
-#Automates the running of the experiment
-@task
-@parallel
-def run_worker_experiment():
-    with cd("~/models/inception/"):
-        print 'hi'
-
-@task
-@parallel
-def run_ps_experiment():
-    with cd("~/models/inception/"):
-	print 'hi'
-
-
-@task
-@parallel
-def stop_inception_experiment():
-    print 'hi'
-
-@task
-@parallel
-def ssh_v():
-    print '\n'
-    print env.host_string
-    local('ssh -A ' + env.host_string + ' -vvv')
-    print env.host_string
-    print '\n'
-        
-@task
-@parallel
-def ssh():
-    local("ssh -A " + env.host_string, capture=False)
-
-@task
-def tensorboard():
-    local("open http://"+env.host_string+":6006")
-
-@task
-def copy_model():
-    local("scp " + env.host_string+":/tmp/model.ckpt /tmp/")
-
-@task
-@parallel
-def basic_setup():
-    print env.host_string
-    run("sudo yum update -q -y")
-    run("sudo yum groupinstall 'Development Tools' -q -y")
-    run("sudo yum install -q -y emacs tmux gcc g++ dstat htop")
-    reboot()
-
-@task
-@parallel
-def reboot():
-    run("sudo reboot")
-
-@task
-@parallel
-def inception_setup():
-    #Install bazel
-    run("wget https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-jdk7-installer-linux-x86_64.sh")
-    run("chmod +x bazel-0.4.3-jdk7-installer-linux-x86_64.sh")
-    sudo("yum install -y java-1.7.0-openjdk-devel")
-    run("JAVA_HOME=/usr/lib/jvm/java-openjdk/")
-    run("export JAVA_HOME")
-    run("PATH=$PATH:$JAVA_HOME/bin")
-    run("export PATH")
-    run("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
-
-    run("git clone https://github.com/tensorflow/models.git")
-    with cd("~/models/research/inception"):
-        run("bazel build inception/imagenet_train")
-        run("bazel build inception/imagenet_distributed_train")
-
-@task
-@parallel
-def remove_tmp():
-    sudo("rm -rf /tmp/imagenet_train")
-
-@task
-@parallel
-def s3_setup():
-    #Install s3cmd
-    sudo("yum --enablerepo=epel install -y s3cmd")
-
-    #Configure s3cmd
-    s3_config_file = 's3_config_file'
-
-    put(s3_config_file, '~/')
-    run('mkdir ~/imagenet-data')
-
-    with cd("~/imagenet-data"):
-        run('s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/ .')
-        run('tar -xzvf validation_of.tar.gz')
-
-    
-@task
-@parallel
-def cuda_setup8():
-    run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.51/NVIDIA-Linux-x86_64-375.51.run")
-    run("wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run")
-    run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
-    #run("mv NVIDIA-Linux-x86_64-375.66.run driver.run")
-    run("mv cuda_8.0.44_linux-run cuda.run")
-    run("chmod +x driver.run")
-    run("chmod +x cuda.run")
-    sudo("./driver.run --silent") # still requires a few prompts
-    sudo("./cuda.run --silent --toolkit --samples")   # Don't install driver, just install CUDA and sample
-    #
-    sudo("nvidia-smi -pm 1")
-    sudo("nvidia-smi -acp 0")
-    sudo("nvidia-smi --auto-boost-permission=0")
-    sudo("nvidia-smi -ac 2505,875")
-
-    # cudnn
-    # with cd("/usr/local"):
-        # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
-        # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
-    
-    # cudnn again
-    with cd("/usr/local"):
-        # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
-        # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
-
-        # CUDNN_TAR_FILE="cudnn-8.0-linux-x64-v6.0.tgz"
-        sudo("wget http://developer.download.nvidia.com/compute/redist/cudnn/v6.0/cudnn-8.0-linux-x64-v6.0.tgz")
-        sudo("tar xvf cudnn-8.0-linux-x64-v6.0.tgz")
-        sudo("cp -P cuda/include/cudnn.h /usr/local/cuda-8.0/include")
-        sudo("cp -P cuda/lib64/libcudnn* /usr/local/cuda-8.0/lib64/")
-        sudo("chmod a+r /usr/local/cuda-8.0/lib64/libcudnn*")
-
-        # set environment variables
-        run("export PATH=/usr/local/cuda-8.0/bin${PATH:+:${PATH}}")
-        run("export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64\${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}")
-
-    sudo('echo "/usr/local/cuda/lib64/" >> /etc/ld.so.conf')
-    sudo('echo "/usr/local/cuda/extras/CPUTI/lib64/" >> /etc/ld.so.conf')
-    sudo('ldconfig')
-
-@task
-@parallel
-def anaconda_setup():
-    run("wget https://repo.continuum.io/archive/Anaconda2-4.2.0-Linux-x86_64.sh")
-    run("chmod +x Anaconda2-4.2.0-Linux-x86_64.sh")
-    run("./Anaconda2-4.2.0-Linux-x86_64.sh -b -p {}".format(CONDA_DIR))
-    run('echo "export PATH={}/bin:$PATH" >> .bash_profile'.format(CONDA_DIR))
-    run("conda upgrade -q -y --all")
-    run("conda install -q -y pandas scikit-learn scikit-image matplotlib seaborn ipython")
-    run("pip install ruffus glob2 awscli")
-    run("source .bash_profile")
-
-# TF_URL = "https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.11.0rc1-cp27-none-linux_x86_64.whl"
-# TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.0rc0-cp27-none-linux_x86_64.whl"
-# TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl"
-TF_URL="https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.3.0-cp27-none-linux_x86_64.whl"
-@task
-@parallel
-def tf_setup():
-    run("pip install --ignore-installed --upgrade {}".format(TF_URL))
-
-@task
-@parallel
-def modified_tf_setup():
-    run("sudo rm -r /home/ec2-user/tensorflow/")
-    run("git clone https://github.com/mchang6137/tensorflow.git")
-    run("pip install --ignore-installed --upgrade /home/ec2-user/tensorflow/whl/gpu_whl/tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl")
-
-@task
-@parallel
-def modified_tf_core_setup():
-    sudo("sudo rm -r /home/ec2-user/tensorflow/")
-    run("git clone https://github.com/mchang6137/tensorflow.git")
-    run("pip install --ignore-installed --upgrade /home/ec2-user/tensorflow/whl/cpu_whl/tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl")
-
-@task
-@parallel
-def modified_inception_setup():
-    #Install bazel
-    run("wget https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-jdk7-installer-linux-x86_64.sh")
-    run("chmod +x bazel-0.4.3-jdk7-installer-linux-x86_64.sh")
-    sudo("yum install -y java-1.7.0-openjdk-devel")
-    run("JAVA_HOME=/usr/lib/jvm/java-openjdk/")
-    run("export JAVA_HOME")
-    run("PATH=$PATH:$JAVA_HOME/bin")
-    run("export PATH")
-    run("./bazel-0.4.3-jdk7-installer-linux-x86_64.sh --user")
-
-    #Install TF0.12.1 GPU Version
-    #TODO: install only the CPU version on Tensorflow
-#    run("TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl")
-#    sudo("sudo pip install --upgrade $TF_BINARY_URL")
-
-    #Download inception
-    #May need to checkout a different version
-    run("git clone -b fewerLayers https://github.com/Joranson/modifiedInception.git")
-    run("mv modifiedInception models")
-    with cd("/home/ec2-user/models/inception"):
-        run("bazel build inception/imagenet_distributed_train")
-
-@task
-@parallel
-def keras_setup():
-    run("conda install -y h5py")
-    run("pip install keras")
-
-
 @task
 @runs_once
 def terminate(everything=True):
@@ -612,89 +706,3 @@ def terminate(everything=True):
                 d = tags_to_dict(i.tags)
                 if my_aws_key in d['Name']:
                     i.terminate()
-
-@task
-@parallel
-def torch_setup():
-    # TODO: make this idempotent. Add a line here to check if 
-    # there's a torch directory, and, if so, delete it.
-
-    # Install libjpeg-8d from source
-    with cd('/tmp'):
-        run('wget http://www.ijg.org/files/jpegsrc.v8d.tar.gz')
-        run('tar xvf jpegsrc.v8d.tar.gz') 
-    with cd('/tmp/jpeg-8d'):
-        run('./configure')
-        sudo('make')
-        sudo('make install')
-        sudo('ldconfig')
-    run('echo export LD_PRELOAD="/usr/local/lib/libjpeg.so" >> ~/.bashrc')
-
-    # Install torch 
-    run("git clone https://github.com/torch/distro.git ~/torch --recursive")
-    with shell_env(LD_PRELOAD="/usr/local/lib/libjpeg.so"):
-        with cd('~/torch'):
-            run('bash install-deps')
-            run('./install.sh -b')
-
-@task
-@parallel
-def torch_preroll():
-    # Install libjpeg-8d from source
-    with cd('/tmp'):
-        run('wget http://www.ijg.org/files/jpegsrc.v8d.tar.gz')
-        run('tar xvf jpegsrc.v8d.tar.gz') 
-    with cd('/tmp/jpeg-8d'):
-        run('./configure')
-        sudo('make')
-        sudo('make install')
-        sudo('ldconfig')
-    run('echo export LD_PRELOAD="/usr/local/lib/libjpeg.so" >> ~/.bashrc')
-
-    # Install torch dependencies
-    with shell_env(LD_PRELOAD="/usr/local/lib/libjpeg.so"):
-        sudo('yum install -y cmake curl readline-devel ncurses-devel \
-              gcc-c++ gcc-gfortran git gnuplot unzip libjpeg-turbo-devel \
-              libpng-devel ImageMagick GraphicsMagick-devel fftw-devel \
-              libgfortran python27-pip git openssl-devel')
-        sudo('yum --enablerepo=epel install -y zeromq3-devel')
-        sudo('pip install ipython')
-
-@task
-@parallel
-def torch_setup_solo():
-    # TODO: make this idempotent. Add a line here to check if 
-    # there's a torch directory, and, if so, delete it.
-    run("git clone https://github.com/torch/distro.git ~/torch --recursive")
-    with shell_env(LD_PRELOAD="/usr/local/lib/libjpeg.so"):
-        with cd('~/torch'):
-            run('./install.sh -b')
-
-
-# @task
-# def efs_mount():
-#     import boto.ec2
-#     TGT_DIR = "/data"
-#     EFS_SECURITY_GROUP="sg-a927bdcc"
-#     FILESYSTEM_ID = "fs-bbd72012"
-
-#     # add instance to the security group
-#     instance_id = run("curl -s http://169.254.169.254/latest/meta-data/instance-id").strip()
-
-
-#     ec2 = boto.ec2.connect_to_region(AWS_REGION)
-
-#     instances = ec2.get_only_instances(instance_ids=[instance_id])
-#     instance = instances[0]
-#     EFS_SECURITY_GROUP = "sg-a927bdcc"
-#     existing_groups = [g.id for g in instance.groups]
-#     instance.modify_attribute("groupSet",existing_groups + [EFS_SECURITY_GROUP])
-
-
-#     sudo("yum install -y -q nfs-utils")
-#     sudo("mkdir -p %s" % TGT_DIR)
-#     with warn_only():
-#         sudo("umount -f %s" % TGT_DIR)
-
-#     sudo("mount -t nfs4 -o nfsvers=4.1 $(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone).%s.efs.us-west-2.amazonaws.com:/ %s" % (FILESYSTEM_ID,  TGT_DIR))
-#     sudo("chown ec2-user /data")
