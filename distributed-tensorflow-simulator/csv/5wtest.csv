@@ -1,9 +1,0 @@
-// 5 workers that try to send 1 byte packets used to test queues and timeouts
-// suggested parameters are --recv-rate 1 --latency 1 --inbuffer-size 3 --timeout 5
-// this would cause a packet to be received at 2,3,4; a time-out and then the other 2 packets arrive at 7,8
-//0,1000,worker0,ps0
-//0,1000,worker1,ps0
-//0,1000,worker2,ps0
-//0,1000,worker3,ps0
-//0,1000,worker4,ps0
-0,1000000,ps0,worker3

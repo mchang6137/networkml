@@ -1,8 +1,0 @@
-// 1 workers that send a packet to 5 parameter servers to test the send buffer
-// suggested parameters are send-rate=1, latency=1
-// this would cause a packet to be received at 2,3,4,5,6
-0,1,worker0,ps0
-0,1,worker0,ps1
-0,1,worker0,ps2
-0,1,worker0,ps3
-0,1,worker0,ps4
