@@ -1,0 +1,20 @@
+csv/inception.csv
+json/inception.json
+--latency=0.00001
+--latency-distribution=none
+--latency-std=1
+--ps-send-rate=3.5
+--worker-send-rate=3.5
+--tor-send-rate=25
+--global-switch-send-rate=4
+--ps-recv-rate=3.5
+--worker-recv-rate=3.5
+--tor-recv-rate=25
+--global-switch-recv-rate=5
+--num-global-switches=4
+--gradient-size=0
+--timeout=3000
+--MTU=12000
+--input-as-bytes=0
+--multicast=1
+--topology=[[worker0, worker1 ,worker2, worker3, worker4, worker5, worker6, worker7, /job:ps/replica:0/task:0/device:CPU:0, /job:ps/replica:0/task:1/device:CPU:0, /job:ps/replica:0/task:2/device:CPU:0, /job:ps/replica:0/task:3/device:CPU:0]]

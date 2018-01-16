@@ -1,0 +1,7 @@
+edge_3424_SparseToDense, 	[/job:worker/replica:0/task:1/device:CPU:0 : /job:worker/replica:0/task:1/device:GPU:0]
+edge_3851_Assign_1, 	[/job:worker/replica:0/task:1/device:CPU:0 : /job:worker/replica:0/task:1/device:GPU:0]
+edge_3852_train_op, 	[/job:worker/replica:0/task:1/device:GPU:0 : /job:worker/replica:0/task:1/device:CPU:0]
+edge_4113_SparseToDense, 	[/job:worker/replica:0/task:0/device:CPU:0 : /job:worker/replica:0/task:0/device:GPU:0]
+edge_4661_Assign_1, 	[/job:worker/replica:0/task:0/device:CPU:0 : /job:worker/replica:0/task:0/device:GPU:0]
+edge_4662_train_op, 	[/job:worker/replica:0/task:0/device:GPU:0 : /job:worker/replica:0/task:0/device:CPU:0]
+train_op:0, 	[/job:worker/replica:0/task:1/device:CPU:0 : /job:worker/replica:0/task:1/device:CPU:0~][/job:worker/replica:0/task:0/device:CPU:0 : /job:worker/replica:0/task:0/device:CPU:0]

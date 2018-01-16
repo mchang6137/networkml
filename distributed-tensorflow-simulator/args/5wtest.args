@@ -1,0 +1,19 @@
+json/5wtest.json
+--latency=3
+--latency-distribution=none
+--latency-std=1
+--ps-send-rate=2000000
+--worker-send-rate=2000000
+--tor-send-rate=4000000
+--global-switch-send-rate=4000000
+--ps-recv-rate=1000000 
+--worker-recv-rate=1000000
+--tor-recv-rate=2500000
+--global-switch-recv-rate=5000000
+--num-global-switches=4
+--gradient-size=0
+--timeout=3000
+--MTU=1000
+--input-as-bytes=0
+--multicast=1
+--topology=[[worker0, worker1, worker2, ps1], [worker3, worker4, ps0]]
