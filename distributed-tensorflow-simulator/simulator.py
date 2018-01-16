@@ -1,6 +1,30 @@
 import sys
 import argparse
 from sim import Simulation
+
+def vary_workers_exp(args):
+    num_workers = [2,4,8,16]
+    num_ps = [2,4,8]
+
+    for workers in num_workers:
+	for ps in num_ps:
+            args.num_workers = workers
+            args.num_ps = ps
+            
+            print '{} ps, {} wk, with multicast'.format(ps, workers)
+            args.use_multicast = 1
+            sim = Simulation()
+            sim.Setup(args)
+            sim.Run()
+
+            '''
+            print '{} ps, {} wk, with no multicast'.format(ps, workers)
+            args.use_multicast = 0
+            sim = Simulation()
+            sim.Setup(args)
+            sim.Run()
+            '''
+            
 def Main (args):
     parser = argparse.ArgumentParser(description="Simulator Arguments", fromfile_prefix_chars='@')
     parser.add_argument(
@@ -185,10 +209,11 @@ def Main (args):
     if args.topology == 'none':
         print 'Defaulting to in-rack or across racks based on args.in_rack'
 
+    vary_workers_exp(args)
+    
     sim = Simulation()
     sim.Setup(args)
     sim.Run()
-    #sim.Report()
 
 if __name__ == "__main__":
     Main(sys.argv[1:])

@@ -7,6 +7,7 @@ from worker import Worker
 from ps import PS
 from tor import TOR
 from gswitch import GSwitch
+
 class Simulation (object):
     def __init__ (self):
         self.ctx = None
@@ -61,13 +62,13 @@ class Simulation (object):
                 rack_counter = 0
                 for wk_num in range(args.num_workers):
                     self.ctx.racks[rack_counter] = []
-                    name = "TOR{}".format(rack_counter)
-                    self.ctx.objs[name] = TOR(self.ctx, name=name, inbuffer_size=args.tor_inbuffer_size)
-                    self.ctx.objs[name].send_rate = args.tor_send_rate * gigabit
-                    self.ctx.objs[name].recv_rate = args.tor_recv_rate * gigabit
-                    self.ctx.objs[name].rack = rack_counter
-                    self.ctx.racks[rack_counter].append(name)
-                    self.ctx.tors.append(name)
+                    tor_name = "TOR{}".format(rack_counter)
+                    self.ctx.objs[tor_name] = TOR(self.ctx, name=tor_name, inbuffer_size=args.tor_inbuffer_size)
+                    self.ctx.objs[tor_name].send_rate = args.tor_send_rate * gigabit
+                    self.ctx.objs[tor_name].recv_rate = args.tor_recv_rate * gigabit
+                    self.ctx.objs[tor_name].rack = rack_counter
+                    self.ctx.racks[rack_counter].append(tor_name)
+                    self.ctx.tors.append(tor_name)
                     
                     worker_name = 'worker{}'.format(wk_num)
                     self.ctx.objs[worker_name] = Worker(self.ctx,
