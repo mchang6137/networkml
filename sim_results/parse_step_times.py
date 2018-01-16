@@ -223,6 +223,38 @@ def detect_aggregation_events(sorted_events,
     print 'There is no complete aggregation grouping in this dataset. Exiting..'
     exit()
 
+def write_agg_as_csv(model_name, aggregation_events):
+    initial_agg_time = -1
+    for event in aggregation_events:
+        raw_edgename = event[5]
+        if raw_edgename == 'gradients/AddN':
+            initial_agg_time = event[0]
+            break
+
+    if initial_agg_time == -1:
+        print 'Aggregation initiation not started'
+        exit()
+
+    base_dir = 'sim_csv/'
+    output_filename = base_dir + '{}/agg_trace.csv'.format(model_name)
+    with open(output_filename, 'wb') as out:
+        csv_out = csv.writer(out)
+        csv_out.writerow(['relative_time, bits_sent, raw_edgename'])
+        
+        for event in aggregation_events:
+            relative_time = event[0] - initial_agg_time
+            if relative_time < 0:
+                continue
+            bits_sent = event[1] * 8
+            raw_edgename = event[5]
+
+            csv_out.writerow((relative_time, bits_sent, raw_edgename))
+            
+    print 'Completed'
+    exit()
+                             
+
+    
 
 # Filters down all the events to the events in a single iteration
 # sorted_event_list is the list of all events that were sent between machines
@@ -612,7 +644,7 @@ if __name__ == "__main__":
         file_name = base_file + '/ps' + str(ps_index)
         result_file_list.append(file_name)
 
-    time_event, device_set = parse_result_file(result_file_list, args.model_name)
+    time_event = parse_result_file(result_file_list, args.model_name)
 
     # Sort the tuple by 
     time_event = sorted(time_event, key=lambda x: x[0])
@@ -641,6 +673,9 @@ if __name__ == "__main__":
                                                    agg_worker_extrapolate,
                                                    ps_device_set,
                                                    project_more_workers=True)
+
+    write_agg_as_csv(args.model_name, aggregation_events)
+    exit()
 
     # ALWAYS RUN THIS TO ENSURE YOU'VE SELECTED THE RIGHT PLACES\
     # Insert an exit() to see what is supposed to happen

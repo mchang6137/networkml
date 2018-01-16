@@ -12,6 +12,10 @@ import os
 import time
 
 tgt_ami = 'ami-8ca83fec'
+# tgt_ami = 'ami-bec91fc6'
+# tgt_ami = 'ami-bec91fc6'
+# tgt_ami = 'ami-0d7da775' # -- OUR AMI
+
 AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
@@ -26,8 +30,10 @@ ps_names = [ps_base_name + str(i) for i in range(NUM_PARAM_SERVERS)]
 
 MODEL_NAMES = ['vgg', 'alexnet', 'resnet', 'inception']
 
-CONDA_DIR = '$HOME/anaconda'
-WORKER_TYPE = 'g3.4xlarge'
+# Note: need p2 instances for the nvidia gpu's
+CONDA_DIR = "$HOME/anaconda"
+WORKER_TYPE = 'p2.xlarge'
+
 PS_TYPE = 'i3.large'
 
 USER = os.environ['USER']
@@ -386,20 +392,26 @@ def s3_setup():
 @task
 @parallel
 def cuda_setup8():
-    run('wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.66/NVIDIA-Linux-x86_64-375.66.run')
-    run('wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run')
-    run('mv NVIDIA-Linux-x86_64-375.66.run driver.run')
-    run('mv cuda_8.0.44_linux-run cuda.run')
-    run('chmod +x driver.run')
-    run('chmod +x cuda.run')
-    sudo('./driver.run --silent') # still requires a few prompts
-    sudo('./cuda.run --silent --toolkit --samples')   # Don't install driver, just install CUDA and sample
+    run("wget http://us.download.nvidia.com/XFree86/Linux-x86_64/375.51/NVIDIA-Linux-x86_64-375.51.run")
+    run("wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run")
+    run("mv NVIDIA-Linux-x86_64-375.51.run driver.run")
+    #run("mv NVIDIA-Linux-x86_64-375.66.run driver.run")
+    run("mv cuda_8.0.44_linux-run cuda.run")
+    run("chmod +x driver.run")
+    run("chmod +x cuda.run")
+    sudo("./driver.run --silent") # still requires a few prompts
+    sudo("./cuda.run --silent --toolkit --samples")   # Don't install driver, just install CUDA and sample
+    #
+    sudo("nvidia-smi -pm 1")
+    sudo("nvidia-smi -acp 0")
+    sudo("nvidia-smi --auto-boost-permission=0")
+    sudo("nvidia-smi -ac 2505,875")
 
-    sudo('nvidia-smi -pm 1')
-    sudo('nvidia-smi -acp 0')
-    sudo('nvidia-smi --auto-boost-permission=0')
-    sudo('nvidia-smi -ac 2505,875')
-    
+    # cudnn
+    # with cd("/usr/local"):
+        # sudo("wget http://people.eecs.berkeley.edu/~jonas/cudnn-8.0-linux-x64-v5.1.tgz")
+        # sudo("tar xvf cudnn-8.0-linux-x64-v5.1.tgz")
+
     # cudnn
     with cd('/usr/local'):
 
@@ -437,11 +449,8 @@ def tf_setup(gpu):
     if gpu:
         run('wget {}'.format(TF_GPU_URL))
     else:
-        run('wget {}'.format(TF_CPU_URL))
-
-    run('pip install tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl')
-
-######### AUTOMATE SETUP ##########
+        run("wget {}".format(TF_CPU_URL))
+    run("pip install tensorflow-1.4.0-cp27-cp27mu-linux_x86_64.whl")
 
 @task
 @parallel
@@ -693,7 +702,7 @@ def vpc_cleanup():
 
 @task
 @runs_once
-def terminate():
+def terminate(everything=True):
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
     for inst_id in ALL_IDS:
