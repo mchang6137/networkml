@@ -12,7 +12,7 @@ def vary_workers_exp(args):
             args.num_ps = ps
             
             print '{} ps, {} wk, with multicast'.format(ps, workers)
-            args.use_multicast = 1
+            args.use_multicast = 0
             sim = Simulation()
             sim.Setup(args)
             sim.Run()
@@ -28,11 +28,21 @@ def vary_workers_exp(args):
 def Main (args):
     parser = argparse.ArgumentParser(description="Simulator Arguments", fromfile_prefix_chars='@')
     parser.add_argument(
-        "trace", type=str, action="store",
-        help=".csv filename for packet trace")
+        "trace_base_dir",
+        type=str,
+        action="store",
+        help="base directory for filename")
     parser.add_argument(
-        "json", type=str, action="store",
+        "json",
+        type=str,
+        action="store",
         help=".json filename for parameter mappings")
+    parser.add_argument(
+        "--step_num",
+        dest="step_num",
+        type=int,
+        action="store",
+        default=10)
     # latency takes the form of --latency 2 --latency-distribution standard --latency-std 1
     # or --latency 2 --latency-distribution uniform --latency-std 1
     # or --latency 2
@@ -197,7 +207,7 @@ def Main (args):
         action="store",
         default="")
     args = parser.parse_args()
-    if not args.trace.endswith(".csv") or not args.json.endswith(".json"):
+    if not args.trace_base_dir.endswith(".csv") or not args.json.endswith(".json"):
         print "The trace is supposed to be a file ending with .csv and a parameter mapping ending with .json"
     if args.latency_distribution != "none" and args.latency_distribution != "uniform" and args.latency_distribution != "standard":
         print "Unknown distribution {}, defaulting to none".format(args.latency_distribution)

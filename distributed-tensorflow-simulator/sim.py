@@ -1,6 +1,7 @@
 import sys
 import random
 import json
+import os
 from packet import Packet
 from context import Context
 from worker import Worker
@@ -13,7 +14,7 @@ class Simulation (object):
         self.ctx = None
 
     def Setup (self, args):
-        tracename = args.trace
+        tracename_base_dir = args.trace_base_dir
         jsonname = args.json
         self.ctx = Context()
         self.ctx.objs = {}
@@ -163,88 +164,44 @@ class Simulation (object):
                     self.ctx.paths[pname] = path
 
         self.load_parameter_mapping(jsonname, args)
-        self.load_relative_send_schedule(tracename, args)
+        self.load_relative_send_schedule(tracename_base_dir, args)
 
-    def load_raw_trace(self, tracename, args):
-        trace = open(tracename).readlines()
-        num_packets = 0
-        for ev in trace:
-            if ev.startswith("//") or ev.startswith('"'):
-                continue
-            parts = ev.strip().split(',')
-            time = float(parts[0])
-            size = float(parts[1])
-            if args.inputs_as_bytes:
-                size *= 8
-            src = str(parts[2])
-            dest = str(parts[3])
-            if src not in self.ctx.objs:
-                if 'ps' in src:
-                    self.ctx.objs[src] = PS(self.ctx, name=src)
-                    self.ctx.objs[src].send_rate = args.ps_send_rate
-                    self.ctx.objs[src].recv_rate = args.ps_recv_rate
-                    self.ctx.objs[src].inbuffer_size = args.ps_inbuffer_size
-                elif 'worker' in src:
-                    self.ctx.objs[src] = Worker(self.ctx, name=src)
-                else:
-                    print 'Could not determine the type of ' + src
-                self.ctx.objs[src].rack = 0
-            if dest not in self.ctx.objs:
-                if 'ps' in dest:
-                    self.ctx.objs[dest] = PS(self.ctx, name=dest)
-                    self.ctx.objs[dest].send_rate = args.ps_send_rate
-                    self.ctx.objs[dest].recv_rate = args.ps_recv_rate
-                    self.ctx.objs[dest].inbuffer_size = args.ps_inbuffer_size
-                elif 'worker' in dest:
-                    self.ctx.objs[dest] = Worker(self.ctx, name=dest)
-                    self.ctx.objs[dest].send_rate = args.worker_send_rate
-                    self.ctx.objs[dest].recv_rate = args.worker_recv_rate
-                    self.ctx.objs[dest].inbuffer_size = args.worker_inbuffer_size
-                else:
-                    print 'Could not determine the type of ' + dest
-                self.ctx.objs[dest].rack = 0
-            if src in self.ctx.pses:
-                if not self.ctx.use_multicast:
-                    for dest in self.ctx.workers:
-                        self.ctx.schedule_send(time, size, src, dest, name=str(num_packets))
-                else:
-                    self.ctx.schedule_send(time, size, src, src, name=str(num_packets))
-            else:
-                self.ctx.schedule_send(time, size, src, dest, name=str(num_packets))
-            num_packets += 1
-    
-    def load_send_from_json(self, jsonname, args):
-        f = open(jsonname, 'r')
-        datastore = json.load(f)
-        self.ctx.sendschedule = []
-        self.ctx.ps_num_items = {}
-        gradient_size = 0
-        for ps, arr in datastore.iteritems():
-            self.ctx.ps_num_items[ps] = len(arr) * len(self.ctx.workers)
-            for item in arr:
-                self.ctx.sendschedule.append(item)
-                gradient_size += item[1]
-        if args.gradient_size:
-            gradient_size = args.gradient_size
-        if args.inputs_as_bytes:
-            gradient_size *= 8
-        for ps in self.ctx.pses:
-            self.ctx.schedule_send(0, gradient_size, ps, ps, name=str(ps)+"gradients")
+    def load_relative_send_schedule(self, tracename_basedir, args):
+        all_worker_names = self.ctx.workers
+        step_num = args.step_num
+        num_workers = args.num_workers
+        # Open up individual trace file per worker
 
-    def load_relative_send_schedule(self, tracename, args):
-        trace = open(tracename).readlines()
-        self.ctx.sendschedule = []
-        for ev in trace:
-            if ev.startswith("//") or ev.startswith('"'):
-                continue
-            parts = ev.strip().split(',')
-            time = float(parts[0])
-            size = float(parts[1])
-            if args.inputs_as_bytes:
-                size *= 8
-            edgename = str(parts[2])
-            self.ctx.sendschedule.append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
-            self.ctx.ps_num_items[self.ctx.pmappings[edgename]] += len(self.ctx.workers)
+        tracename_basedir = tracename_basedir + '{}/'.format(num_workers)
+        if os.path.exists(tracename_basedir) is False:
+            print 'The provided basename directory does not exist'
+            exit()
+
+        self.ctx.sendschedule = {}
+        for worker_id in range(num_workers):
+            worker_name = 'worker{}'.format(worker_id)
+            assert worker_name in all_worker_names
+            wk_path = tracename_basedir + 'wk{}_{}.csv'.format(worker_id, step_num)
+
+            if os.path.exists(wk_path) is False:
+                print 'There is no trace data for {} cluster, wkid {}, step_num {}'.format(num_workers, worker_id, step_num)
+                exit()
+        
+            trace = open(wk_path).readlines()
+
+            self.ctx.sendschedule[worker_name] = []
+            for ev in trace:
+                if ev.startswith("//") or ev.startswith('"'):
+                    continue
+                parts = ev.strip().split(',')
+                time = float(parts[0])
+                size = float(parts[1])
+                if args.inputs_as_bytes:
+                    size *= 8
+                edgename = str(parts[2])
+                if edgename in self.ctx.pmappings:
+                    self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
+                    self.ctx.ps_num_items[self.ctx.pmappings[edgename]] += len(self.ctx.workers)
 
     def load_parameter_mapping(self, jsonname, args):
         f = open(jsonname, 'r')

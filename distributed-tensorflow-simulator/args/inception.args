@@ -1,4 +1,4 @@
-csv/inception.csv
+/Users/michaelchang/networkml/sim_results/sim_csv/inception-v3/
 json/inception.json
 --latency=0.00001
 --latency-distribution=none
@@ -19,5 +19,5 @@ json/inception.json
 --multicast=0
 --num_workers=4
 --num_ps=4
---on_same_rack=0
+--on_same_rack=1
 --topology=
