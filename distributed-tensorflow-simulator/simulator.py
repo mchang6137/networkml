@@ -149,6 +149,24 @@ def Main (args):
         action="store",
         default=0)
     parser.add_argument(
+        "--num_workers",
+        dest='num_workers',
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
+        "--num_ps",
+        dest='num_ps',
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
+        "--on_same_rack",
+        dest='on_same_rack',
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
         "--topology",
         dest="topology",
         type=str,
@@ -164,10 +182,10 @@ def Main (args):
         print "Cannot have a latency distribution with zero latency"
     if args.latency_distribution != "none" and not args.latency_std :
         print "Cannot have a latency distribution without variance"
+    if args.topology == 'none':
+        print 'Defaulting to in-rack or across racks based on args.in_rack'
+
     sim = Simulation()
-    print "Simulation is %s"%sim
-    #topo = (int(args[0]), int(args[1]))
-    #show_converge = bool(args[2]) if len(args) > 2 else False
     sim.Setup(args)
     sim.Run()
     #sim.Report()

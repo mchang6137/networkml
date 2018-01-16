@@ -16,5 +16,8 @@ json/inception.json
 --timeout=3000
 --MTU=12000
 --input-as-bytes=0
---multicast=1
---topology=[[worker0, worker1 ,worker2, worker3, worker4, worker5, worker6, worker7, /job:ps/replica:0/task:0/device:CPU:0, /job:ps/replica:0/task:1/device:CPU:0, /job:ps/replica:0/task:2/device:CPU:0, /job:ps/replica:0/task:3/device:CPU:0]]
+--multicast=0
+--num_workers=4
+--num_ps=4
+--on_same_rack=0
+--topology=

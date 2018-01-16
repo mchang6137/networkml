@@ -19,17 +19,89 @@ class Simulation (object):
         self.ctx.internal_latency = args.latency
         self.ctx.latency_distribution = args.latency_distribution
         self.ctx.latency_std = args.latency_std
-        #deprecated because that was shorthand for how bandwidth works between two nodes
-        #self.ctx.bandwidth = float(bandwidth)
-        #deprecated since sending and receiving are done on a per-object basis
-        #self.ctx.send_rate = float(send_rate)
-        #self.ctx.recv_rate = float(recv_rate)
-        #self.ctx.inbuffer_size = float(inbuffer_size)
         self.ctx.timeout = args.timeout
         self.ctx.MTU = args.MTU
         self.ctx.use_multicast = args.use_multicast
         gigabit = 10**9
-        if args.topology:
+        if args.topology == '':
+            # Store Workers and PS all on same rack
+            if args.on_same_rack == 1:
+                self.ctx.racks[0] = []
+                name = "TOR0"
+                self.ctx.objs[name] = TOR(self.ctx, name=name, inbuffer_size=args.tor_inbuffer_size)
+                self.ctx.objs[name].send_rate = args.tor_send_rate * gigabit
+                self.ctx.objs[name].recv_rate = args.tor_recv_rate * gigabit
+                self.ctx.objs[name].rack = 0
+                self.ctx.racks[0].append(name)
+                self.ctx.tors.append(name)
+
+                # Place all workers and parameter servers on same rack
+                for wk_num in range(args.num_workers):
+                    worker_name = 'worker{}'.format(wk_num)
+                    self.ctx.objs[worker_name] = Worker(self.ctx,
+                                                        name=worker_name,
+                                                        inbuffer_size=args.worker_inbuffer_size)
+                    self.ctx.objs[worker_name].send_rate = args.worker_send_rate * gigabit
+                    self.ctx.objs[worker_name].recv_rate = args.worker_recv_rate * gigabit
+                    self.ctx.workers.append(worker_name)
+                    self.ctx.objs[worker_name].rack = 0
+                    self.ctx.racks[0].append(worker_name)
+
+                for ps_num in range(args.num_ps):
+                    ps_name = '/job:ps/replica:0/task:{}/device:CPU:0'.format(ps_num)
+                    self.ctx.objs[ps_name] = PS(self.ctx, name=ps_name, inbuffer_size=args.ps_inbuffer_size)
+                    self.ctx.objs[ps_name].send_rate = args.ps_send_rate * gigabit
+                    self.ctx.objs[ps_name].recv_rate = args.ps_recv_rate * gigabit
+                    self.ctx.pses.append(ps_name)
+                    self.ctx.objs[ps_name].rack = 0
+                    self.ctx.racks[0].append(ps_name)
+
+            # Store all the workers and PS, each on their own rack.
+            elif args.on_same_rack == 0:
+                rack_counter = 0
+                for wk_num in range(args.num_workers):
+                    self.ctx.racks[rack_counter] = []
+                    name = "TOR{}".format(rack_counter)
+                    self.ctx.objs[name] = TOR(self.ctx, name=name, inbuffer_size=args.tor_inbuffer_size)
+                    self.ctx.objs[name].send_rate = args.tor_send_rate * gigabit
+                    self.ctx.objs[name].recv_rate = args.tor_recv_rate * gigabit
+                    self.ctx.objs[name].rack = rack_counter
+                    self.ctx.racks[rack_counter].append(name)
+                    self.ctx.tors.append(name)
+                    
+                    worker_name = 'worker{}'.format(wk_num)
+                    self.ctx.objs[worker_name] = Worker(self.ctx,
+                                                        name=worker_name,
+                                                        inbuffer_size=args.worker_inbuffer_size)
+                    self.ctx.objs[worker_name].send_rate = args.worker_send_rate * gigabit
+                    self.ctx.objs[worker_name].recv_rate = args.worker_recv_rate * gigabit
+                    self.ctx.workers.append(worker_name)
+                    self.ctx.objs[worker_name].rack = rack_counter
+                    self.ctx.racks[rack_counter].append(worker_name)
+                    rack_counter += 1
+
+		for ps_num in range(args.num_ps):
+                    self.ctx.racks[rack_counter] = []
+                    name = "TOR{}".format(rack_counter)
+                    self.ctx.objs[name] = TOR(self.ctx, name=name, inbuffer_size=args.tor_inbuffer_size)
+                    self.ctx.objs[name].send_rate = args.tor_send_rate * gigabit
+                    self.ctx.objs[name].recv_rate = args.tor_recv_rate * gigabit
+                    self.ctx.objs[name].rack = rack_counter
+                    self.ctx.racks[rack_counter].append(name)
+                    self.ctx.tors.append(name)
+                    
+                    ps_name = '/job:ps/replica:0/task:{}/device:CPU:0'.format(ps_num)
+                    self.ctx.objs[ps_name] = PS(self.ctx,
+                                                name=ps_name,
+                                                inbuffer_size=args.ps_inbuffer_size)
+                    self.ctx.objs[ps_name].send_rate = args.ps_send_rate * gigabit
+                    self.ctx.objs[ps_name].recv_rate = args.ps_recv_rate * gigabit
+                    self.ctx.pses.append(ps_name)
+                    self.ctx.objs[ps_name].rack = rack_counter
+                    self.ctx.racks[rack_counter].append(ps_name)
+                    rack_counter += 1
+        # Leaving this here: declaring manual topologies
+        elif args.topology:
             topology = args.topology
             topology = topology.strip("[]")
             topology = topology.replace('],',';')
@@ -59,26 +131,20 @@ class Simulation (object):
                         self.ctx.workers.append(name)
                     else:
                         print 'Could not determine the type of ' + name
+                        exit()
                     self.ctx.objs[name].rack = rack_number
                     self.ctx.racks[rack_number].append(name)
                 rack_number += 1
             for key, value in self.ctx.objs.iteritems():
                 pass
-                #print str(value) + " rack: " + str(value.rack)
-            for i in range(args.num_gswitches):
-                name = "GSwitch" + str(i)
-                self.ctx.objs[name] = GSwitch(self.ctx, name=name, inbuffer_size=args.ps_inbuffer_size)
-                self.ctx.objs[name].send_rate = args.gswitch_send_rate * gigabit
-                self.ctx.objs[name].recv_rate = args.gswitch_recv_rate * gigabit
-                self.ctx.objs[name].rack = -1
-                self.ctx.gswitches.append(name)
-        else:
-            name = "TOR0"
-            self.ctx.objs[name] = TOR(self.ctx, name=name)
-            self.ctx.objs[name].send_rate = args.tor_send_rate * gigabit
-            self.ctx.objs[name].recv_rate = args.tor_recv_rate * gigabit
-            self.ctx.objs[name].inbuffer_size = args.tor_inbuffer_size
-            self.ctx.objs[name].rack = 0     
+        for i in range(args.num_gswitches):
+            name = "GSwitch" + str(i)
+            self.ctx.objs[name] = GSwitch(self.ctx, name=name, inbuffer_size=args.ps_inbuffer_size)
+            self.ctx.objs[name].send_rate = args.gswitch_send_rate * gigabit
+            self.ctx.objs[name].recv_rate = args.gswitch_recv_rate * gigabit
+            self.ctx.objs[name].rack = -1
+            self.ctx.gswitches.append(name)
+
         for src in self.ctx.objs:
             srcobj = self.ctx.objs[src]
             if src not in self.ctx.workers and src not in self.ctx.pses:
@@ -94,9 +160,7 @@ class Simulation (object):
                     else:
                         path = [src, "TOR%d"%(srcobj.rack), "GSwitch%d"%(random.randint(0, args.num_gswitches - 1)), "TOR%d"%(destobj.rack), dest]
                     self.ctx.paths[pname] = path
-                    #print "path " + str(path) + " added"
-        #if tracename.endswith(".csv"):
-            #self.load_raw_trace(tracename, args)
+
         self.load_parameter_mapping(jsonname, args)
         self.load_relative_send_schedule(tracename, args)
 
