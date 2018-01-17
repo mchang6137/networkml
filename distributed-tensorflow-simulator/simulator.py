@@ -22,8 +22,8 @@ def write_to_csv(args, finish_time):
 
 def vary_workers_exp(args):
     args_dict = vars(args)
-    num_workers = [8]
-    num_ps = [1,2]
+    num_workers = [8,12]
+    num_ps = [4,8]
 
     # Vary the number of workers and ps
     for workers in num_workers:
@@ -203,6 +203,12 @@ def Main (args):
         action="store",
         default=0)
     parser.add_argument(
+        "--in-network-computation",
+        dest="in_network_computation",
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
         "--num_workers",
         dest='num_workers',
         type=int,
@@ -246,10 +252,10 @@ def Main (args):
     if args.topology == 'none':
         print 'Defaulting to in-rack or across racks based on args.in_rack'
 
-    sim = Simulation()
-    sim.Setup(args)
-    sim.Run()
-    #vary_workers_exp(args)
+    #sim = Simulation()
+    #sim.Setup(args)
+    #sim.Run()
+    vary_workers_exp(args)
 
 if __name__ == "__main__":
     Main(sys.argv[1:])
