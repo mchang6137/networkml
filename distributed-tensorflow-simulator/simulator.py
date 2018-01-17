@@ -3,8 +3,8 @@ import argparse
 from sim import Simulation
 
 def vary_workers_exp(args):
-    num_workers = [2,4,8,12]
-    num_ps = [2,4,8]
+    num_workers = [4,8]
+    num_ps = [1, 2,4, 8]
 
     for workers in num_workers:
 	for ps in num_ps:
