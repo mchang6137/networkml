@@ -216,7 +216,7 @@ class Simulation (object):
             for item in arr:
                 self.ctx.pmappings[item[5]] = ps
                 gradient_size += item[1]       
-            	self.ctx.schedule_send(0, item[1], ps, ps, name=str(ps)+"."+item[5])
+            	self.ctx.schedule_send(0, item[1] * 8, ps, ps, name=str(ps)+"."+item[5])
 	    if args.gradient_size:
                 gradient_size = args.gradient_size
             if True or args.inputs_as_bytes:
