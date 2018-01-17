@@ -22,8 +22,8 @@ def write_to_csv(args, finish_time):
 
 def vary_workers_exp(args):
     args_dict = vars(args)
-    num_workers = [2,4,8,12]
-    num_ps = [2,4,8]
+    num_workers = [4,8]
+    num_ps = [1, 2,4, 8]
 
     # Vary the number of workers and ps
     for workers in num_workers:
