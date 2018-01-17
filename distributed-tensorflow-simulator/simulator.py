@@ -1,30 +1,50 @@
 import sys
 import argparse
+import csv
+import os
+
 from sim import Simulation
 
-def vary_workers_exp(args):
-    num_workers = [4,8]
-    num_ps = [1, 2,4, 8]
+def write_to_csv(args, finish_time):
+    results_file = './exp_results/{}/results.csv'.format(args.model_name)
+    file_exists = os.path.isfile(results_file)
+    
+    args_dict = vars(args)
+    args_dict['iteration_time'] = finish_time
+    headers = args_dict.keys()
+    
+    print args_dict
+    with open(results_file, 'a') as out:
+        writer = csv.DictWriter(out, delimiter=',', lineterminator='\n',fieldnames=headers)
+        if not file_exists:
+            writer.writeheader()
+	writer.writerow(args_dict)
 
+def vary_workers_exp(args):
+    args_dict = vars(args)
+    num_workers = [8]
+    num_ps = [1,2]
+
+    # Vary the number of workers and ps
     for workers in num_workers:
 	for ps in num_ps:
             args.num_workers = workers
             args.num_ps = ps
-            
+
             print '{} ps, {} wk, with multicast'.format(ps, workers)
             args.use_multicast = 1
             sim = Simulation()
             sim.Setup(args)
-            sim.Run()
-
+            finish_time = sim.Run()
+            write_to_csv(args, finish_time)
             
             print '{} ps, {} wk, with no multicast'.format(ps, workers)
             args.use_multicast = 0
             sim = Simulation()
             sim.Setup(args)
-            sim.Run()
-            
-            
+            finish_time = sim.Run()
+            write_to_csv(args, finish_time)
+
 def Main (args):
     parser = argparse.ArgumentParser(description="Simulator Arguments", fromfile_prefix_chars='@')
     parser.add_argument(
@@ -206,6 +226,13 @@ def Main (args):
         type=str,
         action="store",
         default="")
+    parser.add_argument(
+        "--model_name",
+        dest="model_name",
+        type=str,
+        action="store",
+        default="")
+    
     args = parser.parse_args()
     if not args.trace_base_dir.endswith(".csv") or not args.json.endswith(".json"):
         print "The trace is supposed to be a file ending with .csv and a parameter mapping ending with .json"
@@ -219,11 +246,10 @@ def Main (args):
     if args.topology == 'none':
         print 'Defaulting to in-rack or across racks based on args.in_rack'
 
-    vary_workers_exp(args)
-    
-    #sim = Simulation()
-    #sim.Setup(args)
-    #sim.Run()
+    sim = Simulation()
+    sim.Setup(args)
+    sim.Run()
+    #vary_workers_exp(args)
 
 if __name__ == "__main__":
     Main(sys.argv[1:])
