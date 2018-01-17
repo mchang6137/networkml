@@ -11,6 +11,7 @@ class Worker (Entity):
         
         if not packet.MF:
             self.received_packets += 1
+            #print "%d\t/%d" % (self.received_packets, len(self.ctx.pmappings))
             if self.ctx.sendschedule[node_name] and self.received_packets == len(self.ctx.pmappings):
                 print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
                 for arr in self.ctx.sendschedule[node_name]:
