@@ -6,7 +6,7 @@ import os
 from sim import Simulation
 
 def write_to_csv(args, finish_time):
-    results_file = './exp_results/results.csv'
+    results_file = './exp_results/{}/results.csv'.format(args.model_name)
     file_exists = os.path.isfile(results_file)
     
     args_dict = vars(args)
@@ -22,8 +22,8 @@ def write_to_csv(args, finish_time):
 
 def vary_workers_exp(args):
     args_dict = vars(args)
-    num_workers = [4,8]
-    num_ps = [1, 2,4, 8]
+    num_workers = [8]
+    num_ps = [1,2]
 
     # Vary the number of workers and ps
     for workers in num_workers:
@@ -226,6 +226,13 @@ def Main (args):
         type=str,
         action="store",
         default="")
+    parser.add_argument(
+        "--model_name",
+        dest="model_name",
+        type=str,
+        action="store",
+        default="")
+    
     args = parser.parse_args()
     if not args.trace_base_dir.endswith(".csv") or not args.json.endswith(".json"):
         print "The trace is supposed to be a file ending with .csv and a parameter mapping ending with .json"
@@ -239,7 +246,10 @@ def Main (args):
     if args.topology == 'none':
         print 'Defaulting to in-rack or across racks based on args.in_rack'
 
-    vary_workers_exp(args)
+    sim = Simulation()
+    sim.Setup(args)
+    sim.Run()
+    #vary_workers_exp(args)
 
 if __name__ == "__main__":
     Main(sys.argv[1:])
