@@ -229,4 +229,5 @@ class Simulation (object):
     def Run (self):
         print "Starting replay"        
         self.ctx.run()
-        print "Done replay at %0.3f, left %d items"%(self.ctx.final_time, self.ctx.queue.qsize()) 
+        print "Done replay at %0.3f, left %d items"%(self.ctx.final_time, self.ctx.queue.qsize())
+        return self.ctx.final_time
