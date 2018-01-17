@@ -12,18 +12,18 @@ def vary_workers_exp(args):
             args.num_ps = ps
             
             print '{} ps, {} wk, with multicast'.format(ps, workers)
-            args.use_multicast = 0
+            args.use_multicast = 1
             sim = Simulation()
             sim.Setup(args)
             sim.Run()
 
-            '''
+            
             print '{} ps, {} wk, with no multicast'.format(ps, workers)
             args.use_multicast = 0
             sim = Simulation()
             sim.Setup(args)
             sim.Run()
-            '''
+            
             
 def Main (args):
     parser = argparse.ArgumentParser(description="Simulator Arguments", fromfile_prefix_chars='@')
@@ -221,9 +221,9 @@ def Main (args):
 
     vary_workers_exp(args)
     
-    sim = Simulation()
-    sim.Setup(args)
-    sim.Run()
+    #sim = Simulation()
+    #sim.Setup(args)
+    #sim.Run()
 
 if __name__ == "__main__":
     Main(sys.argv[1:])
