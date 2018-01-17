@@ -46,7 +46,8 @@ class Entity (object):
             elif self.rack == -1:
                 for count in range(len(self.ctx.racks)):
                     if count != self.ctx.objs[packet.src].rack:
-                        self.sendto(packet, "TOR" + str(count))
+                        opacket = packet.copy()
+			self.sendto(opacket, "TOR" + str(count))
             else:
                 for dest in self.ctx.racks[self.rack]:
                     if dest not in self.ctx.workers:
