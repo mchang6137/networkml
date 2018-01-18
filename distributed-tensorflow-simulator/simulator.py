@@ -21,14 +21,14 @@ def write_to_csv(args, finish_time):
 	writer.writerow(args_dict)
 
 def vary_worker_step_time(args):
-    num_workers = [8]
-    num_ps = [4]
+    num_workers = [2,4,8,12]
+    num_ps = [1,2,4,8]
     step_range = [x for x in range(10,50)]
     for step_num in step_range:
         args.step_num = step_num
-        vary_workers_exp(args, num_workers, num_ps)
+        vary_workers_exp(args, num_workers=num_workers, num_ps=num_ps)
 
-def vary_workers_exp(args, num_workers=[8,12], num_ps=[4,8]):
+def vary_workers_exp(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
     args_dict = vars(args)
 
     # Vary the number of workers and ps
@@ -42,6 +42,7 @@ def vary_workers_exp(args, num_workers=[8,12], num_ps=[4,8]):
             sim = Simulation()
             sim.Setup(args)
             finish_time = sim.Run()
+            
             write_to_csv(args, finish_time)
             
             print '{} ps, {} wk, with no multicast'.format(ps, workers)
