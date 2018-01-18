@@ -32,3 +32,11 @@ inputs_as_bytes,gswitch_recv_rate,tor_inbuffer_size,tor_send_rate,latency,gswitc
 0,25.0,-1,25.0,1e-05,-1,4,0,0,json/inception-v3_param_ps_assignment.json,10.0,-1,10,4,10.0,12,,12000.0,1.0,10.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,10.0,inception-v3,none
 0,25.0,-1,25.0,1e-05,-1,4,1,0,json/inception-v3_param_ps_assignment.json,10.0,-1,10,8,10.0,12,,12000.0,1.0,10.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,10.0,inception-v3,none
 0,25.0,-1,25.0,1e-05,-1,4,0,0,json/inception-v3_param_ps_assignment.json,10.0,-1,10,8,10.0,12,,12000.0,1.0,10.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,10.0,inception-v3,none
+0,25.0,-1,25.0,1e-05,-1,4,1,0,json/inception-v3_param_ps_assignment.json,3.5,-1,10,4,3.5,8,1.4425765503999735,120000.0,1.0,5.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,5.0,inception-v3,none
+0,25.0,-1,25.0,1e-05,-1,4,0,0,json/inception-v3_param_ps_assignment.json,3.5,-1,10,4,3.5,8,1.9551115574861913,120000.0,1.0,5.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,5.0,inception-v3,none
+0,25.0,-1,25.0,1e-05,-1,4,1,0,json/inception-v3_param_ps_assignment.json,3.5,-1,10,8,3.5,8,1.4425767551999735,120000.0,1.0,5.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,5.0,inception-v3,none
+0,25.0,-1,25.0,1e-05,-1,4,0,0,json/inception-v3_param_ps_assignment.json,3.5,-1,10,8,3.5,8,1.6006337846858438,120000.0,1.0,5.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,5.0,inception-v3,none
+0,25.0,-1,25.0,1e-05,-1,4,1,0,json/inception-v3_param_ps_assignment.json,3.5,-1,10,4,3.5,12,1.6999768320011555,120000.0,1.0,5.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,5.0,inception-v3,none
+0,25.0,-1,25.0,1e-05,-1,4,0,0,json/inception-v3_param_ps_assignment.json,3.5,-1,10,4,3.5,12,2.575527802510875,120000.0,1.0,5.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,5.0,inception-v3,none
+0,25.0,-1,25.0,1e-05,-1,4,1,0,json/inception-v3_param_ps_assignment.json,3.5,-1,10,8,3.5,12,1.4885767551999733,120000.0,1.0,5.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,5.0,inception-v3,none
+0,25.0,-1,25.0,1e-05,-1,4,0,0,json/inception-v3_param_ps_assignment.json,3.5,-1,10,8,3.5,12,1.832289514057463,120000.0,1.0,5.0,1,,25.0,25.0,-1,0.0,csv/inception-v3/,3000.0,5.0,inception-v3,none
