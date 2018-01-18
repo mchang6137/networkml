@@ -20,10 +20,16 @@ def write_to_csv(args, finish_time):
             writer.writeheader()
 	writer.writerow(args_dict)
 
-def vary_workers_exp(args):
+def vary_worker_step_time(args):
+    num_workers = [8]
+    num_ps = [4]
+    step_range = [x for x in range(10,50)]
+    for step_num in step_range:
+        args.step_num = step_num
+        vary_workers_exp(args, num_workers, num_ps)
+
+def vary_workers_exp(args, num_workers=[8,12], num_ps=[4,8]):
     args_dict = vars(args)
-    num_workers = [8,12]
-    num_ps = [4,8]
 
     # Vary the number of workers and ps
     for workers in num_workers:
