@@ -17,7 +17,8 @@ class Packet (object):
             self.name = src + "->" + dest + "x" + str(size)
     
     def __str__(self):
-        if self.part != 0 or self.MF:
+        #if self.part != 0 or self.MF:
+        if self.MF:
             return self.name + "." + str(self.part)
         return self.name
 

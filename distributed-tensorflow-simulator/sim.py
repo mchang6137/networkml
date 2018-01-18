@@ -24,6 +24,7 @@ class Simulation (object):
         self.ctx.timeout = args.timeout
         self.ctx.MTU = args.MTU
         self.ctx.use_multicast = args.use_multicast
+        self.ctx.in_network_computation = args.in_network_computation
         gigabit = 10**9
         if args.topology == '':
             # Store Workers and PS all on same rack
@@ -217,8 +218,8 @@ class Simulation (object):
                 self.ctx.pmappings[item[5]] = ps
                 gradient_size += item[1]       
             	self.ctx.schedule_send(0, item[1] * 8, ps, ps, name=str(ps)+"."+item[5])
-	    if args.gradient_size:
-                gradient_size = args.gradient_size
+	        #if args.gradient_size:
+            #    gradient_size = args.gradient_size
             if True or args.inputs_as_bytes:
                 gradient_size *= 8
             cumgrad += gradient_size
@@ -229,5 +230,4 @@ class Simulation (object):
     def Run (self):
         print "Starting replay"        
         self.ctx.run()
-        print "Done replay at %0.3f, left %d items"%(self.ctx.final_time, self.ctx.queue.qsize())
-        return self.ctx.final_time
+        print "Done replay at %0.3f, left %d items"%(self.ctx.final_time, self.ctx.queue.qsize()) 
