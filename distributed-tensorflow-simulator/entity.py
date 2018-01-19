@@ -13,6 +13,8 @@ class Entity (object):
         self.used_inbuffer = 0
         self.inbuffer = Queue.Queue(maxsize=inbuffer_size)
         self.inbuffer_size = inbuffer_size
+        self.parents = []
+        self.children = []
 
     def __str__(self):
         return self.name
@@ -30,10 +32,10 @@ class Entity (object):
             #print "packet %s queued to send by %s to %s at time %0.3f" % (packet, self, packet.dest, self.ctx.now)
         if packet.multicast:
             if self.name == packet.src:
-                nexthop = "TOR" + str(self.rack)
+                nexthop = self.parents[0]
                 self.sendto(packet, nexthop)
-            elif self.ctx.objs[packet.src].rack == self.rack:
-                for dest in self.ctx.racks[self.rack]:
+            elif packet.src in self.children:
+                for dest in self.children:
                     if dest not in self.ctx.workers:
                         continue
                     opacket = packet.copy()
@@ -41,15 +43,16 @@ class Entity (object):
                     opacket.multicast = False
                     opacket.path = self.ctx.paths[packet.src + dest]
                     self.queuesend(opacket)
-                nexthop = "GSwitch0"
-                self.sendto(packet, nexthop)
+                if self.ctx.objs[packet.src].root:
+                    nexthop = self.ctx.objs[packet.src].root
+                    self.sendto(packet, nexthop)
             elif self.rack == -1:
-                for count in range(len(self.ctx.racks)):
-                    if count != self.ctx.objs[packet.src].rack:
+                for tor in self.children:
+                    if tor != self.ctx.objs[packet.src].parents[0] and self.ctx.objs[tor].in_network > 0:
                         opacket = packet.copy()
-			self.sendto(opacket, "TOR" + str(count))
+                        self.sendto(opacket, tor)
             else:
-                for dest in self.ctx.racks[self.rack]:
+                for dest in self.children:
                     if dest not in self.ctx.workers:
                         continue
                     opacket = packet.copy()
@@ -57,6 +60,20 @@ class Entity (object):
                     opacket.multicast = False
                     opacket.path = self.ctx.paths[packet.src + dest]
                     self.queuesend(opacket)
+        elif packet.netagg:
+            if self.name in self.ctx.workers:
+                nexthop = self.parents[0]
+                self.sendto(packet, nexthop)
+            elif self.name in self.ctx.tors and packet.dest not in self.children:
+                if self.ctx.objs[packet.dest].root:
+                    nexthop = self.ctx.objs[packet.dest].root
+                    self.sendto(packet, nexthop)
+            elif self.name == self.ctx.objs[packet.dest].root:
+                nexthop = self.ctx.objs[packet.dest].parents[0]
+                self.sendto(packet, nexthop)
+            else:
+                nexthop = packet.dest
+                self.sendto(packet, nexthop)
         else:
             path = packet.path
             nexthop = path[path.index(self.name) + 1]

@@ -571,6 +571,36 @@ def parse_result_file_iteration(result_file_list, model_name):
                     
     return step_events
 
+# Includes the total events and separates it the events out by step
+def parse_result_file_iteration_list(result_file_list, model_name):
+    time_event = []
+    step_events = {}
+    step_events[0] = []
+
+    for result_file in result_file_list:
+        current_step = 0
+        if os.path.isfile(result_file) is False:
+            continue
+        with open(result_file) as f:
+            lines = f.readlines()
+            events = []
+            relevant_lines = []
+            for line in lines:
+                if ': step ' in line:
+                    # Read the current step (sometimes steps are skipped)
+                    try:
+                        regex = re.compile('step ([0-9]*)')
+                        current_step = int(regex.findall(line)[0])
+                    except:
+                        print line
+                        exit()
+                    step_events[current_step] = []
+                events = parse_raw_line(line, model_name)
+                for event in events:
+                    step_events[current_step].append(event)
+
+    return step_events
+
 def parse_result_file(result_file_list, model_name):
     device_set = []
     src_device_event = {}

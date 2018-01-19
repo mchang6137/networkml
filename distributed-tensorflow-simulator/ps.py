@@ -5,11 +5,12 @@ class PS (Entity):
     def __init__(self, ctx, name="PS", inbuffer_size=0):
         Entity.__init__(self, ctx, name=name, inbuffer_size=inbuffer_size)
         self.received_packets = 0
+        self.root = ""
 
     def lastbitrecv(self, packet):
         Entity.lastbitrecv(self, packet)
         if not packet.MF and self.name in self.ctx.ps_num_items:
-            self.received_packets += 1
+            self.received_packets += packet.degree
             if self.received_packets == self.ctx.ps_num_items[self.name]:
                 self.received_packets = 0
                 print "%s has received all gradient updates at time %0.3f" % (self.name, self.ctx.now)

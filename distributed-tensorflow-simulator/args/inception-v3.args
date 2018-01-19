@@ -1,5 +1,6 @@
 csv/inception-v3/
 json/inception-v3_param_ps_assignment.json
+--optimal_param_distribution=1
 --latency=0.00001
 --latency-distribution=none
 --latency-std=1

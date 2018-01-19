@@ -11,6 +11,8 @@ class Packet (object):
         self.multicast = False
         self.prevhop = None
         self.nexthop = None
+        self.degree = 1
+        self.netagg = False
         if name != "":
             self.name = name
         else:
@@ -36,4 +38,6 @@ class Packet (object):
         opacket.multicast = self.multicast
         opacket.prevhop = None
         opacket.nexthop = None
+        opacket.degree = self.degree
+        opacket.netagg = self.netagg
         return opacket
