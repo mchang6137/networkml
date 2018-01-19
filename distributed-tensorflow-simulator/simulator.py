@@ -28,6 +28,18 @@ def vary_worker_step_time(args):
         args.step_num = step_num
         vary_workers_exp(args, num_workers=num_workers, num_ps=num_ps)
 
+def vary_param_optimality(args):
+    num_workers = [2,4,8,12]
+    num_ps = [1,2,4,8]
+
+    print 'Testing with suboptimal parameter distributions'
+    args.optimal_param_distribution = 0
+    vary_workers_exp(args, num_workers, num_ps)
+
+    print 'Testing with optimal (real) parameter distributions'
+    args.optimal_param_distribution = 1
+    vary_workers_exp(args, num_workers, num_ps)
+
 def vary_workers_exp(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
     args_dict = vars(args)
 
@@ -100,6 +112,11 @@ def Main (args):
         type=float,
         action="store",
         default=-1)"""
+    parser.add_argument(
+        "--optimal_param_distribution",
+        type=int,
+        action="store",
+        default=0)
     parser.add_argument(
         "--ps-send-rate",
         dest="ps_send_rate",
@@ -262,7 +279,8 @@ def Main (args):
     #sim = Simulation()
     #sim.Setup(args)
     #sim.Run()
-    vary_workers_exp(args)
+    vary_param_optimality(args)
+    #vary_workers_exp(args, num_workers=[8], num_ps=[1,2,4,8])
 
 if __name__ == "__main__":
     Main(sys.argv[1:])
