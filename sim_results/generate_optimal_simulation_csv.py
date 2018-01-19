@@ -11,7 +11,7 @@ Generates the csv for the simulator to use
 python generate_simulation_csv.py --base_file async_measurements/gpu/ --num_workers 4 --num_ps 4 --model_name inception-v3
 '''
 
-def write_agg_as_csv(model_name, aggregation_events, cluster_size, wk_index, step_num):
+def write_agg_as_csv(model_name, aggregation_events, cluster_size, wk_index, num_ps, step_num):
     initial_agg_time = -1
     aggregation_start_edge = aggregation_start_dict[model_name][0]
     
@@ -25,7 +25,18 @@ def write_agg_as_csv(model_name, aggregation_events, cluster_size, wk_index, ste
 	print 'Aggregation initiation not started'
 	exit()
 
-    base_dir = 'sim_csv/{}/{}/'.format(model_name, cluster_size)
+    optimal_aggregation_events = []
+    for event in aggregation_events:
+        send_bytes = event[1]
+        edgename = event[5]
+
+        for ps_index in range(int(args.num_ps)):
+            new_edgename = edgename + '_ps{}'.format(ps_index)
+	    new_bytes  = send_bytes / float(args.num_ps)
+            dummy_event = (event[0], new_bytes, event[2], event[3], event[4], new_edgename)
+            optimal_aggregation_events.append(dummy_event)
+
+    base_dir = 'sim_csv_ps_optimal/{}/{}/'.format(model_name, cluster_size)
     if not os.path.exists(base_dir):
         os.makedirs(base_dir)
 
@@ -34,7 +45,7 @@ def write_agg_as_csv(model_name, aggregation_events, cluster_size, wk_index, ste
 	csv_out = csv.writer(out)
 	csv_out.writerow(['relative_time, bits_sent, raw_edgename'])
 
-	for event in aggregation_events:
+	for event in optimal_aggregation_events:
             relative_time = event[0] - initial_agg_time
             if relative_time < 0:
 		continue
@@ -99,13 +110,7 @@ if __name__ == "__main__":
                                                                agg_worker_extrapolate,
                                                                ps_device_set)
 
-                # For optimality, separate parameters along the parameter servers
-                optimal_aggregation_events = []
-                for event in aggregation_events:
-                    print event
-                    exit()
-
-                write_agg_as_csv(args.model_name, aggregation_events, num_workers, wk_index, step_num)
+                write_agg_as_csv(args.model_name, aggregation_events, num_workers, args.num_ps, wk_index, step_num)
                 print 'Finished Cluster size {}, worker number {}, step number {}'.format(num_workers, wk_index, step_num)
                 
     
