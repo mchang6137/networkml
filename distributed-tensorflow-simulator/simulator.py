@@ -13,7 +13,7 @@ def write_to_csv(args, finish_time):
     args_dict['iteration_time'] = finish_time
     headers = args_dict.keys()
     
-    print args_dict
+    #print args_dict
     with open(results_file, 'a') as out:
         writer = csv.DictWriter(out, delimiter=',', lineterminator='\n',fieldnames=headers)
         if not file_exists:
@@ -30,27 +30,47 @@ def vary_worker_step_time(args):
 
 def vary_workers_exp(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
     args_dict = vars(args)
-
     # Vary the number of workers and ps
     for workers in num_workers:
-	for ps in num_ps:
+        for ps in num_ps:
+            arr = []
             args.num_workers = workers
             args.num_ps = ps
 
-            print '{} ps, {} wk, with multicast'.format(ps, workers)
-            args.use_multicast = 1
-            sim = Simulation()
-            sim.Setup(args)
-            finish_time = sim.Run()
-            
-            write_to_csv(args, finish_time)
-            
-            print '{} ps, {} wk, with no multicast'.format(ps, workers)
             args.use_multicast = 0
+            args.in_network_computation = 0
+            sim = Simulation()
+            sim.Setup(args)
+            finish_time = sim.Run()
+            arr.append(finish_time)
+
+            #print '{} ps, {} wk, with multicast'.format(ps, workers)
+            args.use_multicast = 1
+            args.in_network_computation = 0
             sim = Simulation()
             sim.Setup(args)
             finish_time = sim.Run()
             write_to_csv(args, finish_time)
+            arr.append(finish_time)
+            
+            #print '{} ps, {} wk, with in network computation'.format(ps, workers)
+            args.use_multicast = 0
+            args.in_network_computation = 1
+            sim = Simulation()
+            sim.Setup(args)
+            finish_time = sim.Run()
+            write_to_csv(args, finish_time)
+            arr.append(finish_time)
+
+            args.use_multicast = 1
+            args.in_network_computation = 1
+            sim = Simulation()
+            sim.Setup(args)
+            finish_time = sim.Run()
+            write_to_csv(args, finish_time)
+            arr.append(finish_time)
+
+            print "%d ps x %d wk:\tvanilla %0.5f\tmulticast %0.5f\tin network computation %0.5f\tboth %0.5f" %(ps, workers, arr[0], arr[1], arr[2], arr[3])
 
 def Main (args):
     parser = argparse.ArgumentParser(description="Simulator Arguments", fromfile_prefix_chars='@')
@@ -245,10 +265,16 @@ def Main (args):
         type=str,
         action="store",
         default="")
+    parser.add_argument(
+        "--verbosity",
+        dest="verbosity",
+        type=int,
+        action="store",
+        default=1)
     
     args = parser.parse_args()
-    if not args.trace_base_dir.endswith(".csv") or not args.json.endswith(".json"):
-        print "The trace is supposed to be a file ending with .csv and a parameter mapping ending with .json"
+    #if not args.trace_base_dir.endswith(".csv") or not args.json.endswith(".json"):
+        #print "The trace is supposed to be a file ending with .csv and a parameter mapping ending with .json"
     if args.latency_distribution != "none" and args.latency_distribution != "uniform" and args.latency_distribution != "standard":
         print "Unknown distribution {}, defaulting to none".format(args.latency_distribution)
         args.latency_distribution = "none"

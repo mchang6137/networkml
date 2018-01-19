@@ -21,6 +21,7 @@ class Context (object):
         self.tors = []
         self.gswitches = []
         self.use_multicast = False
+        self.in_network_computation = False
 
     def schedule_task(self, delta, task):
         self.queue.put_nowait((self.current_time + delta, task))
@@ -64,8 +65,10 @@ class Context (object):
         mpacket = Packet(size, src=src, dest=dest, name=name)
         mpacket.time_send = delta
         mpacket.path = self.paths[src + dest]
-        if src == dest:
+        if src == dest and self.use_multicast:
             mpacket.multicast = True
+        if src in self.workers and self.in_network_computation:
+            mpacket.netagg = True
         self.schedule_task(delta, lambda: self.objs[src].queuesend(mpacket))
 
     def schedule_recv(self, delta, packet):
