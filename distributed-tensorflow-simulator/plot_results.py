@@ -76,7 +76,7 @@ def plot_vary_wk_vary_ps(result_csv_dict, model_name):
     plt.ylabel('Percent Improvement in Performance with Multicast')
     plt.show()
 
-def plot_vary_parameter_distribution(result_csv_dict, model_name):
+def plot_vary_parameter_distribution(result_csv_dict, model_name, filter_bandwidth=10):
     # Baseline is performance with one parameter server
     # num_workers -> performance
     baseline_performance = {}
@@ -99,6 +99,10 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name):
     # Baseline is performance with one parameter server
     # num_workers -> performance
     for result in result_csv_dict:
+        bandwidth = float(result['ps_send_rate'])
+        print bandwidth
+        if bandwidth != filter_bandwidth:
+            continue
         num_workers = int(result['num_workers'])
         num_ps = int(result['num_ps'])
         use_multicast = int(result['use_multicast'])
@@ -182,7 +186,6 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name):
     plt.xlabel('Number of workers')
     plt.ylabel('Improvement in performance')
     plt.show()
-    exit()
 
     all_lines = []
     for num_ps in percent_improvement_over_even:
@@ -199,7 +202,6 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name):
     plt.show()
 
     exit()
-
     for num_ps in percent_improvement_over_baseline:
         results = percent_improvement_over_baseline[num_ps]
         distr_lists = sorted(results.items())
@@ -217,6 +219,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--result_csv')
     parser.add_argument('--model_name')
+    parser.add_argument('--filter_bandwidth')
+    parser.add_argument('--experiment_name')
     args = parser.parse_args()
     
     file_exists = os.path.isfile(args.result_csv)
@@ -225,5 +229,6 @@ if __name__ == "__main__":
         exit()
 
     result_csv_dict = csv.DictReader(open(args.result_csv))
-    plot_vary_parameter_distribution(result_csv_dict, args.model_name)
+    if args.experiment_name == 'param_split':
+        plot_vary_parameter_distribution(result_csv_dict, args.model_name, float(args.filter_bandwidth))
     #plot_vary_wk_vary_ps(result_csv_dict, args.model_name)
