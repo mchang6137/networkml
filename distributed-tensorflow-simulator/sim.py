@@ -240,7 +240,7 @@ class Simulation (object):
                     if edgename in self.ctx.pmappings:
                         self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
                         self.ctx.ps_num_items[self.ctx.pmappings[edgename]] += len(self.ctx.workers)
-                elif use_optimal_ps != 0:
+                elif use_optimal_ps == 1:
                     # Split the parameter evenly between all the parameter servers
                     revised_size  = size / float(num_ps)
                     for ps_index in range(num_ps):
@@ -265,29 +265,13 @@ class Simulation (object):
         self.ctx.ps_num_items = {}
         self.ctx.pmappings = {}
         self.ctx.edge_weights = {}
-        cumgrad = 0
-        for ps, arr in datastore.iteritems():
-            gradient_size = 0
-            self.ctx.ps_num_items[ps] = 0
-            for item in arr:
-                self.ctx.pmappings[item[5]] = ps
-                self.ctx.edge_weights[item[5]] = item[1] * 8
-                gradient_size += item[1]       
-            	self.ctx.schedule_send(0, item[1] * 8, ps, ps, name=item[5])
-	        #if args.gradient_size:
-            #    gradient_size = args.gradient_size
-            if True or args.inputs_as_bytes:
-                gradient_size *= 8
-            cumgrad += gradient_size
-            #print "%s: %f" % (str(ps), gradient_size)
-            #self.ctx.schedule_send(0, gradient_size, ps, ps, name=str(ps)+".gradients")
-        #print "%f" % (cumgrad)
 
         if use_optimal_ps == 0:
             for ps, arr in datastore.iteritems():
                 self.ctx.ps_num_items[ps] = 0
                 for item in arr:
                     self.ctx.pmappings[item[5]] = ps
+                    self.ctx.edge_weights[item[5]] = item[1] * 8
             	    self.ctx.schedule_send(0, item[1] * 8, ps, ps, name=str(ps)+"."+item[5])
         elif use_optimal_ps == 1:
             # Should only be the results from the irst parameter server
@@ -298,6 +282,7 @@ class Simulation (object):
                     for item in arr:
                         event_name = item[5] + '_ps{}'.format(ps_index)
                         param_size = item[1] / float(num_ps)
+                        self.ctx.edge_weights[event_name] = param_size * 8
                         self.ctx.pmappings[event_name] = ps_name
                         self.ctx.schedule_send(0, param_size* 8.0, ps_name, ps_name, name=str(ps_name)+"."+event_name)
                     
