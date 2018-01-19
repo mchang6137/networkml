@@ -88,10 +88,34 @@ if __name__ == "__main__":
                 device_set.append(dst_device)
         worker_device_set, ps_device_set = separate_device_list(device_set)
 
+        # Find which steps are available and modify min_step_num and max_step_num accordingly
+        valid_steps = []
+        for step_num in range(min_step_num, max_step_num):
+            all_in_step = True
+            for wk_index in wk_events:
+                if step_num not in wk_events[wk_index]:
+                    all_in_step = False
+                    break
+            if all_in_step is True:
+                valid_steps.append(step_num)
+
         # Filter out the aggregation events
         for wk_index in wk_events:
-            for step_num in range(min_step_num, max_step_num):
-                events = sorted(wk_events[wk_index][step_num])
+            for step_num in valid_steps:
+                try:
+                    events = sorted(wk_events[wk_index][step_num])
+                except:
+                    if wk_index not in wk_events:
+                        print 'not worker index'
+                        exit()
+                    elif step_num not in wk_events[wk_index]:
+                        print wk_index
+                        print step_num
+                        print 'step is zee problem'
+                        exit()
+                    else:
+                        print 'idk man'
+                        exit()
                 agg_worker_extrapolate = ['/job:worker/replica:0/task:{}/device:GPU:0'.format(wk_index)]
                 
                 aggregation_events = detect_aggregation_events(events,
