@@ -43,7 +43,9 @@ class Simulation (object):
                     worker_name = 'worker{}'.format(wk_num)
                     self.ctx.objs[worker_name] = Worker(self.ctx,
                                                         name=worker_name,
-                                                        inbuffer_size=args.worker_inbuffer_size)
+                                                        inbuffer_size=args.worker_inbuffer_size,
+                                                        fwd_pass_time=args.fwd_pass_time
+                    )
                     wkobj = self.ctx.objs[worker_name]
                     wkobj.send_rate = args.worker_send_rate * gigabit
                     wkobj.recv_rate = args.worker_recv_rate * gigabit
@@ -78,7 +80,9 @@ class Simulation (object):
                     worker_name = 'worker{}'.format(wk_num)
                     self.ctx.objs[worker_name] = Worker(self.ctx,
                                                         name=worker_name,
-                                                        inbuffer_size=args.worker_inbuffer_size)
+                                                        inbuffer_size=args.worker_inbuffer_size,
+                                                        fwd_pass_time=args.fwd_pass_time
+                    )
                     wkobj = self.ctx.objs[worker_name]
                     wkobj.send_rate = args.worker_send_rate * gigabit
                     wkobj.recv_rate = args.worker_recv_rate * gigabit
@@ -133,7 +137,11 @@ class Simulation (object):
                         self.ctx.objs[name].recv_rate = args.ps_recv_rate * gigabit
                         self.ctx.pses.append(name)
                     elif 'worker' in name:
-                        self.ctx.objs[name] = Worker(self.ctx, name=name, inbuffer_size=args.worker_inbuffer_size)
+                        self.ctx.objs[name] = Worker(self.ctx,
+                                                     name=name,
+                                                     inbuffer_size=args.worker_inbuffer_size,
+                                                     fwd_pass_time=args.fwd_pass_time
+                        )
                         self.ctx.objs[name].send_rate = args.worker_send_rate * gigabit
                         self.ctx.objs[name].recv_rate = args.worker_recv_rate * gigabit
                         self.ctx.workers.append(name)

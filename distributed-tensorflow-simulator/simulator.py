@@ -32,57 +32,63 @@ def vary_param_optimality(args):
     num_workers = [2,4,8,12]
     num_ps = [1,2,4,8]
 
-    print 'Testing with suboptimal parameter distributions'
+    print 'Testing with suboptimal (real) parameter distributions'
     args.optimal_param_distribution = 0
-    vary_workers_exp(args, num_workers, num_ps)
+    vary_workers_exp_multicast(args, num_workers, num_ps)
 
-    print 'Testing with optimal (real) parameter distributions'
+    print 'Testing with optimal parameter distributions'
     args.optimal_param_distribution = 1
-    vary_workers_exp(args, num_workers, num_ps)
+    vary_workers_exp_multicast(args, num_workers, num_ps)
 
-def vary_workers_exp(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
+def vary_workers_exp_multicast(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
     args_dict = vars(args)
+    
     # Vary the number of workers and ps
     for workers in num_workers:
         for ps in num_ps:
-            arr = []
             args.num_workers = workers
             args.num_ps = ps
 
+            print '{} ps, {} wk, without multicast'.format(ps, workers)
             args.use_multicast = 0
             args.in_network_computation = 0
             sim = Simulation()
             sim.Setup(args)
             finish_time = sim.Run()
-            arr.append(finish_time)
-
-            #print '{} ps, {} wk, with multicast'.format(ps, workers)
-            args.use_multicast = 1
-            args.in_network_computation = 0
-            sim = Simulation()
-            sim.Setup(args)
-            finish_time = sim.Run()
             write_to_csv(args, finish_time)
-            arr.append(finish_time)
             
-            #print '{} ps, {} wk, with in network computation'.format(ps, workers)
+            print '{} ps, {} wk, with multicast'.format(ps, workers)
+            args.use_multicast = 1
+            args.in_network_computation = 0
+            sim = Simulation()
+            sim.Setup(args)
+            finish_time = sim.Run()
+            write_to_csv(args, finish_time)
+
+def vary_workers_exp_aggregation(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
+    args_dict = vars(args)
+
+    # Vary the number of workers and ps
+    for workers in num_workers:
+        for ps in num_ps:
+            args.num_workers = workers
+            args.num_ps = ps
+
+            print '{} ps, {} wk, without aggregation'.format(ps, workers)
+            args.use_multicast = 0
+            args.in_network_computation = 0
+            sim = Simulation()
+            sim.Setup(args)
+            finish_time = sim.Run()
+            write_to_csv(args, finish_time)
+
+            print '{} ps, {} wk, with aggregation'.format(ps, workers)
             args.use_multicast = 0
             args.in_network_computation = 1
             sim = Simulation()
             sim.Setup(args)
             finish_time = sim.Run()
             write_to_csv(args, finish_time)
-            arr.append(finish_time)
-
-            args.use_multicast = 1
-            args.in_network_computation = 1
-            sim = Simulation()
-            sim.Setup(args)
-            finish_time = sim.Run()
-            write_to_csv(args, finish_time)
-            arr.append(finish_time)
-
-            print "%d ps x %d wk:\tvanilla %0.5f\tmulticast %0.5f\tin network computation %0.5f\tboth %0.5f" %(ps, workers, arr[0], arr[1], arr[2], arr[3])
 
 def Main (args):
     parser = argparse.ArgumentParser(description="Simulator Arguments", fromfile_prefix_chars='@')
@@ -96,6 +102,12 @@ def Main (args):
         type=str,
         action="store",
         help=".json filename for parameter mappings")
+    parser.add_argument(
+        "--fwd_pass_time",
+        dest="fwd_pass_time",
+        type=float,
+        action="store",
+        default=0)
     parser.add_argument(
         "--step_num",
         dest="step_num",
@@ -302,11 +314,12 @@ def Main (args):
     if args.topology == 'none':
         print 'Defaulting to in-rack or across racks based on args.in_rack'
 
-    #sim = Simulation()
-    #sim.Setup(args)
-    #sim.Run()
-    vary_param_optimality(args)
-    #vary_workers_exp(args, num_workers=[8], num_ps=[1,2,4,8])
+    sim = Simulation()
+    sim.Setup(args)
+    sim.Run()
+    #vary_workers_exp_aggregation(args)
+    #vary_param_optimality(args)
+    #vary_workers_exp_multicast(args, num_workers=[8], num_ps=[1,2,4,8])
 
 if __name__ == "__main__":
     Main(sys.argv[1:])
