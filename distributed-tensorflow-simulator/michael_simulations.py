@@ -18,12 +18,12 @@ def vary_bandwidths(args):
         args.ps_recv_rate = bw
         args.worker_recv_rate = bw
 
-        print 'tring with bandwidth {}gbps'.format(bw)
+        print 'INFO: tring with bandwidth {}gbps'.format(bw)
         vary_model(args)
 
 # Try various kinds of models and 
 def vary_model(args):
-    model_candidates = ['inception-v3', 'vgg16', 'resnet-200', 'resnet-101', 'vgg16']
+    model_candidates = ['vgg16']
 
     fw_pass_time = {'inception-v3': 0.176,
                     'resnet-200': 0.357,
@@ -32,7 +32,7 @@ def vary_model(args):
 
     for model_name in model_candidates:
         args.fw_pass_time = fw_pass_time[model_name]
-        print 'trying with model {}'.format(model_name)
+        print 'INFO: trying with model {}'.format(model_name)
         vary_param_optimality(args)
 
 def vary_workers_exp_multicast(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
@@ -44,7 +44,7 @@ def vary_workers_exp_multicast(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
             args.num_workers = workers
             args.num_ps = ps
 
-            print '{} ps, {} wk, without multicast'.format(ps, workers)
+            print 'INFO: {} ps, {} wk, without multicast'.format(ps, workers)
             args.use_multicast = 0
             args.in_network_computation = 0
             try:
