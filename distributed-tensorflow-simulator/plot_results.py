@@ -14,34 +14,69 @@ inputs_as_bytes,gswitch_recv_rate,tor_inbuffer_size,tor_send_rate,latency,gswitc
 def plot_vary_wk_vary_ps(result_csv_dict, model_name):
     ps_worker_time = {}
     multicast_ps_worker_time = {}
+    in_network_ps_worker_time = {}
+    both_ps_worker_time = {}
     for result in result_csv_dict:
         num_workers = int(result['num_workers'])
         num_ps = int(result['num_ps'])
         is_multicast = int(result['use_multicast'])
-        if is_multicast == 0:
+        in_network = int(result['in_network_computation'])
+        if is_multicast == 0 and in_network == 0:
             iteration_time = float(result['iteration_time'])
             
             if num_ps not in ps_worker_time:
                 ps_worker_time[num_ps] = {}
             ps_worker_time[num_ps][num_workers] = iteration_time
-        elif is_multicast == 1:
+        elif is_multicast == 1 and in_network == 0:
             iteration_time = float(result['iteration_time'])
             
             if num_ps not in multicast_ps_worker_time:
                 multicast_ps_worker_time[num_ps] = {}
             multicast_ps_worker_time[num_ps][num_workers] = iteration_time
+        elif is_multicast == 0 and in_network == 1:
+            iteration_time = float(result['iteration_time'])
+            
+            if num_ps not in in_network_ps_worker_time:
+                in_network_ps_worker_time[num_ps] = {}
+            in_network_ps_worker_time[num_ps][num_workers] = iteration_time
+        elif is_multicast == 1 and in_network == 1:
+            iteration_time = float(result['iteration_time'])
+            
+            if num_ps not in both_ps_worker_time:
+                both_ps_worker_time[num_ps] = {}
+            both_ps_worker_time[num_ps][num_workers] = iteration_time
 
     percent_improvement = {}
-    for num_ps in multicast_ps_worker_time:
+    for num_ps in in_network_ps_worker_time:
         percent_improvement[num_ps] = {}
-        for num_workers in multicast_ps_worker_time[num_ps]:
-            multicast_time = multicast_ps_worker_time[num_ps][num_workers]
+        for num_workers in in_network_ps_worker_time[num_ps]:
+            in_network_multicast_time = in_network_ps_worker_time[num_ps][num_workers]
             no_multicast_time = ps_worker_time[num_ps][num_workers]
-            print multicast_time
-            print no_multicast_time
-            percent_improvement[num_ps][num_workers] = 100.0 * (no_multicast_time - multicast_time)/float(no_multicast_time) 
+            percent_improvement[num_ps][num_workers] = 100.0 * (no_multicast_time - in_network_multicast_time)/float(no_multicast_time) 
+
+    alt_percent_improvement = {}
+    for num_ps in both_ps_worker_time:
+        alt_percent_improvement[num_ps] = {}
+        for num_workers in both_ps_worker_time[num_ps]:
+            both_time = both_ps_worker_time[num_ps][num_workers]
+            multicast_time = multicast_ps_worker_time[num_ps][num_workers]
+            alt_percent_improvement[num_ps][num_workers] = 100.0 * (multicast_time - both_time)/float(multicast_time)
 
     all_lines = []
+    for num_ps in both_ps_worker_time:
+        results = both_ps_worker_time[num_ps]
+        distr_lists = sorted(results.items())
+        x,y = zip(*distr_lists)
+        distr_line, = plt.plot(x,y, '-.', label='{} ps, Both'.format(num_ps))
+        all_lines.append(distr_line)
+
+    for num_ps in in_network_ps_worker_time:
+        results = in_network_ps_worker_time[num_ps]
+        distr_lists = sorted(results.items())
+        x,y = zip(*distr_lists)
+        distr_line, = plt.plot(x,y, '--', label='{} ps, In-Network'.format(num_ps))
+        all_lines.append(distr_line)
+
     for num_ps in multicast_ps_worker_time:
         results = multicast_ps_worker_time[num_ps]
         distr_lists = sorted(results.items())
@@ -62,15 +97,22 @@ def plot_vary_wk_vary_ps(result_csv_dict, model_name):
     plt.ylabel('Iteration time')
     plt.show()
 
-    all_lines = []
+    all_lines_alt = []
     for num_ps in percent_improvement:
         results = percent_improvement[num_ps]
         distr_lists = sorted(results.items())
         x,y = zip(*distr_lists)
-        distr_line, = plt.plot(x,y, ':', label='{} ps, Multicast'.format(num_ps))
-        all_lines.append(distr_line)
+        distr_line, = plt.plot(x,y, ':', label='{} ps, Unicast'.format(num_ps))
+        all_lines_alt.append(distr_line)
 
-    plt.legend(handles=all_lines)
+    for num_ps in alt_percent_improvement:
+        results = alt_percent_improvement[num_ps]
+        distr_lists = sorted(results.items())
+        x,y = zip(*distr_lists)
+        distr_line, = plt.plot(x,y, '-', label='{} ps, Multicast'.format(num_ps))
+        all_lines_alt.append(distr_line)
+
+    plt.legend(handles=all_lines_alt)
     plt.title('Percent improvement of using Multicast')
     plt.xlabel('Number of workers')
     plt.ylabel('Percent Improvement in Performance with Multicast')
