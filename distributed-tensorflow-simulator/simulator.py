@@ -314,12 +314,18 @@ def Main (args):
     if args.topology == 'none':
         print 'Defaulting to in-rack or across racks based on args.in_rack'
 
+    # Set the arguments based on the model name
+    if args.trace_base_dir == 'csv/':
+        args.trace_base_dir += args.model_name  + '/'
+    if args.json == 'json/':
+        args.json += '{}_param_ps_assignment.json'.format(args.model_name)
+
     sim = Simulation()
     sim.Setup(args)
     sim.Run()
     #vary_workers_exp_aggregation(args)
     #vary_param_optimality(args)
-    #vary_workers_exp_multicast(args, num_workers=[8], num_ps=[1,2,4,8])
-
+    #vary_workers_exp_multicast(args)
+    
 if __name__ == "__main__":
     Main(sys.argv[1:])
