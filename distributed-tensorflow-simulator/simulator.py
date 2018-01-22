@@ -4,6 +4,7 @@ import csv
 import os
 
 from sim import Simulation
+from michael_simulations import *
 
 def write_to_csv(args, finish_time):
     results_file = './exp_results/{}/results.csv'.format(args.model_name)
@@ -27,68 +28,6 @@ def vary_worker_step_time(args):
     for step_num in step_range:
         args.step_num = step_num
         vary_workers_exp(args, num_workers=num_workers, num_ps=num_ps)
-
-def vary_param_optimality(args):
-    num_workers = [2,4,8,12]
-    num_ps = [1,2,4,8]
-
-    print 'Testing with suboptimal (real) parameter distributions'
-    args.optimal_param_distribution = 0
-    vary_workers_exp_multicast(args, num_workers, num_ps)
-
-    print 'Testing with optimal parameter distributions'
-    args.optimal_param_distribution = 1
-    vary_workers_exp_multicast(args, num_workers, num_ps)
-
-def vary_workers_exp_multicast(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
-    args_dict = vars(args)
-    
-    # Vary the number of workers and ps
-    for workers in num_workers:
-        for ps in num_ps:
-            args.num_workers = workers
-            args.num_ps = ps
-
-            print '{} ps, {} wk, without multicast'.format(ps, workers)
-            args.use_multicast = 0
-            args.in_network_computation = 0
-            sim = Simulation()
-            sim.Setup(args)
-            finish_time = sim.Run()
-            write_to_csv(args, finish_time)
-            
-            print '{} ps, {} wk, with multicast'.format(ps, workers)
-            args.use_multicast = 1
-            args.in_network_computation = 0
-            sim = Simulation()
-            sim.Setup(args)
-            finish_time = sim.Run()
-            write_to_csv(args, finish_time)
-
-def vary_workers_exp_aggregation(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
-    args_dict = vars(args)
-
-    # Vary the number of workers and ps
-    for workers in num_workers:
-        for ps in num_ps:
-            args.num_workers = workers
-            args.num_ps = ps
-
-            print '{} ps, {} wk, without aggregation'.format(ps, workers)
-            args.use_multicast = 0
-            args.in_network_computation = 0
-            sim = Simulation()
-            sim.Setup(args)
-            finish_time = sim.Run()
-            write_to_csv(args, finish_time)
-
-            print '{} ps, {} wk, with aggregation'.format(ps, workers)
-            args.use_multicast = 0
-            args.in_network_computation = 1
-            sim = Simulation()
-            sim.Setup(args)
-            finish_time = sim.Run()
-            write_to_csv(args, finish_time)
 
 def Main (args):
     parser = argparse.ArgumentParser(description="Simulator Arguments", fromfile_prefix_chars='@')
@@ -320,9 +259,10 @@ def Main (args):
     if args.json == 'json/':
         args.json += '{}_param_ps_assignment.json'.format(args.model_name)
 
-    sim = Simulation()
-    sim.Setup(args)
-    sim.Run()
+    vary_bandwidths(args)
+    #sim = Simulation()
+    #sim.Setup(args)
+    #sim.Run()
     #vary_workers_exp_aggregation(args)
     #vary_param_optimality(args)
     #vary_workers_exp_multicast(args)
