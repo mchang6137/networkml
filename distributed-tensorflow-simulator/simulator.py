@@ -222,6 +222,12 @@ def Main (args):
         action="store",
         default=0)
     parser.add_argument(
+        "--fat_tree",
+        dest='fat_tree',
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
         "--topology",
         dest="topology",
         type=str,

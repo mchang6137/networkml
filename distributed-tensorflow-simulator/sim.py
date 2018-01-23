@@ -8,6 +8,7 @@ from worker import Worker
 from ps import PS
 from tor import TOR
 from gswitch import GSwitch
+from switch import Switch
 
 class Simulation (object):
     def __init__ (self):
@@ -87,7 +88,7 @@ class Simulation (object):
                     wkobj.send_rate = args.worker_send_rate * gigabit
                     wkobj.recv_rate = args.worker_recv_rate * gigabit
                     self.ctx.workers.append(worker_name)
-                    wkobj.rack = 0
+                    wkobj.rack = rack_counter
                     wkobj.parents.append(tor_name)
                     torobj.children.append(worker_name)
                     rack_counter += 1
@@ -108,7 +109,7 @@ class Simulation (object):
                     ps_obj.send_rate = args.ps_send_rate * gigabit
                     ps_obj.recv_rate = args.ps_recv_rate * gigabit
                     self.ctx.pses.append(ps_name)
-                    ps_obj.rack = 0
+                    ps_obj.rack = rack_counter
                     ps_obj.parents.append(tor_name)
                     torobj.children.append(ps_name)
                     rack_counter += 1
@@ -153,60 +154,144 @@ class Simulation (object):
                 rack_number += 1
             for key, value in self.ctx.objs.iteritems():
                 pass
-        for i in range(args.num_gswitches):
-            name = "GSwitch" + str(i)
-            self.ctx.objs[name] = GSwitch(self.ctx, name=name, inbuffer_size=args.ps_inbuffer_size)
-            self.ctx.objs[name].send_rate = args.gswitch_send_rate * gigabit
-            self.ctx.objs[name].recv_rate = args.gswitch_recv_rate * gigabit
-            self.ctx.objs[name].rack = -1
-            self.ctx.gswitches.append(name)
-            self.ctx.objs[name].children.extend(self.ctx.tors)
+        if args.fat_tree and len(self.ctx.tors) > 1:
+            layers = 0
+            while True:
+                if 2 ** layers >= len(self.ctx.tors):
+                    break
+                layers += 1
+            #print "%d %d" % (layers, len(self.ctx.tors))
+            random.shuffle(self.ctx.tors)
+            prev_layer = []
+            cur_layer = []
+            for layer_num in range(layers):
+                cur_layer = []
+                for switch_num in range(2 ** layer_num):
+                    name = "Switch%d.%d" % (layer_num, switch_num)
+                    self.ctx.objs[name] = GSwitch(self.ctx, name=name, inbuffer_size=args.gswitch_inbuffer_size)
+                    switch_obj = self.ctx.objs[name]
+                    switch_obj.send_rate = args.gswitch_send_rate * gigabit * (layers - layer_num)
+                    switch_obj.recv_rate = args.gswitch_recv_rate * gigabit * (layers - layer_num)
+                    switch_obj.rack = -1
+                    self.ctx.gswitches.append(name)
+                    cur_layer.append(name)
+                for parent_name in prev_layer:
+                    parent_obj = self.ctx.objs[parent_name]
+                    parent_obj.children.append(cur_layer.pop(0))
+                    parent_obj.children.append(cur_layer.pop(0))
+                    for child_name in parent_obj.children:
+                        self.ctx.objs[child_name].parents.append(parent_name)
+                        cur_layer.append(child_name)
+                prev_layer = cur_layer
+            for tor_name in self.ctx.tors:
+                tor_obj = self.ctx.objs[tor_name]
+                cur_switch_name = cur_layer.pop(0)
+                cur_switch_obj = self.ctx.objs[cur_switch_name]
+                cur_switch_obj.children.append(tor_name)
+                tor_obj.parents.append(cur_switch_name)
+                if len(cur_switch_obj.children) < 2:
+                    cur_layer.insert(0, cur_switch_name)
+            path_to_ps = {}
+            for ps_name in self.ctx.pses:
+                path_to_ps[ps_name] = [ps_name]
+                cur_obj = self.ctx.objs[ps_name]
+                cur_obj.ps_branch[ps_name] = True
+                while True:
+                    if not cur_obj.parents:
+                        break
+                    parent_name = cur_obj.parents[0]
+                    path_to_ps[ps_name].insert(0, parent_name)
+                    cur_obj = self.ctx.objs[parent_name]
+                    cur_obj.ps_branch[ps_name] = True
+                    #print "%s branches to %s" % (str(cur_obj), ps_name)
+                ps_obj = self.ctx.objs[ps_name]
+                ps_obj.root = str(cur_obj)
+                #print "ps %s root set to %s" % (ps_name, ps_obj.root)
+            path_from_worker = {}
+            for wk_name in self.ctx.workers:
+                path_from_worker[wk_name] = [wk_name]
+                cur_obj = self.ctx.objs[wk_name]
+                while True:
+                    if not cur_obj.parents:
+                        break
+                    parent_name = cur_obj.parents[0]
+                    path_from_worker[wk_name].append(parent_name)
+                    cur_obj = self.ctx.objs[parent_name]
+                cur_path_from_worker = path_from_worker[wk_name]
+                for ps_name in self.ctx.pses:
+                    cur_path_to_ps = path_to_ps[ps_name]
+                    pname = str(wk_name) + str(ps_name)
+                    path = []
+                    for step in cur_path_from_worker:
+                        if step in cur_path_to_ps:
+                            path = cur_path_from_worker[:cur_path_from_worker.index(step)]
+                            path.extend(cur_path_to_ps[cur_path_to_ps.index(step):])
+                            break
+                    self.ctx.paths[pname] = path
+                    #print "%s: %s" % (pname, str(path))
+                    for step in path:
+                        step_obj = self.ctx.objs[step]
+                        if not isinstance(step_obj, Switch):
+                            continue
+                        if ps_name not in step_obj.in_network:
+                            step_obj.in_network[ps_name] = 0
+                        step_obj.in_network[ps_name] += 1
+                    path = path[::-1]
+                    pname = str(ps_name) + str(wk_name)
+                    self.ctx.paths[pname] = path
+                    #print "%s: %s" % (pname, str(path))
+            for gswitch in self.ctx.gswitches:
+                gs_obj = self.ctx.objs[gswitch]
+                #print str(gs_obj)
+                #print "\tparents: " + str(gs_obj.parents)
+                #print "\tchildren: " + str(gs_obj.children)
+                #print "\tnetwork: " + str(gs_obj.in_network)
+                #print "\tps branch: " + str(gs_obj.ps_branch)
+        else:
+            for i in range(args.num_gswitches):
+                name = "GSwitch" + str(i)
+                self.ctx.objs[name] = GSwitch(self.ctx, name=name, inbuffer_size=args.gswitch_inbuffer_size)
+                self.ctx.objs[name].send_rate = args.gswitch_send_rate * gigabit
+                self.ctx.objs[name].recv_rate = args.gswitch_recv_rate * gigabit
+                self.ctx.objs[name].rack = -1
+                self.ctx.gswitches.append(name)
+                self.ctx.objs[name].children.extend(self.ctx.tors)
 
-        for src in self.ctx.objs:
-            srcobj = self.ctx.objs[src]
-            if src not in self.ctx.workers and src not in self.ctx.pses:
-                continue
-            for dest in self.ctx.objs:
-                destobj = self.ctx.objs[dest]
-                if dest not in self.ctx.workers and dest not in self.ctx.pses:
-                    continue
-                pname = str(src) + str(dest)
-                if pname not in self.ctx.paths:
+            for tor in self.ctx.tors:
+                self.ctx.objs[tor].parents.extend(self.ctx.gswitches)
+
+            for ps in self.ctx.pses:
+                ps_obj = self.ctx.objs[ps]
+                ps_obj.root = random.choice(self.ctx.gswitches)
+                tor_obj = self.ctx.objs[ps_obj.parents[0]]
+                tor_obj.ps_branch[ps] = True
+                root_obj = self.ctx.objs[ps_obj.root]
+                root_obj.ps_branch[ps] = True
+
+            for src in self.ctx.workers:
+                srcobj = self.ctx.objs[src]
+                for dest in self.ctx.pses:
+                    destobj = self.ctx.objs[dest]
+                    pname = str(src) + str(dest)
                     if srcobj.parents[0] == destobj.parents[0]:
                         path = [src, srcobj.parents[0], dest]
                     else:
-                        path = [src, srcobj.parents[0], random.choice(self.ctx.gswitches), destobj.parents[0], dest]
+                        path = [src, srcobj.parents[0], destobj.root, destobj.parents[0], dest]
                     self.ctx.paths[pname] = path
-
+                    for step in path:
+                        step_obj = self.ctx.objs[step]
+                        if not isinstance(step_obj, Switch):
+                            continue
+                        if dest not in step_obj.in_network:
+                            step_obj.in_network[dest] = 0
+                        step_obj.in_network[dest] += 1
+                    pname = str(dest) + str(src)
+                    path = path[::-1]
+                    self.ctx.paths[pname] = path
         self.load_parameter_mapping(jsonname, args)
         self.load_relative_send_schedule(tracename_base_dir, args)
 
-        for tor in self.ctx.tors:
-            self.ctx.objs[tor].parents.extend(self.ctx.gswitches)
-
-        for ps in self.ctx.pses:
-            ps_obj = self.ctx.objs[ps]
-            ps_obj.root = random.choice(self.ctx.gswitches)
-            for worker in self.ctx.workers:
-                wk_obj = self.ctx.objs[worker]
-                wk_obj_parent = self.ctx.objs[wk_obj.parents[0]]
-                if ps not in wk_obj_parent.in_network:
-                    wk_obj_parent.in_network[ps] = 0
-                wk_obj_parent.in_network[ps] += 1
-            root_obj = self.ctx.objs[ps_obj.root]
-            root_obj.in_network[ps] = 0
-            for tor in root_obj.children:
-                if tor in ps_obj.parents:
-                    continue
-                tor_obj = self.ctx.objs[tor]
-                if ps not in tor_obj.in_network:
-                    tor_obj.in_network[ps] = 0
-                root_obj.in_network[ps] += tor_obj.in_network[ps]
-            tor = ps_obj.parents[0]
-            tor_obj = self.ctx.objs[tor]
-            if ps not in tor_obj.in_network:
-                tor_obj.in_network[ps] = 0
-            tor_obj.in_network[ps] += root_obj.in_network[ps]
+        
 
     def load_relative_send_schedule(self, tracename_basedir, args):
         all_worker_names = self.ctx.workers
