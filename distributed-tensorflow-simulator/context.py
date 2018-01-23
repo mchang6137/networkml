@@ -22,6 +22,7 @@ class Context (object):
         self.gswitches = []
         self.use_multicast = False
         self.in_network_computation = False
+        self.worker_receive = []
 
     def schedule_task(self, delta, task):
         self.queue.put_nowait((self.current_time + delta, task))

@@ -15,6 +15,7 @@ class Worker (Entity):
             if self.ctx.sendschedule[node_name] and self.received_packets == len(self.ctx.pmappings):
                 if self.ctx.verbosity:
                     print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
+                self.ctx.worker_receive.append(self.ctx.now)
                 if self.ctx.now >= self.fwd_pass_time:
                     for arr in self.ctx.sendschedule[node_name]:
                         self.ctx.schedule_send(arr[0], arr[1], self.name, arr[2], name=arr[3])

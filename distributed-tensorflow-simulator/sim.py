@@ -300,4 +300,4 @@ class Simulation (object):
         self.ctx.run()
         if self.ctx.verbosity:
             print "Done replay at %0.3f, left %d items"%(self.ctx.final_time, self.ctx.queue.qsize()) 
-        return self.ctx.final_time
+        return self.ctx.final_time, self.ctx.worker_receive
