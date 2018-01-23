@@ -259,10 +259,10 @@ def Main (args):
     if args.json == 'json/':
         args.json += '{}_param_ps_assignment.json'.format(args.model_name)
 
-    vary_bandwidths(args)
-    #sim = Simulation()
-    #sim.Setup(args)
-    #sim.Run()
+    #vary_bandwidths(args)
+    sim = Simulation()
+    sim.Setup(args)
+    a,b = sim.Run()
     #vary_workers_exp_aggregation(args)
     #vary_param_optimality(args)
     #vary_workers_exp_multicast(args)
