@@ -52,6 +52,10 @@ def plot_compare_agg_distr(result_csv_dict, model_name, filter_bandwidth=10, use
         if use_agg == 1 and use_multicast == 1:
             update_dict(multicast_and_agg, num_ps, num_workers, iteration_time)
 
+    print multicast_and_agg[8][12]
+    print just_agg[8][12]
+    exit()
+
     both_over_baseline = {}
     multicast_over_baseline = {}
     distribution_over_baseline = {}
@@ -68,13 +72,15 @@ def plot_compare_agg_distr(result_csv_dict, model_name, filter_bandwidth=10, use
     plot_dict(multicast_over_agg, model_name, 'Multicast over aggregation')
     plot_dict(multicast_agg_over_baseline, model_name, 'Mutlicast + Agg over baseline')
     plot_dict(multicast_agg_over_agg, model_name, 'Multicast + Agg over Just Agg')
-    plot_dict(multicast_agg_over_multicast, model_name, 'Multicast + multicast over just Multicast')
+    plot_dict(multicast_agg_over_multicast, model_name, 'Multicast + aggregation over just Multicast')
 
 def update_dict(dict1, num_ps, num_workers, iteration_time):
     if num_ps not in dict1:
         dict1[num_ps] = {}
     if num_workers in dict1[num_ps]:
         print 'extra csv points'
+        print dict1[num_ps][num_workers]
+        print iteration_time
     dict1[num_ps][num_workers] = iteration_time
     
 # Assumes num_ps -> num_workers
@@ -628,7 +634,7 @@ if __name__ == "__main__":
     if args.experiment_name == 'agg_wk_ps':
         plot_vary_parameter_aggregation(result_csv_dict, args.model_name, float(args.filter_bandwidth))
     if args.experiment_name == 'multicast_agg_compare':
-        plot_compare_agg_distr(result_csv_dict, args.model_name, float(args.filter_bandwidth), use_even_split=0)
+        plot_compare_agg_distr(result_csv_dict, args.model_name, float(args.filter_bandwidth), use_even_split=1)
     if args.experiment_name == 'step_variance':
         print 'Without multicast'
         unicast_cv = plot_step_variance(result_csv_dict, args.model_name, use_multicast=0)
