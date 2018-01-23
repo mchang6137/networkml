@@ -12,6 +12,7 @@ if __name__ == "__main__":
     parser.add_argument('--base_file')
     parser.add_argument('--max_ps')
     parser.add_argument('--model_name')
+    parser.add_argument('--opt_params')
     args = parser.parse_args()
 
     result_file_list = []

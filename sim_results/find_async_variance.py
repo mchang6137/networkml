@@ -9,10 +9,10 @@ import matplotlib.pylab as plt
 from parse_step_times import *
 
 aggregation_start_dict = {'inception-v3': ['inception_v3/conv0/BatchNorm/moments/Squeeze'],
-                     'resnet-200': ['gradients/resnet_v2_200/logits/BiasAdd_grad/tuple/control_dependency_1'],
-                     'resnet-101': ['resnet_v2_101/block1/unit_1/bottleneck_v2/preact/FusedBatchNorm', 'resnet_v2_101/block1/unit_1/bottleneck_v2/preact/Const_2', 'resnet_v2_101/postnorm/Const_2'],
-	             'vgg16': ['vgg/conv0/BatchNorm/moments/Squeeze']
-                     }
+                          'resnet-200': ['resnet_v2_200/block4/unit_2/bottleneck_v2/conv1/BatchNorm/Const_2'],
+                          'resnet-101': ['resnet_v2_101/block4/unit_3/bottleneck_v2/conv1/BatchNorm/Const_2'],
+	                  'vgg16': ['vgg/conv0/BatchNorm/moments/Squeeze']
+}
 
 aggregation_end_dict = {'inception-v3': ['gradients/AddN_304'],
 	           'resnet-200': ['gradients/AddN_269'],
@@ -25,9 +25,10 @@ aggregation_end_dict = {'inception-v3': ['gradients/AddN_304'],
 trigger_variables = 'sync_rep_local_step/read'
 
 # First step in the back propagation step
-first_back_prop = {'inception-v3': ['gradients/AddN'],
-                   'resnet-200': ['gradients/AddN'],
-                   'resnet-101': ['gradients/AddN'],
+# Actually use the last squeeze from the forward propagation step
+first_back_prop = {'inception-v3': ['gradients/inception_v3/mixed_8x8x2048b/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/tuple/control_dependency'],
+                   'resnet-200': ['gradients/resnet_v2_200/logits/BiasAdd_grad/tuple/control_dependency_1'],
+                   'resnet-101': ['gradients/resnet_v2_101/logits/BiasAdd_grad/tuple/control_dependency_1'],
                    'vgg16': ['gradients/vgg/logits/xw_plus_b_grad/tuple/control_dependency_1', 'gradients/AddN'],
                    }
 
