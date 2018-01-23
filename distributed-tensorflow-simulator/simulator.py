@@ -6,12 +6,13 @@ import os
 from sim import Simulation
 from michael_simulations import *
 
-def write_to_csv(args, finish_time):
+def write_to_csv(args, finish_time, worker_receive_times):
     results_file = './exp_results/{}/results.csv'.format(args.model_name)
     file_exists = os.path.isfile(results_file)
     
     args_dict = vars(args)
     args_dict['iteration_time'] = finish_time
+    args_dict['worker_receive_time'] = worker_receive_times
     headers = args_dict.keys()
     
     #print args_dict
