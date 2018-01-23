@@ -15,6 +15,7 @@ class Entity (object):
         self.inbuffer_size = inbuffer_size
         self.parents = []
         self.children = []
+        self.ps_branch = {}
 
     def __str__(self):
         return self.name
@@ -31,48 +32,50 @@ class Entity (object):
             pass
             #print "packet %s queued to send by %s to %s at time %0.3f" % (packet, self, packet.dest, self.ctx.now)
         if packet.multicast:
+            #print "%s is deliberating on %s" % (self.name, packet.name)
             if self.name == packet.src:
                 nexthop = self.parents[0]
                 self.sendto(packet, nexthop)
-            elif packet.src in self.children:
-                for dest in self.children:
-                    if dest not in self.ctx.workers:
-                        continue
+                return
+            if packet.src in self.ps_branch:
+                if self.parents:
+                    if self.ctx.objs[packet.src].root in self.parents:
+                        nexthop = self.ctx.objs[packet.src].root
+                    else:
+                        nexthop = self.parents[0]
+                    opacket = packet.copy()
+                    self.sendto(opacket, nexthop)
+            for dest in self.children:
+                if dest in self.ctx.pses:
+                    continue
+                if dest in self.ctx.workers:
+                    #print "removing multicast on %s to %s" % (packet.name, dest)
                     opacket = packet.copy()
                     opacket.dest = dest
                     opacket.multicast = False
                     opacket.path = self.ctx.paths[packet.src + dest]
                     self.queuesend(opacket)
-                if self.ctx.objs[packet.src].root:
-                    nexthop = self.ctx.objs[packet.src].root
-                    self.sendto(packet, nexthop)
-            elif self.rack == -1:
-                for tor in self.children:
-                    if tor != self.ctx.objs[packet.src].parents[0] and self.ctx.objs[tor].in_network > 0:
-                        opacket = packet.copy()
-                        self.sendto(opacket, tor)
-            else:
-                for dest in self.children:
-                    if dest not in self.ctx.workers:
-                        continue
+                    continue
+                destobj = self.ctx.objs[dest]
+                if packet.src not in destobj.ps_branch and packet.src in destobj.in_network:
+                    #print "forwarding %s down from %s to %s" % (packet.name, self.name, dest)
                     opacket = packet.copy()
-                    opacket.dest = dest
-                    opacket.multicast = False
-                    opacket.path = self.ctx.paths[packet.src + dest]
-                    self.queuesend(opacket)
+                    self.sendto(opacket, dest)
         elif packet.netagg:
+            destobj = self.ctx.objs[packet.dest]
             if self.name in self.ctx.workers:
                 nexthop = self.parents[0]
                 self.sendto(packet, nexthop)
-            elif self.name in self.ctx.tors and packet.dest not in self.children:
-                if self.ctx.objs[packet.dest].root:
-                    nexthop = self.ctx.objs[packet.dest].root
+            elif packet.dest not in self.ps_branch:
+                if self.parents:
+                    if destobj.root in self.parents:
+                        nexthop = destobj.root
+                    else:
+                        nexthop = self.parents[0]
                     self.sendto(packet, nexthop)
-            elif self.name == self.ctx.objs[packet.dest].root:
-                nexthop = self.ctx.objs[packet.dest].parents[0]
-                self.sendto(packet, nexthop)
             else:
-                nexthop = packet.dest
+                path = packet.path
+                nexthop = path[path.index(self.name) + 1]
                 self.sendto(packet, nexthop)
         else:
             path = packet.path

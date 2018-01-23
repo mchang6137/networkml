@@ -65,7 +65,10 @@ class Context (object):
     def schedule_send_internal(self, delta, size, src, dest, name=""):
         mpacket = Packet(size, src=src, dest=dest, name=name)
         mpacket.time_send = delta
-        mpacket.path = self.paths[src + dest]
+        if src + dest in self.paths:
+            mpacket.path = self.paths[src + dest]
+        else:
+            mpacket.path = [src, dest]
         if src == dest and self.use_multicast:
             mpacket.multicast = True
         if src in self.workers and self.in_network_computation:
