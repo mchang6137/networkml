@@ -22,7 +22,7 @@ class Switch (Entity):
                 if packet.name not in self.received_packets:
                     self.received_packets[packet.name] = 0
                 self.received_packets[packet.name] += packet.degree
-                if self.received_packets[packet.name] == self.in_network[packet.dest]:
+                if self.received_packets[packet.name] == self.in_network[packet.name]:
                     packet.size = self.ctx.edge_weights[packet.name]
-                    packet.degree = self.in_network[packet.dest]
+                    packet.degree = self.in_network[packet.name]
                     self.queuesend(packet)

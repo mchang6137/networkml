@@ -23,6 +23,7 @@ class Context (object):
         self.use_multicast = False
         self.in_network_computation = False
         self.worker_receive = []
+        self.ps_num_items = {}
 
     def schedule_task(self, delta, task):
         self.queue.put_nowait((self.current_time + delta, task))

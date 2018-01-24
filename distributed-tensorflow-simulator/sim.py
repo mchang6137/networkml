@@ -2,6 +2,7 @@ import sys
 import random
 import json
 import os
+import glob
 from packet import Packet
 from context import Context
 from worker import Worker
@@ -295,55 +296,86 @@ class Simulation (object):
 
     def load_relative_send_schedule(self, tracename_basedir, args):
         all_worker_names = self.ctx.workers
-        step_num = args.step_num
         num_workers = args.num_workers
-        num_ps = args.num_ps
-        use_optimal_ps = args.optimal_param_distribution
+        step_num = args.step_num
         
         # Open up individual trace file per worker
 
-        tracename_basedir = tracename_basedir + '{}/'.format(num_workers)
         if os.path.exists(tracename_basedir) is False:
             print 'The provided basename directory does not exist'
             exit()
+        orig_tracename_basedir = tracename_basedir
 
-        self.ctx.sendschedule = {}
-        for worker_id in range(num_workers):
-            worker_name = 'worker{}'.format(worker_id)
-            assert worker_name in all_worker_names
-            wk_path = tracename_basedir + 'wk{}_{}.csv'.format(worker_id, step_num)
+        tracename_basedir = tracename_basedir + '{}/'.format(num_workers)
+        if os.path.exists(tracename_basedir) is True:
+            self.ctx.sendschedule = {}
+            for worker_id in range(num_workers):
+                worker_name = 'worker{}'.format(worker_id)
+                assert worker_name in all_worker_names
+                wk_path = tracename_basedir + 'wk{}_{}.csv'.format(worker_id, step_num)
 
-            if os.path.exists(wk_path) is False:
-                print 'There is no trace data for {} cluster, wkid {}, step_num {}'.format(num_workers, worker_id, step_num)
-                exit()
-        
-            trace = open(wk_path).readlines()
-
-            self.ctx.sendschedule[worker_name] = []
-            for ev in trace:
-                if ev.startswith("//") or ev.startswith('"'):
-                    continue
-                parts = ev.strip().split(',')
-                time = float(parts[0])
-                size = float(parts[1])
-                if args.inputs_as_bytes:
-                    size *= 8
-                edgename = str(parts[2])
-                if use_optimal_ps == 0:
-                    if edgename in self.ctx.pmappings:
-                        self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
-                        self.ctx.ps_num_items[self.ctx.pmappings[edgename]] += len(self.ctx.workers)
-                elif use_optimal_ps == 1:
-                    # Split the parameter evenly between all the parameter servers
-                    revised_size  = size / float(num_ps)
-                    for ps_index in range(num_ps):
-                        new_edgename = edgename + '_ps{}'.format(ps_index)
-                        if new_edgename in self.ctx.pmappings:
-                            self.ctx.sendschedule[worker_name].append((time / 1000, revised_size, self.ctx.pmappings[new_edgename], new_edgename))
-                            self.ctx.ps_num_items[self.ctx.pmappings[new_edgename]] += len(self.ctx.workers)
-                else:
-                    print 'Use Optimal PS is invalid. Exiting...'
+                if os.path.exists(wk_path) is False:
+                    print 'There is no trace data for {} cluster, wkid {}, step_num {}'.format(num_workers, worker_id, step_num)
                     exit()
+            
+                trace = open(wk_path).readlines()
+                self.load_relative_send_schedule_one_worker(trace, worker_name, args)
+        else:
+            csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*.csv'))]
+            self.ctx.sendschedule = {}
+            for worker_id in range(num_workers):
+                worker_name = 'worker{}'.format(worker_id)
+                assert worker_name in all_worker_names
+                wk_path = random.choice(csvs)
+
+                if os.path.exists(wk_path) is False:
+                    print 'There is no csv {}'.format(wk_path)
+                    exit()
+            
+                trace = open(wk_path).readlines()
+                self.load_relative_send_schedule_one_worker(trace, worker_name, args)
+    
+
+    def load_relative_send_schedule_one_worker(self, trace, worker_name, args):
+        num_ps = args.num_ps
+        use_optimal_ps = args.optimal_param_distribution
+
+        self.ctx.sendschedule[worker_name] = []
+        for ev in trace:
+            if ev.startswith("//") or ev.startswith('"'):
+                continue
+            parts = ev.strip().split(',')
+            time = float(parts[0])
+            size = float(parts[1])
+            if args.inputs_as_bytes:
+                size *= 8
+            edgename = str(parts[2])
+            if use_optimal_ps == 0:
+                if edgename in self.ctx.pmappings:
+                    self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
+                    self.adjust_in_network(worker_name, self.ctx.pmappings[edgename], edgename)
+            elif use_optimal_ps == 1:
+                # Split the parameter evenly between all the parameter servers
+                revised_size  = size / float(num_ps)
+                for ps_index in range(num_ps):
+                    new_edgename = edgename + '_ps{}'.format(ps_index)
+                    if new_edgename in self.ctx.pmappings:
+                        self.ctx.sendschedule[worker_name].append((time / 1000, revised_size, self.ctx.pmappings[new_edgename], new_edgename))
+                        self.adjust_in_network(worker_name, self.ctx.pmappings[new_edgename], new_edgename)
+            else:
+                print 'Use Optimal PS is invalid. Exiting...'
+                exit()
+
+    def adjust_in_network(self, src, dest, edgename):
+        self.ctx.ps_num_items[dest] += 1
+        path = self.ctx.paths[src+dest]
+        for step in path:
+            step_obj = self.ctx.objs[step]
+            if not isinstance(step_obj, Switch):
+                continue
+            if edgename not in step_obj.in_network:
+                step_obj.in_network[edgename] = 0
+            step_obj.in_network[edgename] += 1
 
     def load_parameter_mapping(self, jsonname, args):
         use_optimal_ps = args.optimal_param_distribution
@@ -355,7 +387,6 @@ class Simulation (object):
             datastore = datastore[str(len(self.ctx.pses))]
         elif use_optimal_ps == 1:
             datastore = datastore['1']
-        self.ctx.ps_num_items = {}
         self.ctx.pmappings = {}
         self.ctx.edge_weights = {}
 
