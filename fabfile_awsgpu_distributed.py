@@ -573,7 +573,7 @@ def start_experiment(model, num_ps=NUM_PARAM_SERVERS, num_workers=NUM_WORKERS):
         exit(1)
 
     machines = [ps_base_name + str(i) for i in range(num_ps)]
-    machines += [worker_base_name + str(i + 2) for i in range(num_workers)]
+    machines += [worker_base_name + str(i) for i in range(num_workers)]
     machine_string = ','.join(machines)
 
 
