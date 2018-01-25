@@ -1,0 +1,1003 @@
+INFO:tensorflow:PS hosts are: ['52.33.41.74:2222', '35.160.219.14:2222']
+INFO:tensorflow:Worker hosts are: ['54.149.239.94:2222', '54.201.22.232:2222']
+2018-01-25 05:49:17.635649: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:900] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2018-01-25 05:49:17.636157: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1061] Found device 0 with properties: 
+name: Tesla K80 major: 3 minor: 7 memoryClockRate(GHz): 0.8235
+pciBusID: 0000:00:1e.0
+totalMemory: 11.17GiB freeMemory: 11.11GiB
+2018-01-25 05:49:17.636181: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1151] Creating TensorFlow device (/device:GPU:0) -> (device: 0, name: Tesla K80, pci bus id: 0000:00:1e.0, compute capability: 3.7)
+E0125 05:49:18.051613036   11386 ev_epoll1_linux.c:1051]     grpc epoll fd: 21
+2018-01-25 05:49:18.057832: I tensorflow/core/distributed_runtime/rpc/grpc_channel.cc:215] Initialize GrpcChannelCache for job ps -> {0 -> 52.33.41.74:2222, 1 -> 35.160.219.14:2222}
+2018-01-25 05:49:18.057859: I tensorflow/core/distributed_runtime/rpc/grpc_channel.cc:215] Initialize GrpcChannelCache for job worker -> {0 -> localhost:2222, 1 -> 54.201.22.232:2222}
+2018-01-25 05:49:18.058378: I tensorflow/core/distributed_runtime/rpc/grpc_server_lib.cc:324] Started server with target: grpc://localhost:2222
+2018-01-25 05:49:18.086521: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "DenseToSparseBatchDataset" device_type: "CPU"') for unknown op: DenseToSparseBatchDataset
+2018-01-25 05:49:18.086570: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "GroupByWindowDataset" device_type: "CPU"') for unknown op: GroupByWindowDataset
+2018-01-25 05:49:18.086588: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "IgnoreErrorsDataset" device_type: "CPU"') for unknown op: IgnoreErrorsDataset
+2018-01-25 05:49:18.086604: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "DatasetToSingleElement" device_type: "CPU"') for unknown op: DatasetToSingleElement
+2018-01-25 05:49:18.086629: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "SerializeIterator" device_type: "CPU"') for unknown op: SerializeIterator
+2018-01-25 05:49:18.086646: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "DeserializeIterator" device_type: "CPU"') for unknown op: DeserializeIterator
+2018-01-25 05:49:18.086655: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "MapAndBatchDataset" device_type: "CPU"') for unknown op: MapAndBatchDataset
+2018-01-25 05:49:18.086695: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "ParallelInterleaveDataset" device_type: "CPU"') for unknown op: ParallelInterleaveDataset
+2018-01-25 05:49:18.086717: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "ScanDataset" device_type: "CPU"') for unknown op: ScanDataset
+2018-01-25 05:49:18.086738: E tensorflow/core/framework/op_kernel.cc:1142] OpKernel ('op: "SqlDataset" device_type: "CPU"') for unknown op: SqlDataset
+WARNING:tensorflow:From /home/ec2-user/anaconda/lib/python2.7/site-packages/tensorflow/python/ops/nn_impl.py:664: calling reduce_mean (from tensorflow.python.ops.math_ops) with keep_dims is deprecated and will be removed in a future version.
+Instructions for updating:
+keep_dims is deprecated, use keepdims instead
+AFTER CONV2 SHAPE: (32, 147, 147, 64)
+NET SHAPE: (32, 35, 35, 192)
+SCOPE IS mixed_35x35x256a
+BRANCH 1x1 SHAPE: (32, 35, 35, 64)
+BRANCH 5x5 SHAPE pt 1: (32, 35, 35, 48)
+BRANCH 5x5 SHAPE part 2: (32, 35, 35, 64)
+BRANCH 3x3dbl SHAPE pt 1: (32, 35, 35, 64)
+BRANCH 3x3dbl SHAPE pt 2: (32, 35, 35, 96)
+BRANCH 3x3dbl SHAPE pt 3: (32, 35, 35, 96)
+BRANCH POOL SHAPE part 1: (32, 35, 35, 192)
+BRANCH POOL SHAPE part 2: (32, 35, 35, 32)
+BRANCH mixed_35x35x256a SHAPE: (32, 35, 35, 256)
+SCOPE IS mixed_35x35x288a
+BRANCH 1x1 SHAPE: (32, 35, 35, 64)
+BRANCH 5x5 SHAPE pt 1: (32, 35, 35, 48)
+BRANCH 5x5 SHAPE pt 2: (32, 35, 35, 64)
+BRANCH 3x3dbl SHAPE pt 1: (32, 35, 35, 64)
+BRANCH 3x3dbl SHAPE pt 2: (32, 35, 35, 96)
+BRANCH 3x3dbl SHAPE pt 3: (32, 35, 35, 96)
+BRANCH POOL SHAPE part 1: (32, 35, 35, 256)
+BRANCH POOL SHAPE part 2: (32, 35, 35, 64)
+BRANCH mixed_35x35x288a SHAPE: (32, 35, 35, 288)
+SCOPE IS mixed_35x35x288b
+BRANCH 1x1 SHAPE: (32, 35, 35, 64)
+BRANCH 5x5 SHAPE pt 1: (32, 35, 35, 48)
+BRANCH 5x5 SHAPE pt 2: (32, 35, 35, 64)
+BRANCH 3x3dbl SHAPE pt 1: (32, 35, 35, 64)
+BRANCH 3x3dbl SHAPE pt 2: (32, 35, 35, 96)
+BRANCH 3x3dbl SHAPE pt 3: (32, 35, 35, 96)
+BRANCH POOL SHAPE part 1: (32, 35, 35, 288)
+BRANCH POOL SHAPE part 2: (32, 35, 35, 64)
+BRANCH mixed_35x35x288b SHAPE: (32, 35, 35, 288)
+SCOPE IS mixed_17x17x768a
+BRANCH 3x3 SHAPE: (32, 17, 17, 384)
+BRANCH 3x3dbl SHAPE pt 1: (32, 35, 35, 64)
+BRANCH 3x3dbl SHAPE pt 2: (32, 35, 35, 96)
+BRANCH 3x3dbl SHAPE pt 3: (32, 17, 17, 96)
+BRANCH POOL SHAPE: (32, 17, 17, 288)
+BRANCH mixed_17x17x768a SHAPE: (32, 17, 17, 768)
+SCOPE IS mixed_17x17x768b
+BRANCH 1x1 SHAPE: (32, 17, 17, 192)
+BRANCH 7x7 SHAPE part 1: (32, 17, 17, 128)
+BRANCH 7x7 SHAPE part 2: (32, 17, 17, 128)
+BRANCH 7x7 SHAPE part 3: (32, 17, 17, 192)
+BRANCH 7x7dbl SHAPE part 1: (32, 17, 17, 128)
+BRANCH 7x7dbl SHAPE part 2: (32, 17, 17, 128)
+BRANCH 7x7dbl SHAPE part 3: (32, 17, 17, 128)
+BRANCH 7x7dbl SHAPE part 4: (32, 17, 17, 128)
+BRANCH 7x7dbl SHAPE part 5: (32, 17, 17, 192)
+BRANCH POOL SHAPE part 1: (32, 17, 17, 768)
+BRANCH POOL SHAPE part 2: (32, 17, 17, 192)
+BRANCH mixed_17x17x768b SHAPE: (32, 17, 17, 768)
+SCOPE IS mixed_17x17x768c
+BRANCH 1x1 SHAPE: (32, 17, 17, 192)
+BRANCH 7x7 SHAPE part 1: (32, 17, 17, 160)
+BRANCH 7x7 SHAPE part 2: (32, 17, 17, 160)
+BRANCH 7x7 SHAPE part 3: (32, 17, 17, 192)
+BRANCH 7x7dbl SHAPE part 1: (32, 17, 17, 160)
+BRANCH 7x7dbl SHAPE part 2: (32, 17, 17, 160)
+BRANCH 7x7dbl SHAPE part 3: (32, 17, 17, 160)
+BRANCH 7x7dbl SHAPE part 4: (32, 17, 17, 160)
+BRANCH 7x7dbl SHAPE part 5: (32, 17, 17, 192)
+BRANCH POOL SHAPE part 1: (32, 17, 17, 768)
+BRANCH POOL SHAPE part 2: (32, 17, 17, 192)
+BRANCH mixed_17x17x768c SHAPE: (32, 17, 17, 768)
+SCOPE IS mixed_17x17x768d
+BRANCH 1x1 SHAPE: (32, 17, 17, 192)
+BRANCH 7x7 SHAPE part 1: (32, 17, 17, 160)
+BRANCH 7x7 SHAPE part 2: (32, 17, 17, 160)
+BRANCH 7x7 SHAPE part 3: (32, 17, 17, 192)
+BRANCH 7x7dbl SHAPE part 1: (32, 17, 17, 160)
+BRANCH 7x7dbl SHAPE part 2: (32, 17, 17, 160)
+BRANCH 7x7dbl SHAPE part 3: (32, 17, 17, 160)
+BRANCH 7x7dbl SHAPE part 4: (32, 17, 17, 160)
+BRANCH 7x7dbl SHAPE part 5: (32, 17, 17, 192)
+BRANCH POOL SHAPE part 1: (32, 17, 17, 768)
+BRANCH POOL SHAPE part 2: (32, 17, 17, 192)
+BRANCH mixed_17x17x768d SHAPE: (32, 17, 17, 768)
+SCOPE IS mixed_17x17x768e
+BRANCH 1x1 SHAPE: (32, 17, 17, 192)
+BRANCH 7x7 SHAPE part 1: (32, 17, 17, 192)
+BRANCH 7x7 SHAPE part 2: (32, 17, 17, 192)
+BRANCH 7x7 SHAPE part 3: (32, 17, 17, 192)
+BRANCH 7x7dbl SHAPE part 1: (32, 17, 17, 192)
+BRANCH 7x7dbl SHAPE part 2: (32, 17, 17, 192)
+BRANCH 7x7dbl SHAPE part 3: (32, 17, 17, 192)
+BRANCH 7x7dbl SHAPE part 4: (32, 17, 17, 192)
+BRANCH 7x7dbl SHAPE part 5: (32, 17, 17, 192)
+BRANCH POOL SHAPE part 1: (32, 17, 17, 768)
+BRANCH POOL SHAPE part 2: (32, 17, 17, 192)
+BRANCH mixed_17x17x768e SHAPE: (32, 17, 17, 768)
+AUX_LOGITS SHAPE part 1: (32, 5, 5, 128)
+AUX LOGITS shape part 2: Tensor("inception_v3/aux_logits/Flatten/Reshape:0", shape=(32, 768), dtype=float32, device=/job:worker/task:0)
+SCOPE IS mixed_17x17x1280a
+BRANCH 3x3 SHAPE part 1: (32, 17, 17, 192)
+BRANCH 3x3 SHAPE part 1: (32, 8, 8, 320)
+BRANCH 7x3x3INFO:tensorflow:Summary name CrossEntropyLoss/value (raw) is illegal; using CrossEntropyLoss/value__raw_ instead.
+INFO:tensorflow:Summary name aux_loss/value (raw) is illegal; using aux_loss/value__raw_ instead.
+INFO:tensorflow:Summary name conv0/weights/Regularizer/L2Regularizer/value (raw) is illegal; using conv0/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name conv1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using conv1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name conv2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using conv2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name conv3/weights/Regularizer/L2Regularizer/value (raw) is illegal; using conv3/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name conv4/weights/Regularizer/L2Regularizer/value (raw) is illegal; using conv4/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x256a/branch1x1/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x256a/branch1x1/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x256a/branch5x5/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x256a/branch5x5/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x256a/branch5x5/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x256a/branch5x5/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x256a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x256a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x256a/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x256a/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x256a/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x256a/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x256a/branch_pool/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x256a/branch_pool/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288a/branch1x1/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288a/branch1x1/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288a/branch5x5/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288a/branch5x5/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288a/branch5x5/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288a/branch5x5/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288a/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288a/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288a/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288a/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288a/branch_pool/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288a/branch_pool/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288b/branch1x1/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288b/branch1x1/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288b/branch5x5/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288b/branch5x5/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288b/branch5x5/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288b/branch5x5/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288b/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288b/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288b/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288b/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288b/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288b/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_35x35x288b/branch_pool/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_35x35x288b/branch_pool/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768a/branch3x3/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768a/branch3x3/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768a/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768a/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768a/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768a/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch1x1/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch1x1/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch7x7/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch7x7/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch7x7/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch7x7/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch7x7/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch7x7/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch7x7dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch7x7dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch7x7dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch7x7dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch7x7dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch7x7dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch7x7dbl/Conv_3/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch7x7dbl/Conv_3/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch7x7dbl/Conv_4/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch7x7dbl/Conv_4/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768b/branch_pool/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768b/branch_pool/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch1x1/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch1x1/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch7x7/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch7x7/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch7x7/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch7x7/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch7x7/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch7x7/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch7x7dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch7x7dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch7x7dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch7x7dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch7x7dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch7x7dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch7x7dbl/Conv_3/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch7x7dbl/Conv_3/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch7x7dbl/Conv_4/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch7x7dbl/Conv_4/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768c/branch_pool/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768c/branch_pool/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch1x1/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch1x1/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch7x7/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch7x7/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch7x7/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch7x7/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch7x7/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch7x7/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch7x7dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch7x7dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch7x7dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch7x7dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch7x7dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch7x7dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch7x7dbl/Conv_3/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch7x7dbl/Conv_3/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch7x7dbl/Conv_4/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch7x7dbl/Conv_4/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768d/branch_pool/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768d/branch_pool/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch1x1/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch1x1/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch7x7/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch7x7/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch7x7/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch7x7/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch7x7/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch7x7/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch7x7dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch7x7dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch7x7dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch7x7dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch7x7dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch7x7dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch7x7dbl/Conv_3/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch7x7dbl/Conv_3/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch7x7dbl/Conv_4/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch7x7dbl/Conv_4/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x768e/branch_pool/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x768e/branch_pool/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name aux_logits/proj/weights/Regularizer/L2Regularizer/value (raw) is illegal; using aux_logits/proj/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name aux_logits/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using aux_logits/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name aux_logits/FC/weights/Regularizer/L2Regularizer/value (raw) is illegal; using aux_logits/FC/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x1280a/branch3x3/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x1280a/branch3x3/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x1280a/branch3x3/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x1280a/branch3x3/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x1280a/branch7x7x3/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x1280a/branch7x7x3/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x1280a/branch7x7x3/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x1280a/branch7x7x3/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x1280a/branch7x7x3/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x1280a/branch7x7x3/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_17x17x1280a/branch7x7x3/Conv_3/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_17x17x1280a/branch7x7x3/Conv_3/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048a/branch1x1/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048a/branch1x1/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048a/branch3x3/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048a/branch3x3/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048a/branch3x3/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048a/branch3x3/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048a/branch3x3/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048a/branch3x3/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048a/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048a/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048a/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048a/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048a/branch3x3dbl/Conv_3/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048a/branch3x3dbl/Conv_3/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048a/branch_pool/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048a/branch_pool/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048b/branch1x1/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048b/branch1x1/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048b/branch3x3/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048b/branch3x3/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048b/branch3x3/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048b/branch3x3/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048b/branch3x3/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048b/branch3x3/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048b/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048b/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048b/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048b/branch3x3dbl/Conv_1/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048b/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048b/branch3x3dbl/Conv_2/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048b/branch3x3dbl/Conv_3/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048b/branch3x3dbl/Conv_3/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name mixed_8x8x2048b/branch_pool/Conv/weights/Regularizer/L2Regularizer/value (raw) is illegal; using mixed_8x8x2048b/branch_pool/Conv/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name logits/logits/weights/Regularizer/L2Regularizer/value (raw) is illegal; using logits/logits/weights/Regularizer/L2Regularizer/value__raw_ instead.
+INFO:tensorflow:Summary name total_loss (raw) is illegal; using total_loss__raw_ instead.
+INFO:tensorflow:SyncReplicasV2: replicas_to_aggregate=2; total_num_replicas=2
+INFO:tensorflow:2018-01-25 05:49:53.858292 Supervisor
+2018-01-25 05:49:55.359394: I tensorflow/core/distributed_runtime/master_session.cc:1008] Start master session 2c4f5c92dfc61b71 with config: allow_soft_placement: true
+ SHAPE part 1: (32, 17, 17, 192)
+BRANCH 7x3x3 SHAPE part 2: (32, 17, 17, 192)
+BRANCH 7x3x3 SHAPE part 3: (32, 17, 17, 192)
+BRANCH 7x3x3 SHAPE part 4: (32, 8, 8, 192)
+BRANCH POOL SHAPE: (32, 8, 8, 768)
+BRANCH mixed_17x17x1280a SHAPE: (32, 8, 8, 1280)
+SCOPE IS mixed_8x8x2048a
+BRANCH 1x1 SHAPE: (32, 8, 8, 320)
+BRANCH 3x3 SHAPE part 1: (32, 8, 8, 384)
+BRANCH 3x3 SHAPE part 2: (32, 8, 8, 768)
+BRANCH 3x3dbl SHAPE pt 1: (32, 8, 8, 448)
+BRANCH 3x3dbl SHAPE pt 2: (32, 8, 8, 384)
+BRANCH 3x3dbl SHAPE pt 3: (32, 8, 8, 768)
+BRANCH POOL SHAPE part 1: (32, 8, 8, 1280)
+BRANCH POOL SHAPE part 2: (32, 8, 8, 192)
+BRANCH mixed_8x8x2048a SHAPE: (32, 8, 8, 2048)
+SCOPE IS mixed_8x8x2048b
+BRANCH 1x1 SHAPE: (32, 8, 8, 320)
+BRANCH 3x3 SHAPE part 1: (32, 8, 8, 384)
+BRANCH 3x3 SHAPE part 2: (32, 8, 8, 768)
+BRANCH 3x3dbl SHAPE pt 1: (32, 8, 8, 448)
+BRANCH 3x3dbl SHAPE pt 2: (32, 8, 8, 384)
+BRANCH 3x3dbl SHAPE pt 3: (32, 8, 8, 768)
+BRANCH POOL SHAPE part 1: (32, 8, 8, 2048)
+BRANCH POOL SHAPE part 2: (32, 8, 8, 192)
+BRANCH mixed_8x8x2048b SHAPE: (32, 8, 8, 2048)
+SHAPE BEFORE DROPOUT: (32, 8, 8, 2048)
+1516859400093 Send data with estimated 0 bytes. Edge name: edge_3_sync_rep_local_step/Assign. src_device: /job:worker/replica:0/task:0/device:CPU:0. dst_device: /job:worker/replica:0/task:0/device:GPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_978_report_uninitialized_variables_1/IsVariableInitialized_873. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_977_report_uninitialized_variables_1/IsVariableInitialized_872. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_976_report_uninitialized_variables_1/IsVariableInitialized_871. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_975_report_uninitialized_variables_1/IsVariableInitialized_870. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_974_report_uninitialized_variables_1/IsVariableInitialized_869. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_973_report_uninitialized_variables_1/IsVariableInitialized_868. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_972_report_uninitialized_variables_1/IsVariableInitialized_867. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_971_report_uninitialized_variables_1/IsVariableInitialized_866. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_970_report_uninitialized_variables_1/IsVariableInitialized_865. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_969_report_uninitialized_variables_1/IsVariableInitialized_864. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_968_report_uninitialized_variables_1/IsVariableInitialized_863. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_967_report_uninitialized_variables_1/IsVariableInitialized_862. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_966_report_uninitialized_variables_1/IsVariableInitialized_861. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_965_report_uninitialized_variables_1/IsVariableInitialized_860. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_964_report_uninitialized_variables_1/IsVariableInitialized_859. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_963_report_uninitialized_variables_1/IsVariableInitialized_858. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_962_report_uninitialized_variables_1/IsVariableInitialized_857. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400772 Send data with estimated 1 bytes. Edge name: edge_961_report_uninitialized_variables_1/IsVariableInitialized_856. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_960_report_uninitialized_variables_1/IsVariableInitialized_855. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_959_report_uninitialized_variables_1/IsVariableInitialized_854. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_958_report_uninitialized_variables_1/IsVariableInitialized_853. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_957_report_uninitialized_variables_1/IsVariableInitialized_852. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_956_report_uninitialized_variables_1/IsVariableInitialized_851. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_955_report_uninitialized_variables_1/IsVariableInitialized_850. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_954_report_uninitialized_variables_1/IsVariableInitialized_849. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_953_report_uninitialized_variables_1/IsVariableInitialized_848. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_952_report_uninitialized_variables_1/IsVariableInitialized_847. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_951_report_uninitialized_variables_1/IsVariableInitialized_846. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_950_report_uninitialized_variables_1/IsVariableInitialized_845. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_949_report_uninitialized_variables_1/IsVariableInitialized_844. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_948_report_uninitialized_variables_1/IsVariableInitialized_843. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_947_report_uninitialized_variables_1/IsVariableInitialized_842. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_946_report_uninitialized_variables_1/IsVariableInitialized_841. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_945_report_uninitialized_variables_1/IsVariableInitialized_840. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_944_report_uninitialized_variables_1/IsVariableInitialized_839. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_943_report_uninitialized_variables_1/IsVariableInitialized_838. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_942_report_uninitialized_variables_1/IsVariableInitialized_837. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_941_report_uninitialized_variables_1/IsVariableInitialized_836. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_940_report_uninitialized_variables_1/IsVariableInitialized_835. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_939_report_uninitialized_variables_1/IsVariableInitialized_834. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_938_report_uninitialized_variables_1/IsVariableInitialized_833. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_937_report_uninitialized_variables_1/IsVariableInitialized_832. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_936_report_uninitialized_variables_1/IsVariableInitialized_831. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_935_report_uninitialized_variables_1/IsVariableInitialized_830. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_934_report_uninitialized_variables_1/IsVariableInitialized_829. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_933_report_uninitialized_variables_1/IsVariableInitialized_828. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_932_report_uninitialized_variables_1/IsVariableInitialized_827. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_931_report_uninitialized_variables_1/IsVariableInitialized_826. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_930_report_uninitialized_variables_1/IsVariableInitialized_825. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_929_report_uninitialized_variables_1/IsVariableInitialized_824. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_928_report_uninitialized_variables_1/IsVariableInitialized_823. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_927_report_uninitialized_variables_1/IsVariableInitialized_822. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_926_report_uninitialized_variables_1/IsVariableInitialized_821. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_925_report_uninitialized_variables_1/IsVariableInitialized_820. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_924_report_uninitialized_variables_1/IsVariableInitialized_819. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_923_report_uninitialized_variables_1/IsVariableInitialized_818. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_922_report_uninitialized_variables_1/IsVariableInitialized_817. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_921_report_uninitialized_variables_1/IsVariableInitialized_816. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_920_report_uninitialized_variables_1/IsVariableInitialized_815. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_919_report_uninitialized_variables_1/IsVariableInitialized_814. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_918_report_uninitialized_variables_1/IsVariableInitialized_813. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_917_report_uninitialized_variables_1/IsVariableInitialized_812. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_916_report_uninitialized_variables_1/IsVariableInitialized_811. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_915_report_uninitialized_variables_1/IsVariableInitialized_810. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_914_report_uninitialized_variables_1/IsVariableInitialized_809. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_913_report_uninitialized_variables_1/IsVariableInitialized_808. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_912_report_uninitialized_variables_1/IsVariableInitialized_807. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400773 Send data with estimated 1 bytes. Edge name: edge_911_report_uninitialized_variables_1/IsVariableInitialized_806. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_910_report_uninitialized_variables_1/IsVariableInitialized_805. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_909_report_uninitialized_variables_1/IsVariableInitialized_804. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_908_report_uninitialized_variables_1/IsVariableInitialized_803. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_907_report_uninitialized_variables_1/IsVariableInitialized_802. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_906_report_uninitialized_variables_1/IsVariableInitialized_801. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_905_report_uninitialized_variables_1/IsVariableInitialized_800. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_904_report_uninitialized_variables_1/IsVariableInitialized_799. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_903_report_uninitialized_variables_1/IsVariableInitialized_798. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_902_report_uninitialized_variables_1/IsVariableInitialized_797. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_901_report_uninitialized_variables_1/IsVariableInitialized_796. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_900_report_uninitialized_variables_1/IsVariableInitialized_795. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_899_report_uninitialized_variables_1/IsVariableInitialized_794. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_898_report_uninitialized_variables_1/IsVariableInitialized_793. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_897_report_uninitialized_variables_1/IsVariableInitialized_792. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_896_report_uninitialized_variables_1/IsVariableInitialized_791. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_895_report_uninitialized_variables_1/IsVariableInitialized_790. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_894_report_uninitialized_variables_1/IsVariableInitialized_789. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_893_report_uninitialized_variables_1/IsVariableInitialized_788. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_892_report_uninitialized_variables_1/IsVariableInitialized_787. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_891_report_uninitialized_variables_1/IsVariableInitialized_786. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_890_report_uninitialized_variables_1/IsVariableInitialized_785. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_889_report_uninitialized_variables_1/IsVariableInitialized_784. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_888_report_uninitialized_variables_1/IsVariableInitialized_783. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_887_report_uninitialized_variables_1/IsVariableInitialized_782. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_886_report_uninitialized_variables_1/IsVariableInitialized_781. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_885_report_uninitialized_variables_1/IsVariableInitialized_780. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_884_report_uninitialized_variables_1/IsVariableInitialized_779. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_883_report_uninitialized_variables_1/IsVariableInitialized_778. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_882_report_uninitialized_variables_1/IsVariableInitialized_777. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_881_report_uninitialized_variables_1/IsVariableInitialized_776. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_880_report_uninitialized_variables_1/IsVariableInitialized_775. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_879_report_uninitialized_variables_1/IsVariableInitialized_774. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400774 Send data with estimated 1 bytes. Edge name: edge_878_report_uninitialized_variables_1/IsVariableInitialized_773. src_device: /job:worker/replica:0/task:0/device:GPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859400820 Send data with estimated 0 bytes. Edge name: report_uninitialized_variables_1/boolean_mask/Gather:0. src_device: /job:worker/replica:0/task:0/device:CPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+INFO:tensorflow:Starting standard services.
+1516859424006 Send data with estimated 8 bytes. Edge name: global_step:0. src_device: /job:worker/replica:0/task:0/device:CPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859424008 Send data with estimated 8 bytes. Edge name: global_step:0. src_device: /job:worker/replica:0/task:0/device:CPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+INFO:tensorflow:Saving checkpoint to path /tmp/imagenet_train/model.ckpt
+INFO:tensorflow:Starting queue runners.
+1516859424010 Send data with estimated 8 bytes. Edge name: global_step:0. src_device: /job:worker/replica:0/task:0/device:CPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+1516859424010 Send data with estimated 8 bytes. Edge name: global_step:0. src_device: /job:worker/replica:0/task:0/device:CPU:0. dst_device: /job:worker/replica:0/task:0/device:CPU:0
+INFO:tensorflow:global_step/sec: 0
+INFO:tensorflow:Started 3 queues for processing input data.
+2018-01-25 05:50:29.409737: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.409808: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.409905: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.409932: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.410143: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.410166: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.410363: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.410385: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.410455: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.410475: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv0/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.410544: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.410563: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.410634: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.410654: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.410828: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.410850: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.411040: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.411062: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.411131: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.411150: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.411219: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.411238: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.411306: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.411325: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.411495: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.411516: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.411689: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.411709: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.411775: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.411794: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.411862: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.411882: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.411947: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.411966: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.412163: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.412185: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.412354: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.412375: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.412448: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.412467: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv3/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.412546: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.412568: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.412641: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.412660: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.412834: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.412855: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.413025: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.413045: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.413112: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.413132: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/conv4/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.413203: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.413223: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.413293: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.413311: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.413495: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.413515: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.413692: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.413713: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.413783: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.413803: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.413873: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.413892: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.413962: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.413981: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.414158: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.414179: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.414371: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.414392: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.414462: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.414482: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.414552: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.414572: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.414641: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.414660: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.414838: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.414859: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.415035: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.415056: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.415126: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.415146: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch5x5/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.415218: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.415238: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.415309: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.415328: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.415510: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.415532: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.415715: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.415736: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.415808: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.415828: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.415898: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.415918: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.415988: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.416008: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.416183: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.416208: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.416386: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.416407: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.416478: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.416497: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.416567: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.416587: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.416655: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.416674: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.416850: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.416871: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.417065: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.417086: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.417156: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.417175: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.417246: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.417265: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.417335: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.417354: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.417529: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.417549: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.417778: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.417799: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.417869: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.417888: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x256a/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.417961: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.417980: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.418049: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.418068: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.418243: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.418263: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.418455: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.418476: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.418548: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.418568: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.418639: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.418658: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.418728: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.418746: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.418923: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.418944: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.419118: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.419138: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.419211: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.419230: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.419301: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.419320: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.419392: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.419410: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.419589: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.419610: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.419787: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.419808: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.419879: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.419898: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch5x5/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.419969: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.419989: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.420057: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.420076: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.420250: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.420272: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.420444: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.420465: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.420536: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.420555: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.420627: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.420647: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.420717: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.420737: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.420912: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.420932: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.421109: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.421131: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.421202: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.421223: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.421294: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.421313: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.421382: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.421402: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.421579: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.421599: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.421774: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.421794: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.421864: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.421883: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.421955: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.421974: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.422044: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.422063: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.422239: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.422260: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.422484: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.422505: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.422577: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.422597: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288a/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.422668: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.422687: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.422758: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.422777: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.422952: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.422973: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.423151: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.423172: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.423242: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.423260: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.423330: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.423350: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.423418: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.423437: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.423619: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.423640: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.423817: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.423838: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.423909: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.423929: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.424000: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.424020: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.424090: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.424109: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.424289: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.424310: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.424493: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.424514: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.424586: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.424606: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch5x5/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.424678: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.424698: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.424769: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.424787: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.424971: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.424991: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.425171: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.425192: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.425263: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.425283: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.425361: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.425380: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.425451: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.425469: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.425654: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.425675: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.425862: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.425883: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.425957: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.425977: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.426050: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.426069: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.426140: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.426159: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.426361: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.426382: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.426573: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.426594: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.426673: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.426692: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch3x3dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.426764: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.426784: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.426853: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.426872: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.427056: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.427077: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.427291: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.427312: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.427381: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.427400: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_35x35x288b/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.427471: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.427490: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.427561: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.427580: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.427762: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.427783: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.427967: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.427989: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.428059: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.428079: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.428151: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.428170: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.428241: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.428260: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.428441: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.428462: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.428644: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.428666: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.428737: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.428757: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.428828: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.428848: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.428917: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.428936: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.429124: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.429146: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.429326: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.429347: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.429418: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.429437: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.429509: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.429528: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.429598: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.429617: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.429801: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.429822: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.430041: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.430063: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.430134: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.430154: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768a/branch3x3dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.430225: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.430244: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.430329: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.430349: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.430532: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.430554: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.430737: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.430758: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.430829: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.430849: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.430920: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.430939: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.431007: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.431026: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.431207: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.431228: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.431407: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.431427: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.431496: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.431516: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.431587: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.431606: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.431676: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.431695: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.431877: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.431898: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.432084: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.432104: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.432173: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.432192: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.432263: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.432282: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.432354: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.432373: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.432561: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.432582: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.432764: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.432786: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.432858: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.432877: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.432948: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.432969: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.433039: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.433059: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.433238: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.433258: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.433440: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.433462: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.433531: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.433551: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.433622: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.433641: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.433711: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.433730: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.433916: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.433937: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.434119: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.434139: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.434208: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.434228: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.434299: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.434345: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.434428: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.434447: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.434644: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.434664: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.434850: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.434871: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.434943: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.434963: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.435042: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.435061: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.435139: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.435159: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.435354: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.435375: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.435567: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.435589: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.435672: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.435691: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_3/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.435767: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.435787: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.435856: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.435876: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.436061: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.436083: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.436263: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.436283: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.436354: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.436374: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch7x7dbl/Conv_4/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.436446: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.436465: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.436537: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.436556: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.436737: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.436758: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.436977: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.436999: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.437070: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.437090: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768b/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.437160: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.437180: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.437249: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.437269: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.437448: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.437470: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.437652: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.437673: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.437743: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.437762: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.437835: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.437854: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.437924: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.437943: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.438125: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.438147: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.438341: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.438361: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.438437: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.438457: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.438531: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.438551: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.438623: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.438642: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.438826: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.438848: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.439032: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.439052: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.439123: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.439143: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.439214: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.439233: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.439304: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.439324: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.439509: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.439531: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.439716: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.439736: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.439806: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.439826: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.439898: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.439918: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.439988: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.440008: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.440189: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.440211: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.440396: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.440417: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.440487: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.440507: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.440579: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.440598: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.440669: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.440688: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.440873: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.440894: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.441073: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.441094: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.441166: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.441185: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.441257: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.441276: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.441345: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.441365: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.441546: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.441567: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.441750: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.441771: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.441843: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.441862: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.441933: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.441953: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.442024: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.442043: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.442230: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.442251: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.442500: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.442522: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.442595: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.442614: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_3/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.442687: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.442707: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.442783: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.442803: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.442993: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.443015: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.443205: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.443227: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.443303: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.443324: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch7x7dbl/Conv_4/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.443403: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.443422: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.443496: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.443516: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.443708: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.443729: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.443952: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.443973: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.444045: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.444064: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768c/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.444137: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.444157: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.444228: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.444247: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.444430: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.444451: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.444631: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.444652: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.444723: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.444743: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.444815: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.444834: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.444904: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.444925: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.445104: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.445125: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.445307: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.445328: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.445399: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.445419: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.445490: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.445510: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.445579: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.445598: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.445778: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.445801: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.445988: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.446009: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.446081: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.446100: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.446171: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.446190: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.446259: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.446278: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.446476: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.446497: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.446682: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.446703: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.446774: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.446794: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.446866: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.446885: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.446955: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.446974: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.447161: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.447182: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.447369: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.447390: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.447460: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.447480: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.447552: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.447571: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.447642: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.447661: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.447845: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.447866: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.448051: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.448072: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.448144: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.448163: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.448234: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.448254: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.448324: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.448344: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.448531: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.448553: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.448738: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.448760: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.448831: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.448851: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_2/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.448923: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.448942: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.449012: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.449031: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.449217: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.449237: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.449425: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.449446: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.449518: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.449538: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_3/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.449611: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.449631: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.449700: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.449719: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.449901: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.449922: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.450104: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.450125: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.450198: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.450217: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch7x7dbl/Conv_4/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.450289: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.450308: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.450403: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.450423: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.450605: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.450625: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.450845: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.450867: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.450940: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.450959: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768d/branch_pool/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.451029: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.451049: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.451120: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.451139: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.451321: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.451343: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.451524: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.451545: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.451615: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.451635: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch1x1/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.451712: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.451731: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.451790: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.451807: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.451997: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.452019: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.452212: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.452234: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.452311: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.452331: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.452407: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.452426: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.452500: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.452521: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.452705: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.452726: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.452914: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.452935: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.453011: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.453031: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_1/BatchNorm/batchnorm/sub_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.453107: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.453126: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_2/BatchNorm/batchnorm/mul_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.453198: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.453218: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_2/BatchNorm/batchnorm/add_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.453405: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.453427: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_2/BatchNorm/moments/SquaredDifference_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.453618: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-0 is not in the graph.
+2018-01-25 05:50:29.453640: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/gradients/inception_v3/mixed_17x17x768e/branch7x7/Conv_2/BatchNorm/batchnorm/add_1_grad/BroadcastGradientArgs-1 is not in the graph.
+2018-01-25 05:50:29.453713: W tensorflow/core/grappler/utils.cc:48] Node ConstantFolding/grad
