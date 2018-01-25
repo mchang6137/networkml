@@ -1,0 +1,11 @@
+worker to ps packets:
+
+gradients/AddN - generally one worker to the ps
+BatchNorm/*/Squeeze - both workers to the ps
+control dependency - one worker to the ps
+
+ps to worker packets:
+
+read - ps to one worker
+L2Loss - ps to one worker
+value - ps to one worker

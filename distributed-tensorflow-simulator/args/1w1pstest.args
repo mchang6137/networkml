@@ -1,0 +1,15 @@
+--trace csv/1w1pstest.csv
+--latency 10
+--latency-distribution none
+--latency-std 1
+--ps-send-rate 1000
+--worker-send-rate 1000
+--tor-send-rate 1000
+--global-switch-send-rate 400
+--ps-recv-rate 1000 
+--worker-recv-rate 1000
+--tor-recv-rate 1000
+--global-switch-recv-rate 500
+--num-global-switches 2
+--timeout 3000
+--MTU 100
