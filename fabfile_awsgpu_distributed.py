@@ -19,8 +19,8 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'pranay'
 worker_base_name = 'g{}u'.format(my_aws_key)
 ps_base_name = '{}server'.format(my_aws_key)
-NUM_WORKERS=2
-NUM_PARAM_SERVERS=1
+NUM_WORKERS=4
+NUM_PARAM_SERVERS=4
 worker_names = [worker_base_name + str(i) for i in range(NUM_WORKERS)]
 ps_names = [ps_base_name + str(i) for i in range(NUM_PARAM_SERVERS)]
 
@@ -29,6 +29,7 @@ MODEL_NAMES = ['vgg', 'alexnet', 'resnet', 'inception']
 CONDA_DIR = '$HOME/anaconda'
 WORKER_TYPE = 'g3.4xlarge'
 PS_TYPE = 'i3.large'
+PORT = '2222'
 
 USER = os.environ['USER']
 
@@ -62,16 +63,17 @@ def get_machine_ips():
         i = ec2.Instance(inst_id)
         role = HOST_TO_ROLE['ec2-user@{}'.format(i.public_dns_name)]
         if worker_base_name in role:
-            worker_data[role] = '{}:2222'.format(i.public_ip_address)
+            worker_data[role] = '{}:{}'.format(i.public_ip_address, PORT)
         else:
-            ps_data[role] = '{}:2222'.format(i.public_ip_address)
+            ps_data[role] = '{}:{}'.format(i.public_ip_address, PORT)
     return ps_data, worker_data
 
 env.disable_known_hosts = True
 env.warn_only = True
 ROLE_TO_HOST, HOST_TO_ROLE, ALL_IDS = get_target_instance()
+PS_DATA, WORKER_DATA = get_machine_ips()
 env.roledefs.update(ROLE_TO_HOST)
-print('\n')
+print('done getting data\n')
 
 @task
 @runs_once
@@ -79,8 +81,8 @@ def get_active_instances():
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
     for inst_id in ALL_IDS:
         i = ec2.Instance(inst_id)
-        print(HOST_TO_ROLE['{}:2222'.format(i.public_ip_address)])
-        print('{}:2222'.format(i.public_ip_address))
+        print(HOST_TO_ROLE['ec2-user@{}'.format(i.public_dns_name)])
+        print('{}:{}'.format(i.public_ip_address, PORT))
         print('ec2-user@{}'.format(i.public_dns_name))
     
 ######################## LAUNCH COMMANDS ################################
@@ -313,6 +315,7 @@ def vgg_fresh_setup():
     with cd('~/vgg/'):
         run('git checkout -b vgg_fresh origin/vgg_fresh')
         with cd('research/inception'):
+            run('bazel build inception/imagenet_vgg_train')
             run('bazel build inception/imagenet_vgg_distributed_train')
 
 @task
@@ -426,6 +429,7 @@ def anaconda_setup():
     run('echo "export PATH={}/bin:$PATH" >> .bash_profile'.format(CONDA_DIR))
     run('conda upgrade -q -y --all')
     run('conda install -q -y pandas scikit-learn scikit-image matplotlib seaborn ipython')
+    sudo('yum --enablerepo=epel install -y iperf iperf3')
     run('pip install ruffus glob2 awscli')
     run('source .bash_profile')
 
@@ -495,14 +499,14 @@ def get_command(i, dir_string, ps_string, worker_string, is_worker):
     else:
         return 'CUDA_VISIBLE_DEVICES=\'\' bazel-bin{} --batch_size=32 --job_name=\'ps\' --task_id={} --ps_hosts={} --worker_hosts={} |& tee ps{}.txt\n'.format(dir_string, i, ps_string, worker_string, i)
 
-def get_strings(ps_data, worker_data, roles):
+def get_strings(roles):
     ps_string, worker_string = '', ''
     for role in roles:
         is_worker = worker_base_name in role
         if is_worker:
-            worker_string += '{},'.format(worker_data[role])
+            worker_string += '{},'.format(WORKER_DATA[role])
         else:
-            ps_string += '{},'.format(ps_data[role])
+            ps_string += '{},'.format(PS_DATA[role])
     ps_string = ps_string[:-1]
     worker_string = worker_string[:-1]
     return ps_string, worker_string
@@ -529,13 +533,15 @@ def get_dirs(model):
 def run_experiment(model):
     remove_tmp()
 
-    ps_data, worker_data = get_machine_ips()
     role = HOST_TO_ROLE[env.host_string]
     is_worker = worker_base_name in role
-    index = int(role[-1])
+    if str.isdigit(role[-2]):
+        index = int(role[-2:])
+    else:
+        index = int(role[-1])
 
     cd_string, dir_string = get_dirs(model)
-    ps_string, worker_string = get_strings(ps_data, worker_data, env.effective_roles)
+    ps_string, worker_string = get_strings(env.effective_roles)
 
     command = get_command(index, dir_string, ps_string, worker_string, is_worker)
 
@@ -558,8 +564,9 @@ def start_experiment(model, num_ps=NUM_PARAM_SERVERS, num_workers=NUM_WORKERS):
         exit(1)
 
     machines = [ps_base_name + str(i) for i in range(num_ps)]
-    machines += [worker_base_name + str(i) for i in range(num_workers)]
+    machines += [worker_base_name + str(i + 2) for i in range(num_workers)]
     machine_string = ','.join(machines)
+
 
     print('Running {} with {} PS, {} Workers. Let\'s goooooo.'.format(model.capitalize(), str(num_ps), str(num_workers)))
     sleep(1)
@@ -568,10 +575,23 @@ def start_experiment(model, num_ps=NUM_PARAM_SERVERS, num_workers=NUM_WORKERS):
 
 @task
 @parallel
+def shutdown_bazel(model):
+    if model not in MODEL_NAMES:
+        print('Invalid model: ' + model)
+        exit(1)
+    cd_string, dir_string = get_dirs(model)
+    with cd(cd_string):
+        run('bazel shutdown')
+
+@task
+@parallel
 def get_logs(model, dir_name):
     role = HOST_TO_ROLE[env.host_string]
     cd_string, dir_string = get_dirs(model)
-    index = role[-1]
+    if str.isdigit(role[-2]):
+        index = int(role[-2:])
+    else:
+        index = int(role[-1])
     machine_type = 'wk' if worker_base_name in role else 'ps'
     file_name = machine_type + str(index)
 

@@ -58,7 +58,11 @@ Once you have this info, simply run this command:
 
 `fab -f fabfile_awsgpu_distributed.py start_experiment:<model_name>,<num_ps>,<num_workers>`
 
-After the experiment terminates, there will be no more output in the terminal. The program won't stop running though, because parameter servers never technically terminate. To stop the experiment, simply close the terminal tab (after output has stopped!).
+After the experiment terminates, there will be no more output in the terminal. The program won't stop running though, because parameter servers never technically terminate. To stop the experiment, close the terminal tab (after output has stopped!). Then, run the following command:
+
+`fab -f fabfile_awsgpu_distributed.py -R <machines> shutdown_bazel:<model_name>`
+
+`machines`, for example, could be `gpu0,gpu1,ps0,ps1'.
 
 Simple, right? You might be asking, but how do I get the logs for each machine from the experiment I just run? You're in luck. Just run this command:
 
