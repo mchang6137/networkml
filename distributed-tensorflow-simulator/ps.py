@@ -1,5 +1,4 @@
 from entity import Entity
-import Queue
 
 class PS (Entity):
     def __init__(self, ctx, name="PS", inbuffer_size=0):
@@ -14,7 +13,23 @@ class PS (Entity):
             if self.received_packets == self.ctx.ps_num_items[self.name]:
                 print "%s has received all gradient updates at time %0.3f" % (self.name, self.ctx.now)
 
-"""    
+    def distribute(self):
+        #print '{}:\n\t{}'.format(self.name, self.ctx.sendschedule[self.name])
+        if self.ctx.use_multicast:
+            for arr in self.ctx.sendschedule[self.name]:
+                self.queuesend(self.ctx.make_packet(arr[0], self.name, self.name, name=arr[1]))
+        else:
+            #print self.name + ":\t" + str(len(self.ctx.sendschedule[self.name]))
+            if self.ctx.striping:
+                for arr in self.ctx.sendschedule[self.name]:
+                    for wk_name in self.ctx.workers:
+                        self.queuesend(self.ctx.make_packet(arr[0], self.name, wk_name, name=arr[1]))
+            else:
+                for wk_name in self.ctx.workers:
+                    for arr in self.ctx.sendschedule[self.name]:
+                        self.queuesend(self.ctx.make_packet(arr[0], self.name, wk_name, name=arr[1]))
+
+"""
     deprecated
     def proc(self, packet):
         packet.time_processed = self.ctx.now

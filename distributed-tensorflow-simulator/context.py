@@ -24,6 +24,8 @@ class Context (object):
         self.in_network_computation = False
         self.worker_receive = []
         self.ps_num_items = {}
+        self.num_from_ps = 0
+        self.sendschedule = {}
 
     def schedule_task(self, delta, task):
         self.queue.put_nowait((self.current_time + delta, task))
@@ -55,6 +57,23 @@ class Context (object):
             self.current_time = time
             task()
         self.final_time = self.current_time
+        for worker in self.workers:
+            print '{}:\t{}/{}'.format(worker, self.objs[worker].received_packets, self.num_from_ps)
+        for ps in self.pses:
+            print '{}:\t{}/{}'.format(ps, self.objs[ps].received_packets, self.ps_num_items[ps])
+
+    def make_packet(self, size, src, dest, name):
+        mpacket = Packet(size, src=src, dest=dest, name=name)
+        mpacket.time_send = self.current_time
+        if src + dest in self.paths:
+            mpacket.path = self.paths[src + dest]
+        else:
+            mpacket.path = [src, dest]
+        if src == dest and self.use_multicast:
+            mpacket.multicast = True
+        if src in self.workers and self.in_network_computation:
+            mpacket.netagg = True
+        return mpacket
 
     def schedule_send(self, delta, size, src, dest, name=""):
         if src == dest and not self.use_multicast:
@@ -64,16 +83,8 @@ class Context (object):
             self.schedule_send_internal(delta, size, src, dest, name=name)
 
     def schedule_send_internal(self, delta, size, src, dest, name=""):
-        mpacket = Packet(size, src=src, dest=dest, name=name)
-        mpacket.time_send = delta
-        if src + dest in self.paths:
-            mpacket.path = self.paths[src + dest]
-        else:
-            mpacket.path = [src, dest]
-        if src == dest and self.use_multicast:
-            mpacket.multicast = True
-        if src in self.workers and self.in_network_computation:
-            mpacket.netagg = True
+        mpacket = self.make_packet(size, src, dest, name)
+        mpacket.time_send = self.current_time + delta
         self.schedule_task(delta, lambda: self.objs[src].queuesend(mpacket))
 
     def schedule_recv(self, delta, packet):

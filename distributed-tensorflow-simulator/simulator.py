@@ -36,11 +36,19 @@ def Main (args):
         "trace_base_dir",
         type=str,
         action="store",
+        default="csv/",
         help="base directory for filename")
+    parser.add_argument(
+        "distribution_trace_base_dir",
+        type=str,
+        action="store",
+        default="distribution_csv/",
+        help="base directory for ps distribution csv filename")
     parser.add_argument(
         "json",
         type=str,
         action="store",
+        default="json/",
         help=".json filename for parameter mappings")
     parser.add_argument(
         "--fwd_pass_time",
@@ -229,6 +237,12 @@ def Main (args):
         action="store",
         default=0)
     parser.add_argument(
+        "--striping",
+        dest='striping',
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
         "--topology",
         dest="topology",
         type=str,
@@ -263,6 +277,8 @@ def Main (args):
     # Set the arguments based on the model name
     if args.trace_base_dir == 'csv/':
         args.trace_base_dir += args.model_name  + '/'
+    if args.distribution_trace_base_dir == 'distribution_csv/':
+        args.distribution_trace_base_dir += args.model_name  + '/'
     if args.json == 'json/':
         args.json += '{}_param_ps_assignment.json'.format(args.model_name)
 

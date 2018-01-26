@@ -12,7 +12,7 @@ class Worker (Entity):
         
         if not packet.MF:
             self.received_packets += 1
-            if self.ctx.sendschedule[node_name] and self.received_packets == len(self.ctx.pmappings):
+            if self.ctx.sendschedule[node_name] and self.received_packets == self.ctx.num_from_ps:
                 if self.ctx.verbosity:
                     print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
                 self.ctx.worker_receive.append(self.ctx.now)

@@ -17,6 +17,7 @@ class Simulation (object):
 
     def Setup (self, args):
         tracename_base_dir = args.trace_base_dir
+        distribution_trace_base_dir = args.distribution_trace_base_dir
         jsonname = args.json
         self.ctx = Context()
         self.ctx.objs = {}
@@ -27,6 +28,7 @@ class Simulation (object):
         self.ctx.MTU = args.MTU
         self.ctx.use_multicast = args.use_multicast
         self.ctx.in_network_computation = args.in_network_computation
+        self.ctx.striping = args.striping
         self.ctx.verbosity = args.verbosity
         gigabit = 10**9
         if args.topology == '':
@@ -290,9 +292,13 @@ class Simulation (object):
                     path = path[::-1]
                     self.ctx.paths[pname] = path
         self.load_parameter_mapping(jsonname, args)
+        self.load_relative_dist_schedule(distribution_trace_base_dir, args)
         self.load_relative_send_schedule(tracename_base_dir, args)
 
-        
+        #print self.ctx.pses
+        for ps_name in self.ctx.pses:
+            ps_obj = self.ctx.objs[ps_name]
+            ps_obj.distribute()
 
     def load_relative_send_schedule(self, tracename_basedir, args):
         all_worker_names = self.ctx.workers
@@ -308,7 +314,6 @@ class Simulation (object):
 
         tracename_basedir = tracename_basedir + '{}/'.format(num_workers)
         if os.path.exists(tracename_basedir) is True:
-            self.ctx.sendschedule = {}
             for worker_id in range(num_workers):
                 worker_name = 'worker{}'.format(worker_id)
                 assert worker_name in all_worker_names
@@ -322,7 +327,6 @@ class Simulation (object):
                 self.load_relative_send_schedule_one_worker(trace, worker_name, args)
         else:
             csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*.csv'))]
-            self.ctx.sendschedule = {}
             for worker_id in range(num_workers):
                 worker_name = 'worker{}'.format(worker_id)
                 assert worker_name in all_worker_names
@@ -354,6 +358,8 @@ class Simulation (object):
                 if edgename in self.ctx.pmappings:
                     self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
                     self.adjust_in_network(worker_name, self.ctx.pmappings[edgename], edgename)
+                else:
+                    print "%s not assigned a parameter server" % edgename
             elif use_optimal_ps == 1:
                 # Split the parameter evenly between all the parameter servers
                 revised_size  = size / float(num_ps)
@@ -362,9 +368,76 @@ class Simulation (object):
                     if new_edgename in self.ctx.pmappings:
                         self.ctx.sendschedule[worker_name].append((time / 1000, revised_size, self.ctx.pmappings[new_edgename], new_edgename))
                         self.adjust_in_network(worker_name, self.ctx.pmappings[new_edgename], new_edgename)
+                    else:
+                        print "%s not assigned a parameter server" % edgename
             else:
                 print 'Use Optimal PS is invalid. Exiting...'
                 exit()
+
+    def load_relative_dist_schedule(self, tracename_basedir, args):
+        all_ps_names = self.ctx.pses
+        num_ps = args.num_ps
+        
+        # Open up individual trace file per ps
+
+        if os.path.exists(tracename_basedir) is False:
+            print 'The provided basename directory does not exist'
+            exit()
+
+        if args.optimal_param_distribution:
+            tracename_basedir = tracename_basedir + '1/'
+        else:
+            tracename_basedir = tracename_basedir + '{}/'.format(num_ps)
+        if os.path.exists(tracename_basedir) is True:
+            for ps_id in range(num_ps):
+                ps_name = '/job:ps/replica:0/task:{}/device:CPU:0'.format(ps_id)
+                assert ps_name in all_ps_names
+                ps_path = tracename_basedir + 'ps{}.csv'.format(ps_id)
+                if args.optimal_param_distribution:
+                    ps_path = tracename_basedir + 'ps0.csv'
+                if os.path.exists(ps_path) is False:
+                    print 'There is no trace data for {} cluster, psid {}, step_num {}'.format(num_ps, ps_id, step_num)
+                    exit()
+            
+                trace = open(ps_path).readlines()
+                self.load_relative_send_schedule_one_ps(trace, ps_name, ps_id, args)
+        else:
+            print 'There is no trace data in the basename directory for {} cluster'.format(num_ps)
+            exit()
+
+    def load_relative_send_schedule_one_ps(self, trace, ps_name, ps_id, args):
+        num_ps = args.num_ps
+        use_optimal_ps = args.optimal_param_distribution
+
+        self.ctx.sendschedule[ps_name] = []
+        #print self.ctx.pmappings.keys()
+        #print len(self.ctx.pmappings.keys())
+        cum_size = 0
+        for ev in trace:
+            #print ev
+            if ev.startswith("//") or ev.startswith('"'):
+                continue
+            parts = ev.strip().split(',')
+            time = float(parts[0]) * (10 ** -12)
+            size = float(parts[1])
+            if args.inputs_as_bytes:
+                size *= 8
+            edgename = str(parts[2])
+            if use_optimal_ps == 0:
+                self.ctx.sendschedule[ps_name].append((size, edgename))
+                self.ctx.num_from_ps += 1
+                cum_size += size
+            elif use_optimal_ps == 1:
+                # Split the parameter evenly between all the parameter servers
+                revised_size  = size / float(num_ps)
+                new_edgename = edgename + '_ps{}'.format(ps_id)
+                self.ctx.sendschedule[ps_name].append((revised_size, new_edgename))
+                self.ctx.num_from_ps += 1
+                cum_size += revised_size
+            else:
+                print 'Use Optimal PS is invalid. Exiting...'
+                exit()
+        print '{}:\t{}'.format(ps_name, cum_size)
 
     def adjust_in_network(self, src, dest, edgename):
         self.ctx.ps_num_items[dest] += 1
@@ -394,11 +467,13 @@ class Simulation (object):
             for ps, arr in datastore.iteritems():
                 self.ctx.ps_num_items[ps] = 0
                 for item in arr:
-                    self.ctx.pmappings[item[5]] = ps
-                    self.ctx.edge_weights[item[5]] = item[1] * 8
-            	    self.ctx.schedule_send(0, item[1] * 8, ps, ps, name=str(ps)+"."+item[5])
+                    event_name = item[5]
+                    self.ctx.pmappings[event_name] = ps
+                    self.ctx.edge_weights[event_name] = item[1] * 8
+                    #print '{} added to pmappings'.format(event_name)
+            	    #self.ctx.schedule_send(0, item[1] * 8, ps, ps, name=str(ps)+"."+event_name)
         elif use_optimal_ps == 1:
-            # Should only be the results from the irst parameter server
+            # Should only be the results from the first parameter server
             for ps, arr in datastore.iteritems():
                 for ps_index in range(num_ps):
                     ps_name = '/job:ps/replica:0/task:{}/device:CPU:0'.format(ps_index)
@@ -408,7 +483,7 @@ class Simulation (object):
                         param_size = item[1] / float(num_ps)
                         self.ctx.edge_weights[event_name] = param_size * 8
                         self.ctx.pmappings[event_name] = ps_name
-                        self.ctx.schedule_send(0, param_size* 8.0, ps_name, ps_name, name=str(ps_name)+"."+event_name)
+                        #self.ctx.schedule_send(0, param_size* 8.0, ps_name, ps_name, name=str(ps_name)+"."+event_name)
                     
     def Run (self):
         if self.ctx.verbosity:
