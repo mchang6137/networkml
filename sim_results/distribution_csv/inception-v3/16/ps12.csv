@@ -1,0 +1,7 @@
+"order, bits_sent, raw_edgename"
+0,6144.0,mixed_17x17x1280a/branch7x7x3/Conv/BatchNorm/beta/read
+1,6144.0,mixed_8x8x2048a/branch_pool/Conv/BatchNorm/beta/read
+2,14336.0,mixed_8x8x2048a/branch3x3dbl/Conv/BatchNorm/beta/read
+3,10240.0,mixed_8x8x2048a/branch1x1/Conv/BatchNorm/beta/read
+4,12288.0,mixed_8x8x2048b/branch3x3dbl/Conv_3/BatchNorm/beta/read
+5,12288.0,mixed_8x8x2048b/branch3x3/Conv_2/BatchNorm/beta/read

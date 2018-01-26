@@ -1,0 +1,19 @@
+"order, bits_sent, raw_edgename"
+0,14155776.0,mixed_8x8x2048b/branch3x3/Conv_2/weights/read
+1,32.0,mixed_8x8x2048b/branch3x3/Conv_2/weights/Regularizer/L2Regularizer/value
+2,32.0,mixed_8x8x2048b/branch3x3/Conv_2/weights/Regularizer/L2Regularizer/L2Loss
+3,14155776.0,mixed_8x8x2048b/branch3x3dbl/Conv_3/weights/read
+4,32.0,mixed_8x8x2048b/branch3x3dbl/Conv_3/weights/Regularizer/L2Regularizer/value
+5,32.0,mixed_8x8x2048b/branch3x3dbl/Conv_3/weights/Regularizer/L2Regularizer/L2Loss
+6,32.0,mixed_8x8x2048a/branch1x1/Conv/weights/Regularizer/L2Regularizer/value
+7,32.0,mixed_8x8x2048a/branch1x1/Conv/weights/Regularizer/L2Regularizer/L2Loss
+8,13107200.0,mixed_8x8x2048a/branch1x1/Conv/weights/read
+9,32.0,mixed_8x8x2048a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/value
+10,32.0,mixed_8x8x2048a/branch3x3dbl/Conv/weights/Regularizer/L2Regularizer/L2Loss
+11,18350080.0,mixed_8x8x2048a/branch3x3dbl/Conv/weights/read
+12,32.0,mixed_17x17x1280a/branch7x7x3/Conv/weights/Regularizer/L2Regularizer/value
+13,32.0,mixed_17x17x1280a/branch7x7x3/Conv/weights/Regularizer/L2Regularizer/L2Loss
+14,4718592.0,mixed_17x17x1280a/branch7x7x3/Conv/weights/read
+15,7864320.0,mixed_8x8x2048a/branch_pool/Conv/weights/read
+16,32.0,mixed_8x8x2048a/branch_pool/Conv/weights/Regularizer/L2Regularizer/value
+17,32.0,mixed_8x8x2048a/branch_pool/Conv/weights/Regularizer/L2Regularizer/L2Loss

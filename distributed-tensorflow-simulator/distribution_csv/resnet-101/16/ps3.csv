@@ -1,0 +1,19 @@
+"order, bits_sent, raw_edgename"
+0,65536.0,resnet_v2_101/postnorm/gamma/read
+1,16384.0,resnet_v2_101/block4/unit_3/bottleneck_v2/conv1/BatchNorm/beta/read
+2,65536.0,resnet_v2_101/block4/unit_2/bottleneck_v2/preact/gamma/read
+3,16384.0,resnet_v2_101/block4/unit_1/bottleneck_v2/conv1/BatchNorm/beta/read
+4,2097152.0,resnet_v2_101/block2/unit_3/bottleneck_v2/conv1/weights/read
+5,32.0,resnet_v2_101/block2/unit_3/bottleneck_v2/conv1/kernel/Regularizer/l2_regularizer
+6,32.0,resnet_v2_101/block2/unit_3/bottleneck_v2/conv1/kernel/Regularizer/l2_regularizer/L2Loss
+7,1048576.0,resnet_v2_101/block2/unit_1/bottleneck_v2/conv1/weights/read
+8,32.0,resnet_v2_101/block2/unit_1/bottleneck_v2/conv1/kernel/Regularizer/l2_regularizer
+9,32.0,resnet_v2_101/block2/unit_1/bottleneck_v2/conv1/kernel/Regularizer/l2_regularizer/L2Loss
+10,524288.0,resnet_v2_101/block1/unit_2/bottleneck_v2/conv3/weights/read
+11,32.0,resnet_v2_101/block1/unit_2/bottleneck_v2/conv3/kernel/Regularizer/l2_regularizer
+12,32.0,resnet_v2_101/block1/unit_2/bottleneck_v2/conv3/kernel/Regularizer/l2_regularizer/L2Loss
+13,2048.0,resnet_v2_101/block1/unit_2/bottleneck_v2/conv1/BatchNorm/gamma/read
+14,2048.0,resnet_v2_101/block1/unit_1/bottleneck_v2/preact/gamma/read
+15,16777216.0,resnet_v2_101/block3/unit_1/bottleneck_v2/shortcut/weights/read
+16,32.0,resnet_v2_101/block3/unit_1/bottleneck_v2/shortcut/kernel/Regularizer/l2_regularizer
+17,32.0,resnet_v2_101/block3/unit_1/bottleneck_v2/shortcut/kernel/Regularizer/l2_regularizer/L2Loss

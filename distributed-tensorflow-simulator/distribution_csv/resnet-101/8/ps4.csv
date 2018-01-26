@@ -1,0 +1,27 @@
+"order, bits_sent, raw_edgename"
+0,65536.0,resnet_v2_101/postnorm/beta/read
+1,16384.0,resnet_v2_101/block4/unit_3/bottleneck_v2/conv2/BatchNorm/beta/read
+2,65536.0,resnet_v2_101/block4/unit_3/bottleneck_v2/preact/beta/read
+3,16384.0,resnet_v2_101/block4/unit_2/bottleneck_v2/conv2/BatchNorm/beta/read
+4,65536.0,resnet_v2_101/block4/unit_2/bottleneck_v2/preact/beta/read
+5,16384.0,resnet_v2_101/block4/unit_1/bottleneck_v2/conv2/BatchNorm/beta/read
+6,4718592.0,resnet_v2_101/block2/unit_4/bottleneck_v2/conv2/weights/read
+7,32.0,resnet_v2_101/block2/unit_4/bottleneck_v2/conv2/kernel/Regularizer/l2_regularizer
+8,32.0,resnet_v2_101/block2/unit_4/bottleneck_v2/conv2/kernel/Regularizer/l2_regularizer/L2Loss
+9,4718592.0,resnet_v2_101/block2/unit_3/bottleneck_v2/conv2/weights/read
+10,32.0,resnet_v2_101/block2/unit_3/bottleneck_v2/conv2/kernel/Regularizer/l2_regularizer
+11,32.0,resnet_v2_101/block2/unit_3/bottleneck_v2/conv2/kernel/Regularizer/l2_regularizer/L2Loss
+12,4718592.0,resnet_v2_101/block2/unit_2/bottleneck_v2/conv2/weights/read
+13,32.0,resnet_v2_101/block2/unit_2/bottleneck_v2/conv2/kernel/Regularizer/l2_regularizer
+14,32.0,resnet_v2_101/block2/unit_2/bottleneck_v2/conv2/kernel/Regularizer/l2_regularizer/L2Loss
+15,4718592.0,resnet_v2_101/block2/unit_1/bottleneck_v2/conv2/weights/read
+16,32.0,resnet_v2_101/block2/unit_1/bottleneck_v2/conv2/kernel/Regularizer/l2_regularizer
+17,32.0,resnet_v2_101/block2/unit_1/bottleneck_v2/conv2/kernel/Regularizer/l2_regularizer/L2Loss
+18,8192.0,resnet_v2_101/block1/unit_3/bottleneck_v2/conv3/biases/read
+19,2048.0,resnet_v2_101/block1/unit_3/bottleneck_v2/conv2/BatchNorm/gamma/read
+20,8192.0,resnet_v2_101/block1/unit_2/bottleneck_v2/conv3/biases/read
+21,2048.0,resnet_v2_101/block1/unit_2/bottleneck_v2/conv2/BatchNorm/gamma/read
+22,8192.0,resnet_v2_101/block1/unit_1/bottleneck_v2/conv3/biases/read
+23,2048.0,resnet_v2_101/block1/unit_1/bottleneck_v2/conv2/BatchNorm/gamma/read
+24,2048.0,resnet_v2_101/block1/unit_1/bottleneck_v2/preact/beta/read
+25,32768.0,resnet_v2_101/block3/unit_1/bottleneck_v2/shortcut/biases/read
