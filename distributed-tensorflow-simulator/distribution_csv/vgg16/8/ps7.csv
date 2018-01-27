@@ -1,0 +1,4 @@
+"relative_time, bits_sent, raw_edgename"
+0,536870912.0,fc2/weights/read
+1,32.0,fc2/weights/Regularizer/L2Regularizer/L2Loss
+2,32.0,fc2/weights/Regularizer/L2Regularizer/value

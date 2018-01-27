@@ -1,0 +1,9 @@
+"relative_time, bits_sent, raw_edgename"
+0,32032.0,logits/biases/read
+1,2048.0,conv0/BatchNorm/beta/read
+2,4096.0,conv2/BatchNorm/beta/read
+3,8192.0,conv4/BatchNorm/beta/read
+4,8192.0,conv6/BatchNorm/beta/read
+5,16384.0,conv12/BatchNorm/beta/read
+6,16384.0,conv8/BatchNorm/beta/read
+7,16384.0,conv10/BatchNorm/beta/read

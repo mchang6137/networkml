@@ -1,0 +1,3 @@
+"relative_time, bits_sent, raw_edgename"
+0,131072.0,fc2/biases/read
+1,64.0,sync_token_q_Dequeue

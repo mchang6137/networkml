@@ -1,0 +1,22 @@
+"relative_time, bits_sent, raw_edgename"
+0,1179648.0,conv1/weights/read
+1,32.0,conv1/weights/Regularizer/L2Regularizer/value
+2,32.0,conv1/weights/Regularizer/L2Regularizer/L2Loss
+3,4718592.0,conv3/weights/read
+4,32.0,conv3/weights/Regularizer/L2Regularizer/value
+5,32.0,conv3/weights/Regularizer/L2Regularizer/L2Loss
+6,18874368.0,conv5/weights/read
+7,32.0,conv5/weights/Regularizer/L2Regularizer/value
+8,32.0,conv5/weights/Regularizer/L2Regularizer/L2Loss
+9,37748736.0,conv7/weights/read
+10,32.0,conv7/weights/Regularizer/L2Regularizer/value
+11,32.0,conv7/weights/Regularizer/L2Regularizer/L2Loss
+12,75497472.0,conv9/weights/read
+13,32.0,conv9/weights/Regularizer/L2Regularizer/value
+14,32.0,conv9/weights/Regularizer/L2Regularizer/L2Loss
+15,75497472.0,conv11/weights/read
+16,32.0,conv11/weights/Regularizer/L2Regularizer/value
+17,32.0,conv11/weights/Regularizer/L2Regularizer/L2Loss
+18,5435817984.0,fc1/weights/read
+19,32.0,fc1/weights/Regularizer/L2Regularizer/value
+20,32.0,fc1/weights/Regularizer/L2Regularizer/L2Loss
