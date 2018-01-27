@@ -1,6 +1,28 @@
 import csv
 from parse_step_times import *
 
+def write_dist_as_csv(model_name, distribution_events, cluster_size, ps_index):
+    base_dir = 'distribution_csv/{}/{}/'.format(model_name, cluster_size)
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+
+    output_filename = base_dir + 'ps{}.csv'.format(ps_index)
+    with open(output_filename, 'wb') as out:
+        csv_out = csv.writer(out)
+        csv_out.writerow(['relative_time, bits_sent, raw_edgename'])
+
+        order = 0
+        initial_distr_time = distribution_events[0][0]
+        for event in distribution_events:
+            relative_time = event[0] - initial_distr_time
+            if relative_time < 0:
+                continue
+            bits_sent = event[1] * 8
+            raw_edgename = event[5]
+
+            csv_out.writerow((order, bits_sent, raw_edgename))
+            order += 1
+
 # Plot the spread of send times by flow
 def plot_send_times(worker_send_time_bytes):
     all_lines = []
@@ -89,11 +111,11 @@ def separate_one_iteration(time_events):
             continue
         if bytes_sent == 0:
             continue
-        
+
         distr_event.append(event)
             
 
-        '''
+    '''
 
     for event in time_events:
         bytes_sent = event[1]
@@ -135,16 +157,15 @@ if __name__ == "__main__":
     
     for num_ps in range(int(args.max_ps)+1):
         bytes_in_distr = 0
-        #num_ps = 2
         ps_base_dir = base_dir + '{}ps/'.format(num_ps)
         for ps_id in range(num_ps):
-            #ps_id = 1
             ps_file = ps_base_dir + 'ps' + str(ps_id) + '.txt'
-            #print ps_file
             events = parse_result_file([ps_file], args.model_name)
             distr_events = separate_one_iteration(events)
             bytes_in_distr += measure_cumm_bytes(distr_events)
-            #print bytes_in_distr / (10 ** 6)
+            if len(distr_events) == 0:
+                continue
+            write_dist_as_csv(args.model_name, distr_events, num_ps, ps_id)
         mb_in_distr = bytes_in_distr / (10 ** 6)
         print 'For {} ps, we use {} MB bytes in total'.format(num_ps, mb_in_distr)
 

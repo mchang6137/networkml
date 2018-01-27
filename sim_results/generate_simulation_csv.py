@@ -14,7 +14,7 @@ python generate_simulation_csv.py --base_file async_measurements/gpu/ --num_work
 def write_agg_as_csv(model_name, aggregation_events, cluster_size, wk_index, step_num):
     initial_agg_time = -1
     aggregation_start_edge = aggregation_start_dict[model_name][0]
-    
+
     for event in aggregation_events:
         raw_edgename = event[5]
 	if raw_edgename == aggregation_start_edge:

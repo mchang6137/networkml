@@ -10,7 +10,7 @@ from parse_step_times import *
 
 aggregation_start_dict = {'inception-v3': ['inception_v3/conv0/BatchNorm/moments/Squeeze'],
                           'resnet-200': ['resnet_v2_200/block4/unit_2/bottleneck_v2/conv1/BatchNorm/Const_2'],
-                          'resnet-101': ['resnet_v2_101/block4/unit_3/bottleneck_v2/conv1/BatchNorm/Const_2'],
+                          'resnet-101': ['resnet_v2_101/block4/unit_3/bottleneck_v2/conv2/BatchNorm/FusedBatchNorm'],
 	                  'vgg16': ['vgg/conv0/BatchNorm/moments/Squeeze']
 }
 

@@ -3,6 +3,8 @@ import argparse
 import os.path
 import re
 
+from find_async_variance import *
+
 import matplotlib.pylab as plt
 
 # Instructions: Include the results of the send time over TWO ITERATIONS.
@@ -69,7 +71,6 @@ def parse_inception_model(train_op):
             edge_name['operation'] = operation_hierarchy[4]
     # Gradient updates from ps -> wk
     elif 'weights' in operation_hierarchy:
-        print 'Weights: {}'.format(operation_hierarchy)
         edge_name['variable_scope'] = operation_hierarchy[0]
 	edge_name['operation_scope'] = operation_hierarchy[1]
         edge_name['operation'] = operation_hierarchy[2]
@@ -117,7 +118,6 @@ def parse_vgg_model(train_op):
             edge_name['operation'] = operation_hierarchy[4]
     # Gradient updates from ps -> wk
     elif 'weights' in operation_hierarchy:
-        print 'Weights: {}'.format(operation_hierarchy)
         edge_name['variable_scope'] = operation_hierarchy[0]
         edge_name['operation_scope'] = operation_hierarchy[1]
         edge_name['operation'] = operation_hierarchy[2]
@@ -191,7 +191,11 @@ def detect_aggregation_events(sorted_events,
         if src_device in worker_device_set and dst_device in ps_device_set:
             # Aggregation events start with a global step
             # Not model specific
-            
+
+            if raw_edge_name == aggregation_start_dict[model_name][0]:
+                in_aggregation = True
+
+            '''
             if model_name == 'inception-v3' and raw_edge_name == 'inception_v3/conv0/BatchNorm/moments/Squeeze':
                 in_aggregation = True
             elif model_name == 'vgg16' and raw_edge_name == 'vgg/conv0/BatchNorm/moments/Squeeze':
@@ -200,6 +204,7 @@ def detect_aggregation_events(sorted_events,
                 in_aggregation = True
             elif model_name == 'resnet-101' and raw_edge_name == 'resnet_v2_101/postnorm/Const_2':
                 in_aggregation = True
+            '''
 
             if in_aggregation:
                 aggregation_events.append(event)
@@ -222,38 +227,6 @@ def detect_aggregation_events(sorted_events,
 
     print 'There is no complete aggregation grouping in this dataset. Exiting..'
     exit()
-
-def write_agg_as_csv(model_name, aggregation_events):
-    initial_agg_time = -1
-    for event in aggregation_events:
-        raw_edgename = event[5]
-        if raw_edgename == 'gradients/AddN':
-            initial_agg_time = event[0]
-            break
-
-    if initial_agg_time == -1:
-        print 'Aggregation initiation not started'
-        exit()
-
-    base_dir = 'sim_csv/'
-    output_filename = base_dir + '{}/agg_trace.csv'.format(model_name)
-    with open(output_filename, 'wb') as out:
-        csv_out = csv.writer(out)
-        csv_out.writerow(['relative_time, bits_sent, raw_edgename'])
-        
-        for event in aggregation_events:
-            relative_time = event[0] - initial_agg_time
-            if relative_time < 0:
-                continue
-            bits_sent = event[1] * 8
-            raw_edgename = event[5]
-
-            csv_out.writerow((relative_time, bits_sent, raw_edgename))
-            
-    print 'Completed'
-    exit()
-                             
-
     
 
 # Filters down all the events to the events in a single iteration
