@@ -1,4 +1,6 @@
 from entity import Entity
+import random
+import copy
 
 class PS (Entity):
     def __init__(self, ctx, name="PS", inbuffer_size=0):
@@ -22,10 +24,14 @@ class PS (Entity):
             #print self.name + ":\t" + str(len(self.ctx.sendschedule[self.name]))
             if self.ctx.striping:
                 for arr in self.ctx.sendschedule[self.name]:
-                    for wk_name in self.ctx.workers:
+                    random_wk_list = copy.deepcopy(self.ctx.workers)
+                    random.shuffle(random_wk_list)
+                    for wk_name in random_wk_list:
                         self.queuesend(self.ctx.make_packet(arr[0], self.name, wk_name, name=arr[1]))
             else:
-                for wk_name in self.ctx.workers:
+                random_wk_list = copy.deepcopy(self.ctx.workers)
+                random.shuffle(random_wk_list)
+                for wk_name in random_wk_list:
                     for arr in self.ctx.sendschedule[self.name]:
                         self.queuesend(self.ctx.make_packet(arr[0], self.name, wk_name, name=arr[1]))
 

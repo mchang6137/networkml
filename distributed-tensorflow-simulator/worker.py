@@ -9,6 +9,12 @@ class Worker (Entity):
     def lastbitrecv(self, packet):
         Entity.lastbitrecv(self, packet)
         node_name = self.name
+
+        # TODO: Michael fix this for multicast
+        if packet.name == 'conv0/weights/read':
+            self.fwd_pass_time += self.ctx.now
+        elif packet.name == 'resnet_v2_200/block3/unit_14/bottleneck_v2/conv2/kernel/Regularizer/l2_regularizer/L2Loss':
+            self.fwd_pass_time += self.ctx.now
         
         if not packet.MF:
             self.received_packets += 1
@@ -20,9 +26,8 @@ class Worker (Entity):
                     for arr in self.ctx.sendschedule[node_name]:
                         self.ctx.schedule_send(arr[0], arr[1], self.name, arr[2], name=arr[3])
                 else:
-                    wait_time = self.fwd_pass_time - self.ctx.now
-                    print 'Worker {} still waiting {} sec for forward pass to complete'.format(self.name, wait_time)
+                    print 'Worker {} waiting until at least {} for forward pass to complete'.format(self.name, self.fwd_pass_time)
                     for arr in self.ctx.sendschedule[node_name]:
-                        time_delta = arr[0] + wait_time
+                        time_delta = arr[0] + self.fwd_pass_time - self.ctx.now
                         self.ctx.schedule_send(time_delta, arr[1], self.name, arr[2], name=arr[3])
                     

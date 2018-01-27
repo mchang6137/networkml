@@ -3,6 +3,7 @@ import random
 import json
 import os
 import glob
+
 from packet import Packet
 from context import Context
 from worker import Worker
@@ -389,7 +390,10 @@ class Simulation (object):
         else:
             tracename_basedir = tracename_basedir + '{}/'.format(num_ps)
         if os.path.exists(tracename_basedir) is True:
-            for ps_id in range(num_ps):
+            # Generate random ordering of parameter server IDs
+            ps_list = [x for x in range(num_ps)]
+            random.shuffle(ps_list)
+            for ps_id in ps_list:
                 ps_name = '/job:ps/replica:0/task:{}/device:CPU:0'.format(ps_id)
                 assert ps_name in all_ps_names
                 ps_path = tracename_basedir + 'ps{}.csv'.format(ps_id)
@@ -418,7 +422,7 @@ class Simulation (object):
             if ev.startswith("//") or ev.startswith('"'):
                 continue
             parts = ev.strip().split(',')
-            time = float(parts[0]) * (10 ** -12)
+            time = float(parts[0]) * (10 ** -18)
             size = float(parts[1])
             if args.inputs_as_bytes:
                 size *= 8
@@ -437,7 +441,7 @@ class Simulation (object):
             else:
                 print 'Use Optimal PS is invalid. Exiting...'
                 exit()
-        print '{}:\t{}'.format(ps_name, cum_size)
+        print 'Cumm size is {}:\t{}'.format(ps_name, cum_size)
 
     def adjust_in_network(self, src, dest, edgename):
         self.ctx.ps_num_items[dest] += 1
