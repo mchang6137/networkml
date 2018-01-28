@@ -31,6 +31,20 @@ class Simulation (object):
         self.ctx.in_network_computation = args.in_network_computation
         self.ctx.striping = args.striping
         self.ctx.verbosity = args.verbosity
+
+        fw_pass_time_dict = {'inception-v3': 0.176,
+                    'resnet-200': 0.357,
+                    'vgg16': 0.169,
+                    'resnet-101': 0.176}
+
+        step_num_dict = {'inception-v3': 40,
+                    'resnet-200': 40,
+                    'resnet-101': 40,
+                    'vgg16': 28}
+
+        args.fwd_pass_time = fw_pass_time_dict[args.model_name]
+        args.step_num = step_num_dict[args.model_name]
+        
         gigabit = 10**9
         if args.topology == '':
             # Store Workers and PS all on same rack
@@ -48,8 +62,10 @@ class Simulation (object):
                     worker_name = 'worker{}'.format(wk_num)
                     self.ctx.objs[worker_name] = Worker(self.ctx,
                                                         name=worker_name,
+                                                        model_name=args.model_name,
                                                         inbuffer_size=args.worker_inbuffer_size,
-                                                        fwd_pass_time=args.fwd_pass_time
+                                                        fwd_pass_time=args.fwd_pass_time,
+                                                        use_multicast=args.use_multicast
                     )
                     wkobj = self.ctx.objs[worker_name]
                     wkobj.send_rate = args.worker_send_rate * gigabit
@@ -85,8 +101,10 @@ class Simulation (object):
                     worker_name = 'worker{}'.format(wk_num)
                     self.ctx.objs[worker_name] = Worker(self.ctx,
                                                         name=worker_name,
+                                                        model_name=args.model_name,
                                                         inbuffer_size=args.worker_inbuffer_size,
-                                                        fwd_pass_time=args.fwd_pass_time
+                                                        fwd_pass_time=args.fwd_pass_time,
+                                                        use_multicast=args.use_multicast
                     )
                     wkobj = self.ctx.objs[worker_name]
                     wkobj.send_rate = args.worker_send_rate * gigabit
@@ -144,8 +162,10 @@ class Simulation (object):
                     elif 'worker' in name:
                         self.ctx.objs[name] = Worker(self.ctx,
                                                      name=name,
+                                                     model_name=args.model_name,
                                                      inbuffer_size=args.worker_inbuffer_size,
-                                                     fwd_pass_time=args.fwd_pass_time
+                                                     fwd_pass_time=args.fwd_pass_time,
+                                                     use_multicast=args.use_multicast
                         )
                         self.ctx.objs[name].send_rate = args.worker_send_rate * gigabit
                         self.ctx.objs[name].recv_rate = args.worker_recv_rate * gigabit
@@ -400,7 +420,7 @@ class Simulation (object):
                 if args.optimal_param_distribution:
                     ps_path = tracename_basedir + 'ps0.csv'
                 if os.path.exists(ps_path) is False:
-                    print 'There is no trace data for {} cluster, psid {}, step_num {}'.format(num_ps, ps_id, step_num)
+                    print 'There is no trace data for {} cluster, psid {}'.format(num_ps, ps_id)
                     exit()
             
                 trace = open(ps_path).readlines()
