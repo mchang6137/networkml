@@ -46,6 +46,7 @@ def vary_model(args):
         args.step_num = step_num[model_name]
         args.fw_pass_time = fw_pass_time[model_name]
         args.trace_base_dir = 'csv/' + model_name + '/'
+        args.distribution_trace_base_dir = 'distribution_csv/{}/'.format(args.model_name)
         args.json = 'json/' + '{}_param_ps_assignment.json'.format(model_name)
         print 'INFO: trying with model {}'.format(model_name)
         vary_param_optimality(args)
