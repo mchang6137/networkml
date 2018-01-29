@@ -53,7 +53,7 @@ def vary_model(args):
     
     for model_name in model_candidates:
         args.model_name = model_name
-        args.fw_pass_time = fw_pass_time[model_name]
+        args.fwd_pass_time = fw_pass_time[model_name]
         args.trace_base_dir = 'csv/' + model_name + '/'
         args.distribution_trace_base_dir = 'distribution_csv/{}/'.format(args.model_name)
         args.json = 'json/' + '{}_param_ps_assignment.json'.format(model_name)
