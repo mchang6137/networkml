@@ -14,7 +14,7 @@ def run_sim(args):
     sim.Setup(args)
     finish_time, worker_receive_times = sim.Run()
     write_to_csv(args, finish_time, worker_receive_times)
-    
+
 def vary_bandwidths(args):
     bw_candidates = [10,1]
 
@@ -24,12 +24,13 @@ def vary_bandwidths(args):
         args.ps_recv_rate = bw
         args.worker_recv_rate = bw
 
-        print 'INFO: tring with bandwidth {}gbps'.format(bw)
+        print 'INFO: trying with bandwidth {}gbps'.format(bw)
         vary_model(args)
+        print 'INFO: Done trying with bandwidth {}gbps'.format(bw)
 
 # Try various kinds of models and 
 def vary_model(args):
-    model_candidates = ['inception-v3', 'resnet-200', 'resnet-101', 'vgg16']
+    model_candidates = ['inception-v3', 'resnet-200', 'vgg16','resnet-101']
 
     fw_pass_time = {'inception-v3': 0.176,
                     'resnet-200': 0.357,
@@ -54,14 +55,15 @@ def vary_model(args):
 
 def vary_workers_exp_multicast(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
     args_dict = vars(args)
-
+    model_name = args.model_name
+    
     # Vary the number of workers and ps
     for workers in num_workers:
 	for ps in num_ps:
             args.num_workers = workers
             args.num_ps = ps
 
-            print 'INFO: {} ps, {} wk, with only multicast'.format(ps, workers)
+            print '{}: {} ps, {} wk, with only multicast'.format(model_name, ps, workers)
             args.use_multicast = 1
             args.in_network_computation = 0
             try:
@@ -71,6 +73,7 @@ def vary_workers_exp_multicast(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
 
 def vary_workers_exp_aggregation(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
     args_dict = vars(args)
+    model_name = args.model_name
 
     # Vary the number of workers and ps
     for workers in num_workers:
@@ -78,7 +81,7 @@ def vary_workers_exp_aggregation(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8])
             args.num_workers = workers
             args.num_ps = ps
             
-            print 'INFO: {} ps, {} wk, with aggregation only'.format(ps, workers)
+            print '{}: {} ps, {} wk, with aggregation only'.format(model_name, ps, workers)
             args.use_multicast = 0
             args.in_network_computation = 1
             try:
@@ -88,13 +91,14 @@ def vary_workers_exp_aggregation(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8])
 
 def vary_workers_exp(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
     args_dict = vars(args)
+    model_name = args.model_name
     # Vary the number of workers and ps
     for workers in num_workers:
         for ps in num_ps:
             args.num_workers = workers
             args.num_ps = ps
 
-            print 'INFO: {} ps, {} wk, with no agg, no multicast'.format(ps, workers)
+            print '{}: {} ps, {} wk, with no agg, no multicast'.format(model_name, ps, workers)
             args.use_multicast = 0
             args.in_network_computation = 0
             try:
@@ -104,12 +108,13 @@ def vary_workers_exp(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
 
 def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
     args_dict = vars(args)
+    model_name = args.model_name
     for workers in num_workers:
         for ps in num_ps:
             args.num_workers = workers
             args.num_ps = ps
 
-            print 'INFO: {} ps {} wk, with aggregation and multicast'.format(workers, ps)
+            print '{}: {} ps {} wk, with aggregation and multicast'.format(model_name, workers, ps)
             args.use_multicast = 1
             args.in_network_computation = 1
             try:
@@ -119,17 +124,18 @@ def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,12], num_ps=
 
 # Try different types of parameters
 def vary_param_optimality(args):
-    num_workers = [2,4,8,12]
+    model_name = args.model_name
+    num_workers = [2,4,8,16,32]
     num_ps = [1,2,4,8]
 
-    print 'Testing with suboptimal (real) parameter distributions'
+    print '{} Testing with suboptimal (real) parameter distributions'.format(model_name)
     args.optimal_param_distribution = 0
     vary_workers_exp(args, num_workers, num_ps)
     vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_multicast(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
 
-    print 'Testing with optimal parameter distributions'
+    print '{} Testing with optimal parameter distributions'.format(model_name)
     args.optimal_param_distribution = 1
     vary_workers_exp(args, num_workers, num_ps)
     vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
