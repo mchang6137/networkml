@@ -15,8 +15,8 @@ json/
 --ps-recv-rate=5
 --worker-send-rate=5
 --worker-recv-rate=5
---tor-send-rate=5
---tor-recv-rate=5
+--tor-send-rate=25
+--tor-recv-rate=25
 --global-switch-send-rate=25
 --global-switch-recv-rate=25
 --num-global-switches=4
