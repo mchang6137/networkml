@@ -9,6 +9,20 @@ from simulator import *
 Michael's Means of automating experiments
 '''
 
+# Average results over multiple steps
+def vary_steps(args):
+    step_num = {'inception-v3': [41,42,43,44,45,46,47],
+                'resnet-200': [41,42,43,44,45,46,47],
+                'resnet-101': [41,42,43,44,45,46,47],
+                'vgg16': [24,25,26,27,28]}
+    
+    step_list = step_num[args.model_name]
+    for step in step_list:
+        print 'Trying step number {}'.format(step)
+        args.step_num = step
+        vary_bandwidths(args)
+        print 'Finished with step number {}'.format(step)
+
 def run_sim(args):
     sim = Simulation()
     sim.Setup(args)
@@ -16,7 +30,7 @@ def run_sim(args):
     write_to_csv(args, finish_time, worker_receive_times)
 
 def vary_bandwidths(args):
-    bw_candidates = [10,1]
+    bw_candidates = [10]
 
     for bw in bw_candidates:
         args.ps_send_rate = bw
@@ -36,15 +50,9 @@ def vary_model(args):
                     'resnet-200': 0.357,
                     'vgg16': 0.169,
                     'resnet-101': 0.176}
-
-    step_num = {'inception-v3': 40,
-                'resnet-200': 40,
-                'resnet-101': 40,
-                'vgg16': 28}
-
+    
     for model_name in model_candidates:
         args.model_name = model_name
-        args.step_num = step_num[model_name]
         args.fw_pass_time = fw_pass_time[model_name]
         args.trace_base_dir = 'csv/' + model_name + '/'
         args.distribution_trace_base_dir = 'distribution_csv/{}/'.format(args.model_name)
@@ -135,11 +143,12 @@ def vary_param_optimality(args):
     vary_workers_exp_multicast(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
 
+    '''
     print '{} Testing with optimal parameter distributions'.format(model_name)
     args.optimal_param_distribution = 1
     vary_workers_exp(args, num_workers, num_ps)
     vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_multicast(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
-
+    '''
 
