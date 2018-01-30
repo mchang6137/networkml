@@ -3,20 +3,15 @@ import sys
 import csv
 
 if len(sys.argv) < 2:
-  print('Need initial step number as first argument.')
+  print('Need input CSV file name as first argument.')
   exit(1)
 
 if len(sys.argv) < 3:
-  print('Need input CSV file name as second argument.')
+  print('Need output CSV file name as second argument.')
   exit(1)
 
-if len(sys.argv) < 4:
-  print('Need output CSV file name as third argument.')
-  exit(1)
-
-start_step = sys.argv[1]
-in_filename = sys.argv[3]
-out_filename = sys.argv[4]
+in_filename = sys.argv[1]
+out_filename = sys.argv[2]
 
 with open(in_filename, 'r') as f, open(out_filename, 'w') as g:
   data = {}
