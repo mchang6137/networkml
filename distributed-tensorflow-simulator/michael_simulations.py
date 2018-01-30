@@ -90,7 +90,7 @@ def vary_model(args):
         vary_param_optimality(args)
         print 'INFO: DONE WITH MODEL {}'.format(model_name)
 
-def vary_workers_exp_multicast(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
+def vary_workers_exp_multicast(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
     model_name = args.model_name
     
@@ -108,7 +108,7 @@ def vary_workers_exp_multicast(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
             except:
                 print 'this experiment failed in multicast fct'
 
-def vary_workers_exp_aggregation(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
+def vary_workers_exp_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
     model_name = args.model_name
 
@@ -126,7 +126,7 @@ def vary_workers_exp_aggregation(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8])
             except:
                 print 'this experiment failed in aggregation part'
 
-def vary_workers_exp(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
+def vary_workers_exp(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
     model_name = args.model_name
     # Vary the number of workers and ps
@@ -143,7 +143,7 @@ def vary_workers_exp(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
             except:
                 print 'this experiment failed in no network improvement'
 
-def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,12], num_ps=[1,2,4,8]):
+def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
     model_name = args.model_name
     for workers in num_workers:
@@ -172,12 +172,10 @@ def vary_param_optimality(args):
     vary_workers_exp_multicast(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
 
-    '''
     print '{} Testing with optimal parameter distributions'.format(model_name)
     args.optimal_param_distribution = 1
     vary_workers_exp(args, num_workers, num_ps)
     vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_multicast(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
-    '''
 
