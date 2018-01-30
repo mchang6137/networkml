@@ -284,7 +284,7 @@ def Main (args):
     if args.json == 'json/':
         args.json += '{}_param_ps_assignment.json'.format(args.model_name)
 
-    vary_steps(args)
+    vary_model_and_steps(args)
     #vary_bandwidths(args)
     #sim = Simulation()
     #sim.Setup(args)

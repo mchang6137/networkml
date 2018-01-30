@@ -32,19 +32,6 @@ class Simulation (object):
         self.ctx.striping = args.striping
         self.ctx.verbosity = args.verbosity
 
-        fw_pass_time_dict = {'inception-v3': 0.176,
-                    'resnet-200': 0.357,
-                    'vgg16': 0.169,
-                    'resnet-101': 0.176}
-
-        step_num_dict = {'inception-v3': 40,
-                    'resnet-200': 40,
-                    'resnet-101': 40,
-                    'vgg16': 28}
-
-        args.fwd_pass_time = fw_pass_time_dict[args.model_name]
-        args.step_num = step_num_dict[args.model_name]
-        
         gigabit = 10**9
         if args.topology == '':
             # Store Workers and PS all on same rack

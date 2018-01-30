@@ -10,24 +10,53 @@ Michael's Means of automating experiments
 '''
 
 # Average results over multiple steps
-def vary_steps(args):
+def vary_model_and_steps(args):
     step_num = {'inception-v3': [41,42,43,44,45,46,47],
                 'resnet-200': [41,42,43,44,45,46,47],
                 'resnet-101': [41,42,43,44,45,46,47],
                 'vgg16': [24,25,26,27,28]}
+
+    model_candidates = ['inception-v3','vgg16','resnet-200', 'resnet-101']
     
-    step_list = step_num[args.model_name]
-    for step in step_list:
-        print 'Trying step number {}'.format(step)
-        args.step_num = step
-        vary_bandwidths(args)
-        print 'Finished with step number {}'.format(step)
+    bandwidth = 10
+    args = set_bandwidth(args, bandwidth)
+    
+    for model_name in model_candidates:
+        print 'Trying with model name {}'.format(model_name)
+        args = set_model(args, model_name)
+        step_list = step_num[args.model_name]
+        for step in step_list:
+            print 'Trying step number {}'.format(step)
+            args.step_num = step
+            vary_param_optimality(args)
+            print 'Finished with step number {}'.format(step)
+        print 'Finished simulating with model name {}'.format(model_name)
 
 def run_sim(args):
     sim = Simulation()
     sim.Setup(args)
     finish_time, worker_receive_times = sim.Run()
     write_to_csv(args, finish_time, worker_receive_times)
+
+def set_bandwidth(args, bw):
+    args.ps_send_rate = bw
+    args.worker_send_rate = bw
+    args.ps_recv_rate = bw
+    args.worker_recv_rate = bw
+    return args
+
+def set_model(args, model_name):
+    fw_pass_time = {'inception-v3': 0.176,
+                    'resnet-200': 0.357,
+                    'vgg16': 0.169,
+                    'resnet-101': 0.176}
+    
+    args.model_name = model_name
+    args.fwd_pass_time = fw_pass_time[model_name]
+    args.trace_base_dir = 'csv/' + model_name + '/'
+    args.distribution_trace_base_dir = 'distribution_csv/{}/'.format(args.model_name)
+    args.json = 'json/' + '{}_param_ps_assignment.json'.format(model_name)
+    return args
 
 def vary_bandwidths(args):
     bw_candidates = [10]
