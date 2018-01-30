@@ -7,19 +7,14 @@ if len(sys.argv) < 2:
   exit(1)
 
 if len(sys.argv) < 3:
-  print('Need number of steps as second argument.')
+  print('Need input CSV file name as second argument.')
   exit(1)
 
 if len(sys.argv) < 4:
-  print('Need input CSV file name as third argument.')
-  exit(1)
-
-if len(sys.argv) < 5:
-  print('Need output CSV file name as fourth argument.')
+  print('Need output CSV file name as third argument.')
   exit(1)
 
 start_step = sys.argv[1]
-num_steps = int(sys.argv[2])
 in_filename = sys.argv[3]
 out_filename = sys.argv[4]
 
