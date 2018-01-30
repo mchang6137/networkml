@@ -24,8 +24,9 @@ class Worker (Entity):
             split_keyword = '_ps'
             raw_nodename = node_name.split(split_keyword)[0]
         
-        if raw_nodename == first_layer_dict[self.model_name]:
+        if packet.name == first_layer_dict[self.model_name]:
             self.first_layer_received = self.ctx.now
+	    print 'Worker {} has received read packet at time {}'.format(self.name, self.ctx.now)
         
         if not packet.MF:
             self.received_packets += 1
