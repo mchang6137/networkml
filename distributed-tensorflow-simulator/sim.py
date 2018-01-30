@@ -45,7 +45,6 @@ class Simulation (object):
 
         args.fwd_pass_time = fw_pass_time_dict[args.model_name]
         #args.step_num = step_num_dict[args.model_name]
-        
         gigabit = 10**9
         if args.topology == '':
             # Store Workers and PS all on same rack

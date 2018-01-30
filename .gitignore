@@ -2,3 +2,4 @@ aws_credentials*
 *~
 *.pyc
 s3_config_file
+**/.DS_Store

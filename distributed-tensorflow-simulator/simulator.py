@@ -20,6 +20,8 @@ def write_to_csv(args, finish_time, worker_receive_times):
         writer = csv.DictWriter(out, delimiter=',', lineterminator='\n',fieldnames=headers)
         if not file_exists:
             writer.writeheader()
+        print 'For {}, an iteration time of {} was calculated'.format(args.model_name, finish_time)
+        print 'For {}, an iteratoin time of {} was recorded'.format(args.model_name, args_dict['iteration_time'])
 	writer.writerow(args_dict)
 
 def vary_worker_step_time(args):
@@ -281,7 +283,6 @@ def Main (args):
         args.distribution_trace_base_dir += args.model_name  + '/'
     if args.json == 'json/':
         args.json += '{}_param_ps_assignment.json'.format(args.model_name)
-    
     #args.striping = 0
     #vary_args(args)
     #args.striping = 1
