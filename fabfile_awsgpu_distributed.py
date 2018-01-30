@@ -24,7 +24,7 @@ my_aws_key = 'pranay'
 worker_base_name = 'g{}u'.format(my_aws_key)
 ps_base_name = '{}server'.format(my_aws_key)
 NUM_WORKERS=4
-NUM_PARAM_SERVERS=4
+NUM_PARAM_SERVERS=1
 worker_names = [worker_base_name + str(i) for i in range(NUM_WORKERS)]
 ps_names = [ps_base_name + str(i) for i in range(NUM_PARAM_SERVERS)]
 
@@ -32,9 +32,9 @@ MODEL_NAMES = ['vgg', 'alexnet', 'resnet', 'inception']
 
 # Note: need p2 instances for the nvidia gpu's
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.xlarge'
+WORKER_TYPE = 'p2.16xlarge'
 
-PS_TYPE = 'i3.large'
+PS_TYPE = 'm4.16xlarge'
 PORT = '2222'
 
 USER = os.environ['USER']
@@ -46,6 +46,7 @@ def get_target_instance():
     role_to_host = {}
     host_to_role = {}
     all_ids = []
+    host_to_id = {}
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
 
     for i in ec2.instances.all():
@@ -59,10 +60,11 @@ def get_target_instance():
                     host = 'ec2-user@{}'.format(i.public_dns_name)
                     role_to_host[role].append(host)
                     host_to_role[host] = role
+                    host_to_id[host] = i.instance_id
                     all_ids.append(i.instance_id)
-    return role_to_host, host_to_role, all_ids
+    return role_to_host, host_to_role, all_ids, host_to_id
 
-def get_machine_ips():
+def get_machine_ips(private=False):
     ps_data, worker_data = {}, {}
     ec2 = boto3.resource('ec2', region_name=AWS_REGION)
     for inst_id in ALL_IDS:
@@ -70,14 +72,18 @@ def get_machine_ips():
         role = HOST_TO_ROLE['ec2-user@{}'.format(i.public_dns_name)]
         if worker_base_name in role:
             worker_data[role] = '{}:{}'.format(i.public_ip_address, PORT)
+            if private:
+                worker_data[role] = '{}:{}'.format(i.private_ip_address, PORT)
         else:
             ps_data[role] = '{}:{}'.format(i.public_ip_address, PORT)
+            if private:
+                ps_data[role] = '{}:{}'.format(i.private_ip_address, PORT)
     return ps_data, worker_data
 
 env.disable_known_hosts = True
 env.warn_only = True
-ROLE_TO_HOST, HOST_TO_ROLE, ALL_IDS = get_target_instance()
-PS_DATA, WORKER_DATA = get_machine_ips()
+ROLE_TO_HOST, HOST_TO_ROLE, ALL_IDS, HOST_TO_ID = get_target_instance()
+PS_DATA, WORKER_DATA = get_machine_ips(True)
 env.roledefs.update(ROLE_TO_HOST)
 print('done getting data\n')
 
@@ -90,6 +96,9 @@ def get_active_instances():
         print(HOST_TO_ROLE['ec2-user@{}'.format(i.public_dns_name)])
         print('{}:{}'.format(i.public_ip_address, PORT))
         print('ec2-user@{}'.format(i.public_dns_name))
+        print('Private IP Address: {}'.format(i.private_ip_address))
+        print(i)
+        print('\n')
     
 ######################## LAUNCH COMMANDS ################################
 
@@ -362,18 +371,8 @@ def reboot():
 
 @task
 def wait_until_running():
-    #### TODO: GET WAIT TILL RUNNING TO WORK ####
-
-    # ec2 = boto3.resource('ec2', region_name=AWS_REGION)
-    # print('All instance IDs:')
-    # print(ALL_IDS)
-    # for instance_id in ALL_IDS:
-    #     inst = ec2.Instance(instance_id)
-    #     inst.wait_until_running()
-    
     sleep(180)
-
-    ensure_status_checks(ALL_IDS)
+    ensure_status_checks([HOST_TO_ID[env.host_string]])
 
 @task
 @parallel
@@ -541,6 +540,7 @@ def get_dirs(model):
 @parallel
 def run_experiment(model):
     remove_tmp()
+    shutdown_bazel(model)
 
     role = HOST_TO_ROLE[env.host_string]
     is_worker = worker_base_name in role
