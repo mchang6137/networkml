@@ -52,9 +52,9 @@ def plot_compare_agg_distr(result_csv_dict, model_name, filter_bandwidth=10, use
         if use_agg == 1 and use_multicast == 1:
             update_dict(multicast_and_agg, num_ps, num_workers, iteration_time)
 
-    print multicast_and_agg[8][12]
-    print just_agg[8][12]
-    exit()
+    #print multicast_and_agg[8][12]
+    #print just_agg[8][12]
+    #exit()
 
     both_over_baseline = {}
     multicast_over_baseline = {}

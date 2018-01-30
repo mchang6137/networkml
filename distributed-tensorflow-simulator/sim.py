@@ -36,14 +36,15 @@ class Simulation (object):
                     'resnet-200': 0.357,
                     'vgg16': 0.169,
                     'resnet-101': 0.176}
-
+	'''
         step_num_dict = {'inception-v3': 40,
                     'resnet-200': 40,
                     'resnet-101': 40,
                     'vgg16': 28}
+	'''
 
         args.fwd_pass_time = fw_pass_time_dict[args.model_name]
-        args.step_num = step_num_dict[args.model_name]
+        #args.step_num = step_num_dict[args.model_name]
         
         gigabit = 10**9
         if args.topology == '':
@@ -379,7 +380,7 @@ class Simulation (object):
                 if edgename in self.ctx.pmappings:
                     self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
                     self.adjust_in_network(worker_name, self.ctx.pmappings[edgename], edgename)
-                else:
+                elif self.ctx.verbosity:
                     print "%s not assigned a parameter server" % edgename
             elif use_optimal_ps == 1:
                 # Split the parameter evenly between all the parameter servers
@@ -389,7 +390,7 @@ class Simulation (object):
                     if new_edgename in self.ctx.pmappings:
                         self.ctx.sendschedule[worker_name].append((time / 1000, revised_size, self.ctx.pmappings[new_edgename], new_edgename))
                         self.adjust_in_network(worker_name, self.ctx.pmappings[new_edgename], new_edgename)
-                    else:
+                    elif self.ctx.verbosity:
                         print "%s not assigned a parameter server" % edgename
             else:
                 print 'Use Optimal PS is invalid. Exiting...'
@@ -461,7 +462,8 @@ class Simulation (object):
             else:
                 print 'Use Optimal PS is invalid. Exiting...'
                 exit()
-        print 'Cumm size is {}:\t{}'.format(ps_name, cum_size)
+	if self.ctx.verbosity:
+        	print 'Cumm size is {}:\t{}'.format(ps_name, cum_size)
 
     def adjust_in_network(self, src, dest, edgename):
         self.ctx.ps_num_items[dest] += 1

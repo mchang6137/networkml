@@ -40,6 +40,6 @@ class Worker (Entity):
                     send_at = self.first_layer_received + self.fwd_pass_time
                     print 'Worker {} waiting until at least {} for forward pass to complete'.format(self.name, send_at)
                     for arr in self.ctx.sendschedule[node_name]:
-                        time_delta = send_at + arr[0]
+                        time_delta = send_at + arr[0] - self.ctx.now
                         self.ctx.schedule_send(time_delta, arr[1], self.name, arr[2], name=arr[3])
                     

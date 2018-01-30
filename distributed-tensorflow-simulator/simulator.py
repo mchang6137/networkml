@@ -4,10 +4,10 @@ import csv
 import os
 
 from sim import Simulation
-from michael_simulations import *
+from dom_simulations import *
 
 def write_to_csv(args, finish_time, worker_receive_times):
-    results_file = './exp_results/{}/results.csv'.format(args.model_name)
+    results_file = './dom_results/{}/results.csv'.format(args.model_name)
     file_exists = os.path.isfile(results_file)
     
     args_dict = vars(args)
@@ -281,7 +281,11 @@ def Main (args):
         args.distribution_trace_base_dir += args.model_name  + '/'
     if args.json == 'json/':
         args.json += '{}_param_ps_assignment.json'.format(args.model_name)
-
+    
+    #args.striping = 0
+    #vary_args(args)
+    #args.striping = 1
+    #vary_args(args)
     #vary_bandwidths(args)
     sim = Simulation()
     sim.Setup(args)

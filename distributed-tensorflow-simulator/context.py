@@ -26,6 +26,7 @@ class Context (object):
         self.ps_num_items = {}
         self.num_from_ps = 0
         self.sendschedule = {}
+	self.verbosity = 1
 
     def schedule_task(self, delta, task):
         self.queue.put_nowait((self.current_time + delta, task))
@@ -57,10 +58,11 @@ class Context (object):
             self.current_time = time
             task()
         self.final_time = self.current_time
-        for worker in self.workers:
-            print '{}:\t{}/{}'.format(worker, self.objs[worker].received_packets, self.num_from_ps)
-        for ps in self.pses:
-            print '{}:\t{}/{}'.format(ps, self.objs[ps].received_packets, self.ps_num_items[ps])
+	if self.verbosity:
+	    for worker in self.workers:
+	        print '{}:\t{}/{}'.format(worker, self.objs[worker].received_packets, self.num_from_ps)
+	    for ps in self.pses:
+	        print '{}:\t{}/{}'.format(ps, self.objs[ps].received_packets, self.ps_num_items[ps])
 
     def make_packet(self, size, src, dest, name):
         mpacket = Packet(size, src=src, dest=dest, name=name)
