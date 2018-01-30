@@ -1,17 +1,17 @@
 from entity import Entity
 
 class Worker (Entity):
-    def __init__(self, ctx, name="Worker", model_name='inception-v3', inbuffer_size=0, fwd_pass_time=0, use_multicast=0):
+    def __init__(self, ctx, name="Worker", model_name='inception-v3', inbuffer_size=0, fwd_pass_time=0, use_optimal_param=0):
         Entity.__init__(self, ctx, name=name, inbuffer_size=inbuffer_size)
         self.received_packets = 0
         self.fwd_pass_time = fwd_pass_time
         self.first_layer_received = 0
         self.model_name = model_name
-        self.use_multicast = use_multicast
+        self.use_optimal_param = use_optimal_param
 
     def lastbitrecv(self, packet):
-        Entity.lastbitrecv(self, packet)
         node_name = self.name
+        Entity.lastbitrecv(self, packet)
 
         first_layer_dict = {'inception-v3':  'conv0/weights/read',
                             'resnet-200': 'resnet_v2_200/block3/unit_9/bottleneck_v2/conv3/kernel/Regularizer/l2_regularizer',
@@ -19,12 +19,12 @@ class Worker (Entity):
                             'vgg16': 'conv0/weights/read'
                             }
 
-        raw_nodename = node_name
-        if self.use_multicast == 1:
+        packet_name = packet.name
+        if self.use_optimal_param == 1:
             split_keyword = '_ps'
-            raw_nodename = node_name.split(split_keyword)[0]
+            packet_name = packet_name.split(split_keyword)[0]
         
-        if packet.name == first_layer_dict[self.model_name]:
+        if packet_name == first_layer_dict[self.model_name]:
             self.first_layer_received = self.ctx.now
 	    print 'Worker {} has received read packet at time {}'.format(self.name, self.ctx.now)
         
