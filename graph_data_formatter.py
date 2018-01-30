@@ -87,11 +87,12 @@ with open(in_filename, 'r') as f, open(out_filename, 'w') as g:
 
   # aggregate data properly (multicast/agg vs. baseline)
   g.write('multicast,aggregation,num_ps,num_workers,median,neg bar,pos bar\n')
-  g.write('PARAMS: {} Gbps BW, Striping: {}, Optimal Param Distribution: {}, On Same Rack: {}\n'.format(data['bw'], data['stripe'], data['even'], data['rack']))
+  g.write('BW: {}Gbps, Striping: {}, Optimal Param Distribution: {}, On Same Rack: {}\n'.format(data['bw'], data['stripe'], data['even'], data['rack']))
   for multicast in ['0', '1']:
     for agg in ['0', '1']:
       if multicast == '1' or agg == '1':
         arr = data[multicast][agg]
+        g.write('{} Multicast, {} Agg\n'.format(multicast, agg))
         for ps in ['1', '2', '4', '8']:
           for worker in ['2', '4', '8', '16', '32']:
             vals = []
@@ -104,9 +105,10 @@ with open(in_filename, 'r') as f, open(out_filename, 'w') as g:
             out_line = ','.join([multicast, agg, ps, worker, str(median), neg_bar, pos_bar])
             g.write(out_line)
             g.write('\n')
+          g.write(',,,,,,\n')
+
 
   # multicast+agg vs. multicast: obtain data
-  g.write('\n')
   g.write('multicast + aggregation vs. multicast info\n')
   arr = data['1']['1']
   baseline = data['1']['0']
@@ -132,4 +134,5 @@ with open(in_filename, 'r') as f, open(out_filename, 'w') as g:
       out_line = ','.join([multicast, agg, ps, worker, str(median), neg_bar, pos_bar])
       g.write(out_line)
       g.write('\n')
+    g.write(',,,,,,\n')
 
