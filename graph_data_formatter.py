@@ -78,12 +78,13 @@ with open(in_filename, 'r') as f, open(out_filename, 'w') as g:
         for step_num in arr.keys():
           for ps in ['1', '2', '4', '8']:
             for worker in ['2', '4', '8', '16', '32']:
-              test = arr[step_num][ps][worker]
-              baseline_val = baseline[step_num][ps][worker]
-              percent = (baseline_val - test) / baseline_val
-              arr[step_num][ps][worker] = {}
-              arr[step_num][ps][worker]['test'] = test
-              arr[step_num][ps][worker]['baseline_percent'] = percent * 100
+              if worker in arr[step_num][ps]:
+                test = arr[step_num][ps][worker]
+                baseline_val = baseline[step_num][ps][worker]
+                percent = (baseline_val - test) / baseline_val
+                arr[step_num][ps][worker] = {}
+                arr[step_num][ps][worker]['test'] = test
+                arr[step_num][ps][worker]['baseline_percent'] = percent * 100
 
   # aggregate data properly (multicast/agg vs. baseline)
   g.write('multicast,aggregation,num_ps,num_workers,median,neg bar,pos bar\n')
@@ -97,7 +98,8 @@ with open(in_filename, 'r') as f, open(out_filename, 'w') as g:
           for worker in ['2', '4', '8', '16', '32']:
             vals = []
             for step_num in arr.keys():
-              vals.append(arr[step_num][ps][worker]['baseline_percent'])
+              if worker in arr[step_num][ps]:
+                vals.append(arr[step_num][ps][worker]['baseline_percent'])
             median = round(statistics.median(vals), 4)
             neg_bar = str(round(abs(median - min(vals)), 4))
             pos_bar = str(round(abs(max(vals) - median), 4))
@@ -115,10 +117,11 @@ with open(in_filename, 'r') as f, open(out_filename, 'w') as g:
   for step_num in arr.keys():
     for ps in ['1', '2', '4', '8']:
       for worker in ['2', '4', '8', '16', '32']:
-        test = arr[step_num][ps][worker]['test']
-        baseline_val = baseline[step_num][ps][worker]['test']
-        percent = (baseline_val - test) / baseline_val
-        arr[step_num][ps][worker]['multi_percent'] = percent * 100
+        if worker in arr[step_num][ps]:
+          test = arr[step_num][ps][worker]['test']
+          baseline_val = baseline[step_num][ps][worker]['test']
+          percent = (baseline_val - test) / baseline_val
+          arr[step_num][ps][worker]['multi_percent'] = percent * 100
 
   # multicast+agg vs. multicast: write data
   arr = data['1']['1']
@@ -126,7 +129,8 @@ with open(in_filename, 'r') as f, open(out_filename, 'w') as g:
     for worker in ['2', '4', '8', '16', '32']:
       vals = []
       for step_num in arr.keys():
-        vals.append(arr[step_num][ps][worker]['multi_percent'])
+        if worker in arr[step_num][ps]:
+          vals.append(arr[step_num][ps][worker]['multi_percent'])
       median = round(statistics.median(vals), 4)
       neg_bar = str(round(abs(median - min(vals)), 4))
       pos_bar = str(round(abs(max(vals) - median), 4))
