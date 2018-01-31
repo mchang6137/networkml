@@ -14,7 +14,7 @@ class Worker (Entity):
         Entity.lastbitrecv(self, packet)
 
         first_layer_dict = {'inception-v3':  'conv0/weights/read',
-                            'resnet-200': 'resnet_v2_200/block3/unit_9/bottleneck_v2/conv3/kernel/Regularizer/l2_regularizer',
+                            'resnet-200': 'resnet_v2_200/block2/unit_1/bottleneck_v2/conv2/weights/read_S9773',
                             'resnet-101': 'resnet_v2_101/conv1/weights/read',
                             'vgg16': 'conv0/weights/read'
                             }
