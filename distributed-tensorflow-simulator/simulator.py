@@ -21,7 +21,7 @@ def write_to_csv(args, finish_time, worker_receive_times):
         if not file_exists:
             writer.writeheader()
         print 'For {}, an iteration time of {} was calculated'.format(args.model_name, finish_time)
-        print 'For {}, an iteratoin time of {} was recorded'.format(args.model_name, args_dict['iteration_time'])
+        print 'For {}, an iteration time of {} was recorded'.format(args.model_name, args_dict['iteration_time'])
 	writer.writerow(args_dict)
 
 def vary_worker_step_time(args):
@@ -288,12 +288,10 @@ def Main (args):
     #args.striping = 1
     #vary_args(args)
     #vary_bandwidths(args)
-    sim = Simulation()
-    sim.Setup(args)
-    a,b = sim.Run()
-    #vary_workers_exp_aggregation(args)
-    #vary_param_optimality(args)
-    #vary_workers_exp_multicast(args)
+    #sim = Simulation()
+    #sim.Setup(args)
+    #a,b = sim.Run()
+    vary_model_and_steps(args)
     
 if __name__ == "__main__":
     Main(sys.argv[1:])
