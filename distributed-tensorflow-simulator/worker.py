@@ -14,7 +14,7 @@ class Worker (Entity):
         Entity.lastbitrecv(self, packet)
 
         first_layer_dict = {'inception-v3':  'conv0/weights/read',
-                            'resnet-200': 'resnet_v2_200/block3/unit_9/bottleneck_v2/conv3/kernel/Regularizer/l2_regularizer',
+                            'resnet-200': 'resnet_v2_200/block2/unit_1/bottleneck_v2/conv2/weights/read_S9773',
                             'resnet-101': 'resnet_v2_101/conv1/weights/read',
                             'vgg16': 'conv0/weights/read'
                             }
@@ -26,7 +26,8 @@ class Worker (Entity):
         
         if packet_name == first_layer_dict[self.model_name]:
             self.first_layer_received = self.ctx.now
-	    print 'Worker {} has received read packet at time {}'.format(self.name, self.ctx.now)
+	    if self.ctx.verbosity:
+	    	print 'Worker {} has received read packet at time {}'.format(self.name, self.ctx.now)
         
         if not packet.MF:
             self.received_packets += 1
@@ -39,7 +40,8 @@ class Worker (Entity):
                         self.ctx.schedule_send(arr[0], arr[1], self.name, arr[2], name=arr[3])
                 else:
                     send_at = self.first_layer_received + self.fwd_pass_time
-                    print 'Worker {} waiting until at least {} for forward pass to complete'.format(self.name, send_at)
+                    if self.ctx.verbosity:
+			print 'Worker {} waiting until at least {} for forward pass to complete'.format(self.name, send_at)
                     for arr in self.ctx.sendschedule[node_name]:
                         time_delta = send_at + arr[0] - self.ctx.now
                         self.ctx.schedule_send(time_delta, arr[1], self.name, arr[2], name=arr[3])
