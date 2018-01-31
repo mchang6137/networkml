@@ -88,5 +88,5 @@ with open(baseline_filename, 'r') as f, open(y_filename, 'r') as h, open(out_fil
       out_line = ','.join([ps, worker, str(median), neg_bar, pos_bar])
       g.write(out_line)
       g.write('\n')
-    g.write(',,,,,,\n')
+    g.write(',,,,\n')
 
