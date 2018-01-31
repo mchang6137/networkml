@@ -36,15 +36,15 @@ def Main (args):
     aggcsv = plaincsv[:idx] + "_agg.csv"
     multiaggcsv = plaincsv[:idx] + "_multiagg.csv"
     for result in result_csv_dict:
-        print "{},{}".format(result["use_multicast"], result["in_network_computation"])
+        #print "{},{}".format(result["use_multicast"], result["in_network_computation"])
         if result["use_multicast"] == "1" and result["in_network_computation"] == "1":
-            print multiaggcsv
+            #print multiaggcsv
             write_to_csv(result, multiaggcsv)
         elif result["use_multicast"] == "1":
-            print multicsv
+            #print multicsv
             write_to_csv(result, multicsv)
         elif result["in_network_computation"] == "1":
-            print aggcsv
+            #print aggcsv
             write_to_csv(result, aggcsv)
         else:
             write_to_csv(result, plaincsv)
