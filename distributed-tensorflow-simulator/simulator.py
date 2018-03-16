@@ -257,6 +257,12 @@ def Main (args):
         action="store",
         default="")
     parser.add_argument(
+        "--horovod",
+        dest="horovod",
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
         "--verbosity",
         dest="verbosity",
         type=int,

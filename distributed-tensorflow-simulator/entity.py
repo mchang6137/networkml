@@ -16,6 +16,7 @@ class Entity (object):
         self.parents = []
         self.children = []
         self.ps_branch = {}
+        self.semaphore = {}
 
     def __str__(self):
         return self.name
@@ -91,10 +92,8 @@ class Entity (object):
         else:
             if nexthop not in self.outbuffer:
                 self.outbuffer[nexthop] = Queue.Queue()
-            if nexthop not in self.used_outbuffer:
-                self.used_outbuffer[nexthop] = 0
-            self.used_outbuffer[nexthop] += packet.size
-            if self.used_outbuffer[nexthop] == packet.size:
+            if self.semaphore[nexthop] > 0:
+                self.semaphore[nexthop] -= 1
                 self.send(packet)
             else:
                 self.outbuffer[nexthop].put(packet)
@@ -125,7 +124,7 @@ class Entity (object):
         if rate == -1:
             rate = max(self.send_rate, nextobj.recv_rate)
         if rate != -1:
-            self.used_outbuffer[nexthop] -= packet.size
+            self.semaphore[nexthop] += 1
         if not self.outbuffer[nexthop].empty():
             nextpacket = self.outbuffer[nexthop].get()
             self.send(nextpacket)

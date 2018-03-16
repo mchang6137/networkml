@@ -40,6 +40,15 @@ class Simulation (object):
 
         args.fwd_pass_time = fw_pass_time_dict[args.model_name]
         gigabit = 10**9
+        if args.horovod:
+            args.on_same_rack = 1
+            args.num_ps = 0
+            args.use_multicast = 0
+            self.ctx.use_multicast = 0
+            args.in_network_computation = 0
+            self.ctx.in_network_computation = 0
+            use_optimal_param = 0
+            self.ctx.horovod = 1
         if args.topology == '':
             # Store Workers and PS all on same rack
             if args.on_same_rack == 1:
@@ -172,6 +181,11 @@ class Simulation (object):
                 rack_number += 1
             for key, value in self.ctx.objs.iteritems():
                 pass
+        for objname in self.ctx.objs:
+            for objname2 in self.ctx.objs[objname].parents:
+                self.ctx.objs[objname].semaphore[objname2] = 1
+            for objname2 in self.ctx.objs[objname].children:
+                self.ctx.objs[objname].semaphore[objname2] = 1
         if args.fat_tree and len(self.ctx.tors) > 1:
             layers = 0
             while True:
@@ -188,8 +202,8 @@ class Simulation (object):
                     name = "Switch%d.%d" % (layer_num, switch_num)
                     self.ctx.objs[name] = GSwitch(self.ctx, name=name, inbuffer_size=args.gswitch_inbuffer_size)
                     switch_obj = self.ctx.objs[name]
-                    switch_obj.send_rate = args.gswitch_send_rate * gigabit * (layers - layer_num)
-                    switch_obj.recv_rate = args.gswitch_recv_rate * gigabit * (layers - layer_num)
+                    switch_obj.send_rate = args.gswitch_send_rate * gigabit #* (layers - layer_num)
+                    switch_obj.recv_rate = args.gswitch_recv_rate * gigabit #* (layers - layer_num)
                     switch_obj.rack = -1
                     self.ctx.gswitches.append(name)
                     cur_layer.append(name)
@@ -199,6 +213,8 @@ class Simulation (object):
                     parent_obj.children.append(cur_layer.pop(0))
                     for child_name in parent_obj.children:
                         self.ctx.objs[child_name].parents.append(parent_name)
+                        self.ctx.objs[parent_name].semaphore[child_name] = (layers - layer_num)
+                        self.ctx.objs[child_name].semaphore[parent_name] = (layers - layer_num)
                         cur_layer.append(child_name)
                 prev_layer = cur_layer
             for tor_name in self.ctx.tors:
@@ -206,6 +222,8 @@ class Simulation (object):
                 cur_switch_name = cur_layer.pop(0)
                 cur_switch_obj = self.ctx.objs[cur_switch_name]
                 cur_switch_obj.children.append(tor_name)
+                self.ctx.objs[cur_switch_name].semaphore[tor_name] = 1
+                self.ctx.objs[tor_name].semaphore[cur_switch_name] = 1
                 tor_obj.parents.append(cur_switch_name)
                 if len(cur_switch_obj.children) < 2:
                     cur_layer.insert(0, cur_switch_name)
@@ -258,11 +276,15 @@ class Simulation (object):
                     pname = str(ps_name) + str(wk_name)
                     self.ctx.paths[pname] = path
                     #print "%s: %s" % (pname, str(path))
-            for gswitch in self.ctx.gswitches:
+            for gswitch in self.ctx.objs:
+                if self.ctx.verbosity < 2:
+                    continue
                 gs_obj = self.ctx.objs[gswitch]
-                #print str(gs_obj)
-                #print "\tparents: " + str(gs_obj.parents)
-                #print "\tchildren: " + str(gs_obj.children)
+                print str(gs_obj)
+                print "\tparents: " + str(gs_obj.parents)
+                print "\tchildren: " + str(gs_obj.children)
+                for connection, value in gs_obj.semaphore.iteritems():
+                    print "\t\t%s: %d" % (connection, value)
                 #print "\tnetwork: " + str(gs_obj.in_network)
                 #print "\tps branch: " + str(gs_obj.ps_branch)
         else:
@@ -306,14 +328,44 @@ class Simulation (object):
                     pname = str(dest) + str(src)
                     path = path[::-1]
                     self.ctx.paths[pname] = path
-        self.load_parameter_mapping(jsonname, args)
-        self.load_relative_dist_schedule(distribution_trace_base_dir, args)
+            if args.horovod:
+                for src in self.ctx.workers:
+                    srcobj = self.ctx.objs[src]
+                    for dest in self.ctx.workers:
+                        destobj = self.ctx.objs[dest]
+                        pname = str(src) + str(dest)
+                        if srcobj.parents[0] == destobj.parents[0]:
+                            path = [src, srcobj.parents[0], dest]
+                        else:
+                            path = [src, srcobj.parents[0], destobj.root, destobj.parents[0], dest]
+                        self.ctx.paths[pname] = path
+                        for step in path:
+                            step_obj = self.ctx.objs[step]
+                            if not isinstance(step_obj, Switch):
+                                continue
+                            if dest not in step_obj.in_network:
+                                step_obj.in_network[dest] = 0
+                            step_obj.in_network[dest] += 1
+            
+        if not self.ctx.horovod:
+            self.load_parameter_mapping(jsonname, args)
+            self.load_relative_dist_schedule(distribution_trace_base_dir, args)
         self.load_relative_send_schedule(tracename_base_dir, args)
 
         #print self.ctx.pses
         for ps_name in self.ctx.pses:
             ps_obj = self.ctx.objs[ps_name]
             ps_obj.distribute()
+        if self.ctx.horovod:
+            #split = num_workers
+            split = 1
+            for idx in range(split):
+                worker = self.ctx.workers[idx]
+                nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
+                wk_obj = self.ctx.objs[worker]
+                for arr in self.ctx.sendschedule["worker"]:
+                    time_delta = wk_obj.fwd_pass_time + arr[0]
+                    self.ctx.schedule_send(time_delta, arr[1] / split, wk_obj.name, nworker, name="%s_%s".format(arr[3], wk_obj.name))
 
     def load_relative_send_schedule(self, tracename_basedir, args):
         all_worker_names = self.ctx.workers
@@ -328,7 +380,12 @@ class Simulation (object):
         orig_tracename_basedir = tracename_basedir
 
         tracename_basedir = tracename_basedir + '{}/'.format(num_workers)
-        if os.path.exists(tracename_basedir) is True:
+        if self.ctx.horovod:
+            csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*_{}.csv'.format(step_num)))]
+            wk_path = random.choice(csvs)
+            trace = open(wk_path).readlines()
+            self.load_relative_send_schedule_horovod(trace, args)
+        elif os.path.exists(tracename_basedir) is True:
             for worker_id in range(num_workers):
                 worker_name = 'worker{}'.format(worker_id)
                 assert worker_name in all_worker_names
@@ -341,7 +398,7 @@ class Simulation (object):
                 trace = open(wk_path).readlines()
                 self.load_relative_send_schedule_one_worker(trace, worker_name, args)
         else:
-            csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*.csv'))]
+            csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*_{}.csv'.format(step_num)))]
             for worker_id in range(num_workers):
                 worker_name = 'worker{}'.format(worker_id)
                 assert worker_name in all_worker_names
@@ -388,6 +445,20 @@ class Simulation (object):
             else:
                 print 'Use Optimal PS is invalid. Exiting...'
                 exit()
+                
+    def load_relative_send_schedule_horovod(self, trace, args):
+        worker_name = "worker"
+        self.ctx.sendschedule[worker_name] = []
+        for ev in trace:
+            if ev.startswith("//") or ev.startswith('"'):
+                continue
+            parts = ev.strip().split(',')
+            time = float(parts[0])
+            size = float(parts[1])
+            if args.inputs_as_bytes:
+                size *= 8
+            edgename = str(parts[2])
+            self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
 
     def load_relative_dist_schedule(self, tracename_basedir, args):
         all_ps_names = self.ctx.pses

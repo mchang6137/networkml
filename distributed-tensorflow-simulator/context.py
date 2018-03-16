@@ -26,7 +26,8 @@ class Context (object):
         self.ps_num_items = {}
         self.num_from_ps = 0
         self.sendschedule = {}
-	self.verbosity = 1
+        self.verbosity = 1
+        self.horovod = 0
 
     def schedule_task(self, delta, task):
         self.queue.put_nowait((self.current_time + delta, task))

@@ -14,7 +14,7 @@ class Worker (Entity):
         Entity.lastbitrecv(self, packet)
 
         first_layer_dict = {'inception-v3':  'conv0/weights/read',
-                            'resnet-200': 'resnet_v2_200/block2/unit_1/bottleneck_v2/conv2/weights/read_S9773',
+                            'resnet-200': 'resnet_v2_200/block2/unit_1/bottleneck_v2/conv2/weights/read',
                             'resnet-101': 'resnet_v2_101/conv1/weights/read',
                             'vgg16': 'conv0/weights/read'
                             }
@@ -24,12 +24,13 @@ class Worker (Entity):
             split_keyword = '_ps'
             packet_name = packet_name.split(split_keyword)[0]
         
-        if packet_name == first_layer_dict[self.model_name]:
+        if packet_name == first_layer_dict[self.model_name] and not packet.MF:
             self.first_layer_received = self.ctx.now
-	    if self.ctx.verbosity:
-	    	print 'Worker {} has received read packet at time {}'.format(self.name, self.ctx.now)
-        
-        if not packet.MF:
+            if self.ctx.verbosity:
+                print "%s has received read packet at time %0.3f" % (self.name, self.ctx.now)
+        if self.ctx.horovod:
+            self.lastbitrecvhorovod(packet)
+        elif not packet.MF:
             self.received_packets += 1
             if self.ctx.sendschedule[node_name] and self.received_packets == self.ctx.num_from_ps:
                 if self.ctx.verbosity:
@@ -41,8 +42,22 @@ class Worker (Entity):
                 else:
                     send_at = self.first_layer_received + self.fwd_pass_time
                     if self.ctx.verbosity:
-			print 'Worker {} waiting until at least {} for forward pass to complete'.format(self.name, send_at)
+                        print 'Worker {} waiting until at least {} for forward pass to complete'.format(self.name, send_at)
                     for arr in self.ctx.sendschedule[node_name]:
                         time_delta = send_at + arr[0] - self.ctx.now
                         self.ctx.schedule_send(time_delta, arr[1], self.name, arr[2], name=arr[3])
+
+    def lastbitrecvhorovod(self, packet):
+        idx = self.ctx.workers.index(self.name)
+        nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
+        packet.degree += 1
+        if packet.degree >= len(self.ctx.workers) and not packet.MF:
+            self.received_packets += 1
+            if self.received_packets == len(self.ctx.sendschedule["worker"]) and self.ctx.verbosity:
+                print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
+        if packet.degree < len(self.ctx.workers) * 2 - 1:
+            packet.src = self.name
+            packet.dest = nworker
+            packet.path = self.ctx.paths[packet.src + packet.dest]
+            self.queuesend(packet)
                     
