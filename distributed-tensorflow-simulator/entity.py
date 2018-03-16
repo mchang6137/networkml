@@ -123,11 +123,11 @@ class Entity (object):
         rate = min(self.send_rate, nextobj.recv_rate)
         if rate == -1:
             rate = max(self.send_rate, nextobj.recv_rate)
-        if rate != -1:
-            self.semaphore[nexthop] += 1
         if not self.outbuffer[nexthop].empty():
             nextpacket = self.outbuffer[nexthop].get()
             self.send(nextpacket)
+        elif rate != -1:
+            self.semaphore[nexthop] += 1
 
     def recv(self, packet):
         lasthop = packet.prevhop
