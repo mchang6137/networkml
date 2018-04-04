@@ -23,18 +23,20 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 my_aws_key = 'pranay'
 worker_base_name = 'g{}u'.format(my_aws_key)
 ps_base_name = '{}server'.format(my_aws_key)
-NUM_WORKERS=4
+NUM_WORKERS=8
 NUM_PARAM_SERVERS=1
 worker_names = [worker_base_name + str(i) for i in range(NUM_WORKERS)]
 ps_names = [ps_base_name + str(i) for i in range(NUM_PARAM_SERVERS)]
 
-MODEL_NAMES = ['vgg', 'alexnet', 'resnet', 'inception']
+MODEL_NAMES = ['vgg', 'alexnet', 'resnet', 'inception', 'wd']
+
+WD_TRAIN_STEPS = 2000
 
 # Note: need p2 instances for the nvidia gpu's
 CONDA_DIR = "$HOME/anaconda"
-WORKER_TYPE = 'p2.16xlarge'
+WORKER_TYPE = 'g3.4xlarge'
 
-PS_TYPE = 'm4.16xlarge'
+PS_TYPE = 'i3.large'
 PORT = '2222'
 
 USER = os.environ['USER']
@@ -83,7 +85,7 @@ def get_machine_ips(private=False):
 env.disable_known_hosts = True
 env.warn_only = True
 ROLE_TO_HOST, HOST_TO_ROLE, ALL_IDS, HOST_TO_ID = get_target_instance()
-PS_DATA, WORKER_DATA = get_machine_ips(True)
+PS_DATA, WORKER_DATA = get_machine_ips()
 env.roledefs.update(ROLE_TO_HOST)
 print('done getting data\n')
 
@@ -341,6 +343,7 @@ def vgg_fresh_setup():
 # like it's increasing at some points but over a large timeframe
 # (on the order of hundreds of steps) it's decreasing.
 def resnet_setup():
+    run('rm -rf resnet')
     run('git clone https://github.com/mchang6137/models.git resnet')
     with cd('~/resnet/'):
         run('git checkout -b resnet_impl origin/resnet_impl')
@@ -358,6 +361,14 @@ def alexnet_setup():
         run('git checkout -b alexnet_model origin/alexnet_model')
         with cd('inception/'):
             run('bazel build inception/imagenet_distributed_train')
+
+@task
+@parallel
+def wd_setup():
+    run('rm -rf wd')
+    run('git clone https://github.com/PranayJuneCS/models.git wd')
+    with cd('~/wd/'):
+        run('bazel build wide_deep/wide_deep_distributed')
 
 @task
 @parallel
@@ -492,6 +503,13 @@ def instance_setup(gpu, model):
         inception_setup()
     elif model == 'resnet':
         resnet_setup()
+    elif model == 'wd':
+        wd_setup()
+
+@task
+@parallel
+def get_stuff():
+   get(remote_path='wd/*.txt', local_path='../models/wide_deep/send_logs')
 
 @task
 def obtain_imagenet_data():
@@ -506,6 +524,20 @@ def get_command(i, dir_string, ps_string, worker_string, is_worker):
         return 'bazel-bin{} --batch_size=32 --data_dir=$HOME/imagenet-data --job_name=\'worker\' --task_id={} --ps_hosts={} --worker_hosts={} |& tee wk{}.txt\n'.format(dir_string, i, ps_string, worker_string, i)
     else:
         return 'CUDA_VISIBLE_DEVICES=\'\' bazel-bin{} --batch_size=32 --job_name=\'ps\' --task_id={} --ps_hosts={} --worker_hosts={} |& tee ps{}.txt\n'.format(dir_string, i, ps_string, worker_string, i)
+
+def get_wd_command(i, dir_string, ps_string, worker_string, is_worker):
+    # dir_string, WD_TRAIN_STEPS, job_name, task_id, ps_hosts, worker_hosts, file_start, i
+    job_name = 'worker' if is_worker else 'ps'
+    if is_worker and i == 0:
+        job_name = 'chief'
+
+    task_id = i
+    if is_worker and i > 0:
+        task_id -= 1
+
+    file_start = 'wk' if is_worker else 'ps'
+
+    return 'bazel-bin{} --train_steps={} --job_name={} --task_id={} --ps_hosts={} --worker_hosts={} |& tee {}{}.txt\n'.format(dir_string, WD_TRAIN_STEPS, job_name, task_id, ps_string, worker_string, file_start, i)
 
 def get_strings(roles):
     ps_string, worker_string = '', ''
@@ -527,12 +559,16 @@ def get_dirs(model):
         cd_string = '~/resnet/distr_vgg'
     if model == 'alexnet':
         cd_string = '~/alexnet/inception'
+    if model == 'wd':
+        cd_string = '~/wd/'
 
     dir_string = '/inception/imagenet_distributed_train'
     if model == 'vgg':
         dir_string = '/inception/imagenet_vgg_distributed_train'
     if model == 'resnet':
         dir_string = '/vgg/imagenet_distributed_train'
+    if model == 'wd':
+        dir_string = '/wide_deep/wide_deep_distributed'
 
     return cd_string, dir_string
 
@@ -552,7 +588,10 @@ def run_experiment(model):
     cd_string, dir_string = get_dirs(model)
     ps_string, worker_string = get_strings(env.effective_roles)
 
-    command = get_command(index, dir_string, ps_string, worker_string, is_worker)
+    if model == 'wd':
+        command = get_wd_command(index, dir_string, ps_string, worker_string, is_worker)
+    else:
+        command = get_command(index, dir_string, ps_string, worker_string, is_worker)
 
     with cd(cd_string):
         run(command)
