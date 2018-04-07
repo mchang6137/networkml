@@ -297,8 +297,15 @@ class Simulation (object):
                 self.ctx.gswitches.append(name)
                 self.ctx.objs[name].children.extend(self.ctx.tors)
 
+
             for tor in self.ctx.tors:
                 self.ctx.objs[tor].parents.extend(self.ctx.gswitches)
+
+
+            for objname in self.ctx.gswitches:
+                for objname2 in self.ctx.objs[objname].children:
+                    self.ctx.objs[objname].semaphore[objname2] = 1
+                    self.ctx.objs[objname2].semaphore[objname] = 1
 
             for ps in self.ctx.pses:
                 ps_obj = self.ctx.objs[ps]

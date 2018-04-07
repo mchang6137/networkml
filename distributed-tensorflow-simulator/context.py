@@ -62,7 +62,10 @@ class Context (object):
         if self.verbosity:
             for worker in self.workers:
                 print '{}:\tReceived {}/{}'.format(worker, self.objs[worker].received_packets, self.num_from_ps)
-                print '{}:\tSent {}'.format(worker, len(self.sendschedule[worker]))
+                if worker in self.sendschedule:
+                    print '{}:\tSent {}'.format(worker, len(self.sendschedule[worker]))
+                else:
+                    print '{}:\tSent {}'.format(worker, len(self.sendschedule["worker"]))
             for ps in self.pses:
                 print '{}:\tReceived {}/{}'.format(ps, self.objs[ps].received_packets, self.ps_num_items[ps])
 
