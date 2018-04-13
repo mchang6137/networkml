@@ -7,7 +7,7 @@ json/
 --num_ps=1
 --on_same_rack=1
 --fat_tree=1
---striping=1
+--striping=0
 --optimal_param_distribution=1
 --multicast=1
 --in-network-computation=1
