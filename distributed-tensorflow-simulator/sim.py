@@ -30,6 +30,7 @@ class Simulation (object):
         self.ctx.use_multicast = args.use_multicast
         self.ctx.in_network_computation = args.in_network_computation
         self.ctx.striping = args.striping
+        self.ctx.real_distribution = args.real_distribution
         self.ctx.verbosity = args.verbosity
         use_optimal_param = args.optimal_param_distribution
 
@@ -519,17 +520,17 @@ class Simulation (object):
             if args.inputs_as_bytes:
                 size *= 8
             edgename = str(parts[2])
-            if use_optimal_ps == 0:
-                self.ctx.sendschedule[ps_name].append((size, edgename))
-                self.ctx.num_from_ps += 1
-                cum_size += size
-            elif use_optimal_ps == 1:
+            if use_optimal_ps == 1:
                 # Split the parameter evenly between all the parameter servers
-                revised_size  = size / float(num_ps)
-                new_edgename = edgename + '_ps{}'.format(ps_id)
-                self.ctx.sendschedule[ps_name].append((revised_size, new_edgename))
-                self.ctx.num_from_ps += 1
-                cum_size += revised_size
+                size = size / float(num_ps)
+                edgename = edgename + '_ps{}'.format(ps_id)
+            send_tuple = (size, edgename)
+            if self.ctx.real_distribution:
+                dest = str(parts[3])
+                send_tuple = (size, edgename, dest)
+            self.ctx.sendschedule[ps_name].append(send_tuple)
+            self.ctx.num_from_ps += 1
+            cum_size += size
             else:
                 print 'Use Optimal PS is invalid. Exiting...'
                 exit()

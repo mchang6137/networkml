@@ -263,6 +263,12 @@ def Main (args):
         action="store",
         default=0)
     parser.add_argument(
+        "--real_distribution",
+        dest="real_distribution",
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
         "--verbosity",
         dest="verbosity",
         type=int,
@@ -290,14 +296,14 @@ def Main (args):
     if args.json == 'json/':
         args.json += '{}_param_ps_assignment.json'.format(args.model_name)
     #args.striping = 0
-    #vary_args(args)
+    #vary_model_and_steps(args)
     #args.striping = 1
-    #vary_args(args)
+    #vary_model_and_steps(args)
     #vary_bandwidths(args)
-    #sim = Simulation()
-    #sim.Setup(args)
-    #a,b = sim.Run()
-    vary_model_and_steps(args)
+    sim = Simulation()
+    sim.Setup(args)
+    a,b = sim.Run()
+    #vary_model_and_steps(args)
     
 if __name__ == "__main__":
     Main(sys.argv[1:])

@@ -22,7 +22,10 @@ class PS (Entity):
                 self.queuesend(self.ctx.make_packet(arr[0], self.name, self.name, name=arr[1]))
         else:
             #print self.name + ":\t" + str(len(self.ctx.sendschedule[self.name]))
-            if self.ctx.striping:
+            if self.ctx.real_distribution:
+                for arr in self.ctx.sendschedule[self.name]:
+                    self.queuesend(self.ctx.make_packet(arr[0], self.name, arr[2], name=arr[1]))
+            elif self.ctx.striping:
                 for arr in self.ctx.sendschedule[self.name]:
                     random_wk_list = copy.deepcopy(self.ctx.workers)
                     random.shuffle(random_wk_list)
