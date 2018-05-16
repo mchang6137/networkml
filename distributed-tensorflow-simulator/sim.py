@@ -531,11 +531,8 @@ class Simulation (object):
             self.ctx.sendschedule[ps_name].append(send_tuple)
             self.ctx.num_from_ps += 1
             cum_size += size
-            else:
-                print 'Use Optimal PS is invalid. Exiting...'
-                exit()
-	if self.ctx.verbosity:
-        	print 'Cumm size is {}:\t{}'.format(ps_name, cum_size)
+        if self.ctx.verbosity:
+            print 'Cumm size is {}:\t{}'.format(ps_name, cum_size)
 
     def adjust_in_network(self, src, dest, edgename):
         self.ctx.ps_num_items[dest] += 1
