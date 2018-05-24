@@ -20,8 +20,8 @@ json/
 --ps-recv-rate=10
 --worker-send-rate=10
 --worker-recv-rate=10
---tor-send-rate=25
---tor-recv-rate=25
+--tor-send-rate=100
+--tor-recv-rate=100
 --global-switch-send-rate=10
 --global-switch-recv-rate=10
 --num-global-switches=4

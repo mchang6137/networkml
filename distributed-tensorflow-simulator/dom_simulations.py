@@ -18,20 +18,20 @@ def vary_model_and_steps(args):
 
     model_candidates = ['inception-v3','vgg16','resnet-200', 'resnet-101']
     model_candidates = ['resnet-200']
-    step_num['resnet-200'] = [42]
-    bandwidth = 10
-    args = set_bandwidth(args, bandwidth)
-    
-    for model_name in model_candidates:
-        print 'Trying with model name {}'.format(model_name)
-        args = set_model(args, model_name)
-        step_list = step_num[args.model_name]
-        for step in step_list:
-            print 'Trying step number {}'.format(step)
-            args.step_num = step
-            vary_param_optimality(args)
-            print 'Finished with step number {}'.format(step)
-        print 'Finished simulating with model name {}'.format(model_name)
+    #step_num['resnet-200'] = [42]
+    bandwidths = [10, 25, 50, 100]
+    for bandwidth in bandwidths:
+        args = set_bandwidth(args, bandwidth)
+        for model_name in model_candidates:
+            print 'Trying with model name {}'.format(model_name)
+            args = set_model(args, model_name)
+            step_list = step_num[args.model_name]
+            for step in step_list:
+                print 'Trying step number {}'.format(step)
+                args.step_num = step
+                vary_param_optimality(args)
+                print 'Finished with step number {}'.format(step)
+            print 'Finished simulating with model name {}'.format(model_name)
 
 def run_sim(args):
     sim = Simulation()
@@ -104,6 +104,7 @@ def vary_workers_exp_multicast(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]
             print '{}: {} ps, {} wk, with only multicast'.format(model_name, ps, workers)
             args.use_multicast = 1
             args.in_network_computation = 0
+            args.horovod = 0
             try:
                 run_sim(args)
             except:
@@ -122,6 +123,7 @@ def vary_workers_exp_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,
             print '{}: {} ps, {} wk, with aggregation only'.format(model_name, ps, workers)
             args.use_multicast = 0
             args.in_network_computation = 1
+            args.horovod = 0
             try:
                 run_sim(args)
             except:
@@ -139,6 +141,7 @@ def vary_workers_exp(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
             print '{}: {} ps, {} wk, with no agg, no multicast'.format(model_name, ps, workers)
             args.use_multicast = 0
             args.in_network_computation = 0
+            args.horovod = 0
             try:
                 run_sim(args)
             except:
@@ -152,31 +155,66 @@ def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,16,32], num_
             args.num_workers = workers
             args.num_ps = ps
 
-            print '{}: {} ps {} wk, with aggregation and multicast'.format(model_name, workers, ps)
+            print '{}: {} ps {} wk, with aggregation and multicast'.format(model_name, ps, workers)
             args.use_multicast = 1
             args.in_network_computation = 1
+            args.horovod = 0
             try:
                 run_sim(args)
             except:
                 print 'This experiment has failed in both the agg and multicast'
 
+def vary_workers_exp_horovod(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
+    args_dict = vars(args)
+    model_name = args.model_name
+    for workers in num_workers:
+        args.num_workers = workers
+        args.num_ps = ps
+
+        print '{}: {} ps {} wk, with aggregation and multicast'.format(model_name, ps, workers)
+        args.use_multicast = 0
+        args.in_network_computation = 0
+        args.horovod = 1
+        try:
+            run_sim(args)
+        except:
+            print 'This experiment has failed in the horovod'
+
+def vary_workers_exp_horovod_multicast(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
+    args_dict = vars(args)
+    model_name = args.model_name
+    for workers in num_workers:
+        args.num_workers = workers
+        args.num_ps = ps
+
+        print '{}: {} ps {} wk, with aggregation and multicast'.format(model_name, ps, workers)
+        args.use_multicast = 1
+        args.in_network_computation = 0
+        args.horovod = 1
+        try:
+            run_sim(args)
+        except:
+            print 'This experiment has failed in both the horovod and multicast'
+
 # Try different types of parameters
 def vary_param_optimality(args):
     model_name = args.model_name
     num_workers = [2,4,8,16,32]
-    num_ps = [1,2,4,8]
+    num_ps = [1,8]
     
     print '{} Testing with suboptimal (real) parameter distributions'.format(model_name)
     args.optimal_param_distribution = 0
     vary_workers_exp(args, num_workers, num_ps)
-    vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_multicast(args, num_workers, num_ps)
+    vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
-    
+    vary_workers_exp_horovod(args, num_workers, num_ps)
+    vary_workers_exp_horovod_multicast(args, num_workers, num_ps)
+    '''
     print '{} Testing with optimal parameter distributions'.format(model_name)
     args.optimal_param_distribution = 1
     vary_workers_exp(args, num_workers, num_ps)
-    vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_multicast(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
-    
+    vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
+    '''
