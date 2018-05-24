@@ -379,6 +379,7 @@ class Simulation (object):
             idx = 0
             for arr in self.ctx.sendschedule["worker"]:
                 idx = idx % len(self.ctx.workers)
+                #idx = 0
                 worker = self.ctx.workers[idx]
                 nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
                 wk_obj = self.ctx.objs[worker]
@@ -486,6 +487,7 @@ class Simulation (object):
                 size *= 8
             edgename = str(parts[2])
             self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
+            self.ctx.edge_weights[edgename] = size
 
     def load_relative_dist_schedule(self, tracename_basedir, args):
         all_ps_names = self.ctx.pses
@@ -575,7 +577,6 @@ class Simulation (object):
         elif use_optimal_ps == 1:
             datastore = datastore['1']
         self.ctx.pmappings = {}
-        self.ctx.edge_weights = {}
 
         if use_optimal_ps == 0:
             for ps, arr in datastore.iteritems():

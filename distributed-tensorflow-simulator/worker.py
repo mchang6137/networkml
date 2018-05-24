@@ -62,10 +62,11 @@ class Worker (Entity):
             packet.multicast = True
             packet.degree = len(self.ctx.workers) * 2
             self.ctx.schedule_task(0.001, lambda: self.queuesend(packet))
-        elif packet.degree < len(self.ctx.workers) * 2 - 1:
+        elif packet.degree < len(self.ctx.workers) * 2 - 1 and not packet.MF:
             packet.src = self.name
             packet.dest = nworker
             packet.path = self.ctx.paths[packet.src + packet.dest]
+            packet.size = self.ctx.edge_weights[packet.name]
             self.ctx.schedule_task(0.001, lambda: self.queuesend(packet))
             
                     

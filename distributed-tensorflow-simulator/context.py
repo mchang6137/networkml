@@ -22,6 +22,7 @@ class Context (object):
         self.gswitches = []
         self.use_multicast = False
         self.in_network_computation = False
+        self.edge_weights = {}
         self.worker_receive = []
         self.ps_num_items = {}
         self.num_from_ps = 0

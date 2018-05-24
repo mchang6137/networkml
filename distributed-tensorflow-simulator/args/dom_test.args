@@ -3,7 +3,7 @@ distribution_csv/
 json/
 --model_name=vgg16
 --step_num=26
---num_workers=64
+--num_workers=4
 --num_ps=1
 --on_same_rack=1
 --fat_tree=1
@@ -16,10 +16,10 @@ json/
 --latency=0.00001
 --latency-distribution=none
 --latency-std=0.0002
---ps-send-rate=25
---ps-recv-rate=25
---worker-send-rate=25
---worker-recv-rate=25
+--ps-send-rate=10
+--ps-recv-rate=10
+--worker-send-rate=10
+--worker-recv-rate=10
 --tor-send-rate=25
 --tor-recv-rate=25
 --global-switch-send-rate=10
@@ -31,3 +31,4 @@ json/
 --input-as-bytes=0
 --topology=
 --horovod=0
+--scattercast=0
