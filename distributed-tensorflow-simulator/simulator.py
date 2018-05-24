@@ -7,14 +7,24 @@ from sim import Simulation
 from dom_simulations import *
 
 def write_to_csv(args, finish_time, worker_receive_times):
+    args_dict = vars(args)
+    results_file = './dom_results/' + args.model_name + '/10gbps_inrack'
+    if args_dict['optimal_param_distribution'] == 1:
+        results_file = results_file + '_even'
+    elif args_dict['optimal_param_distribution'] == 0:
+        results_file = results_file + '_uneven'
+    if args_dict['striping'] == 1:
+        results_file = results_file + '_striping'
+    elif args_dict['striping'] == 0:
+        results_file = results_file + '_nostriping'
+    results_file = results_file + '.csv'
     results_file = './dom_results/{}/results.csv'.format(args.model_name)
     file_exists = os.path.isfile(results_file)
     
-    args_dict = vars(args)
+    #args_dict = vars(args)
     args_dict['iteration_time'] = finish_time
     args_dict['worker_receive_time'] = worker_receive_times
     headers = args_dict.keys()
-    
     #print args_dict
     with open(results_file, 'a') as out:
         writer = csv.DictWriter(out, delimiter=',', lineterminator='\n',fieldnames=headers)
