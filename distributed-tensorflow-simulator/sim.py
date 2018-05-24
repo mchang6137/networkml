@@ -32,7 +32,7 @@ class Simulation (object):
         self.ctx.striping = args.striping
         self.ctx.real_distribution = args.real_distribution
         self.ctx.verbosity = args.verbosity
-        use_optimal_param = args.optimal_param_distribution
+        self.ctx.use_optimal_param = args.optimal_param_distribution
 
         fw_pass_time_dict = {'inception-v3': 0.176,
                     'resnet-200': 0.357,
@@ -44,12 +44,20 @@ class Simulation (object):
         if args.horovod:
             args.on_same_rack = 1
             args.num_ps = 0
-            args.use_multicast = 0
-            self.ctx.use_multicast = 0
             args.in_network_computation = 0
             self.ctx.in_network_computation = 0
-            use_optimal_param = 0
+            self.ctx.use_optimal_param = 0
             self.ctx.horovod = 1
+        if args.scattercast:
+            args.on_same_rack = 1
+            args.num_ps = 0
+            args.use_multicast = 1
+            self.ctx.use_multicast = 1
+            args.in_network_computation = 0
+            self.ctx.in_network_computation = 0
+            self.ctx.use_optimal_param = 0
+            self.ctx.horovod = 0
+            self.ctx.scattercast = 1
         if args.topology == '':
             # Store Workers and PS all on same rack
             if args.on_same_rack == 1:
@@ -69,7 +77,7 @@ class Simulation (object):
                                                         model_name=args.model_name,
                                                         inbuffer_size=args.worker_inbuffer_size,
                                                         fwd_pass_time=args.fwd_pass_time,
-                                                        use_optimal_param=args.optimal_param_distribution
+                                                        use_optimal_param=self.ctx.use_optimal_param
                     )
                     wkobj = self.ctx.objs[worker_name]
                     wkobj.send_rate = args.worker_send_rate * gigabit
@@ -108,7 +116,7 @@ class Simulation (object):
                                                         model_name=args.model_name,
                                                         inbuffer_size=args.worker_inbuffer_size,
                                                         fwd_pass_time=args.fwd_pass_time,
-                                                        use_optimal_param=args.optimal_param_distribution
+                                                        use_optimal_param=self.ctx.use_optimal_param
                     )
                     wkobj = self.ctx.objs[worker_name]
                     wkobj.send_rate = args.worker_send_rate * gigabit
@@ -169,7 +177,7 @@ class Simulation (object):
                                                      model_name=args.model_name,
                                                      inbuffer_size=args.worker_inbuffer_size,
                                                      fwd_pass_time=args.fwd_pass_time,
-                                                     use_optimal_param=args.optimal_param_distribution
+                                                     use_optimal_param=self.ctx.use_optimal_param
                         )
                         self.ctx.objs[name].send_rate = args.worker_send_rate * gigabit
                         self.ctx.objs[name].recv_rate = args.worker_recv_rate * gigabit
@@ -355,7 +363,7 @@ class Simulation (object):
                                 step_obj.in_network[dest] = 0
                             step_obj.in_network[dest] += 1
             
-        if not self.ctx.horovod:
+        if not self.ctx.horovod and not self.ctx.scattercast:
             self.load_parameter_mapping(jsonname, args)
             self.load_relative_dist_schedule(distribution_trace_base_dir, args)
         self.load_relative_send_schedule(tracename_base_dir, args)
@@ -367,13 +375,22 @@ class Simulation (object):
         if self.ctx.horovod:
             #split = num_workers
             split = 1
-            for idx in range(split):
+            #for idx in range(split):
+            idx = 0
+            for arr in self.ctx.sendschedule["worker"]:
+                idx = idx % len(self.ctx.workers)
                 worker = self.ctx.workers[idx]
                 nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
                 wk_obj = self.ctx.objs[worker]
-                for arr in self.ctx.sendschedule["worker"]:
+                time_delta = wk_obj.fwd_pass_time + arr[0]
+                self.ctx.schedule_send(time_delta, arr[1] / split, worker, nworker, name=arr[3])
+                idx += 1
+        elif self.ctx.scattercast:
+            for worker in self.ctx.workers:
+                wk_obj = self.ctx.objs[worker]
+                for arr in self.ctx.sendschedule[worker]:
                     time_delta = wk_obj.fwd_pass_time + arr[0]
-                    self.ctx.schedule_send(time_delta, arr[1] / split, wk_obj.name, nworker, name="%s_%s".format(arr[3], wk_obj.name))
+                    self.ctx.schedule_send(time_delta, arr[1], worker, worker, name=arr[3])
 
     def load_relative_send_schedule(self, tracename_basedir, args):
         all_worker_names = self.ctx.workers
@@ -422,7 +439,7 @@ class Simulation (object):
 
     def load_relative_send_schedule_one_worker(self, trace, worker_name, args):
         num_ps = args.num_ps
-        use_optimal_ps = args.optimal_param_distribution
+        use_optimal_ps = self.ctx.use_optimal_param
 
         self.ctx.sendschedule[worker_name] = []
         for ev in trace:
@@ -434,7 +451,9 @@ class Simulation (object):
             if args.inputs_as_bytes:
                 size *= 8
             edgename = str(parts[2])
-            if use_optimal_ps == 0:
+            if self.ctx.scattercast:
+                self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
+            elif use_optimal_ps == 0:
                 if edgename in self.ctx.pmappings:
                     self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
                     self.adjust_in_network(worker_name, self.ctx.pmappings[edgename], edgename)
@@ -478,7 +497,7 @@ class Simulation (object):
             print 'The provided basename directory does not exist'
             exit()
 
-        if args.optimal_param_distribution:
+        if self.ctx.use_optimal_param:
             tracename_basedir = tracename_basedir + '1/'
         else:
             tracename_basedir = tracename_basedir + '{}/'.format(num_ps)
@@ -490,7 +509,7 @@ class Simulation (object):
                 ps_name = '/job:ps/replica:0/task:{}/device:CPU:0'.format(ps_id)
                 assert ps_name in all_ps_names
                 ps_path = tracename_basedir + 'ps{}.csv'.format(ps_id)
-                if args.optimal_param_distribution:
+                if self.ctx.use_optimal_param:
                     ps_path = tracename_basedir + 'ps0.csv'
                 if os.path.exists(ps_path) is False:
                     print 'There is no trace data for {} cluster, psid {}'.format(num_ps, ps_id)
@@ -504,7 +523,7 @@ class Simulation (object):
 
     def load_relative_send_schedule_one_ps(self, trace, ps_name, ps_id, args):
         num_ps = args.num_ps
-        use_optimal_ps = args.optimal_param_distribution
+        use_optimal_ps = self.ctx.use_optimal_param
 
         self.ctx.sendschedule[ps_name] = []
         #print self.ctx.pmappings.keys()
@@ -546,7 +565,7 @@ class Simulation (object):
             step_obj.in_network[edgename] += 1
 
     def load_parameter_mapping(self, jsonname, args):
-        use_optimal_ps = args.optimal_param_distribution
+        use_optimal_ps = self.ctx.use_optimal_param
         num_ps = args.num_ps
         
         f = open(jsonname, 'r')

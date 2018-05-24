@@ -55,9 +55,17 @@ class Worker (Entity):
             self.received_packets += 1
             if self.received_packets == len(self.ctx.sendschedule["worker"]) and self.ctx.verbosity:
                 print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
-        if packet.degree < len(self.ctx.workers) * 2 - 1:
+        if self.ctx.use_multicast and packet.degree == len(self.ctx.workers):
+            packet.src = self.name
+            packet.dest = self.name
+            packet.path = self.ctx.paths[packet.src + packet.dest]
+            packet.multicast = True
+            packet.degree = len(self.ctx.workers) * 2
+            self.ctx.schedule_task(0.001, lambda: self.queuesend(packet))
+        elif packet.degree < len(self.ctx.workers) * 2 - 1:
             packet.src = self.name
             packet.dest = nworker
             packet.path = self.ctx.paths[packet.src + packet.dest]
-            self.queuesend(packet)
+            self.ctx.schedule_task(0.001, lambda: self.queuesend(packet))
+            
                     

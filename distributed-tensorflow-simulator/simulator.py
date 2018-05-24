@@ -263,6 +263,12 @@ def Main (args):
         action="store",
         default=0)
     parser.add_argument(
+        "--scattercast",
+        dest="scattercast",
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
         "--real_distribution",
         dest="real_distribution",
         type=int,

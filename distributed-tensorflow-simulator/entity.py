@@ -17,6 +17,7 @@ class Entity (object):
         self.children = []
         self.ps_branch = {}
         self.semaphore = {}
+        self.packets_sent = 0
 
     def __str__(self):
         return self.name
@@ -47,7 +48,7 @@ class Entity (object):
                     opacket = packet.copy()
                     self.sendto(opacket, nexthop)
             for dest in self.children:
-                if dest in self.ctx.pses:
+                if dest in self.ctx.pses or dest == packet.src:
                     continue
                 if dest in self.ctx.workers:
                     #print "removing multicast on %s to %s" % (packet.name, dest)
@@ -128,6 +129,8 @@ class Entity (object):
             self.send(nextpacket)
         elif rate != -1:
             self.semaphore[nexthop] += 1
+        if not packet.MF:
+            self.packets_sent += 1
 
     def recv(self, packet):
         lasthop = packet.prevhop
