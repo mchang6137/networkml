@@ -8,7 +8,7 @@ from dom_simulations import *
 
 def write_to_csv(args, finish_time, worker_receive_times):
     args_dict = vars(args)
-    results_file = './dom_results/' + args.model_name + '/10gbps_inrack'
+    results_file = './dom_results/' + args.model_name + '/horovodexp'
     if args_dict['optimal_param_distribution'] == 1:
         results_file = results_file + '_even'
     elif args_dict['optimal_param_distribution'] == 0:
@@ -18,7 +18,7 @@ def write_to_csv(args, finish_time, worker_receive_times):
     elif args_dict['striping'] == 0:
         results_file = results_file + '_nostriping'
     results_file = results_file + '.csv'
-    results_file = './dom_results/{}/results.csv'.format(args.model_name)
+    #results_file = './dom_results/{}/results.csv'.format(args.model_name)
     file_exists = os.path.isfile(results_file)
     
     #args_dict = vars(args)
@@ -316,10 +316,10 @@ def Main (args):
     #args.striping = 1
     #vary_model_and_steps(args)
     #vary_bandwidths(args)
-    sim = Simulation()
-    sim.Setup(args)
-    a,b = sim.Run()
-    #vary_model_and_steps(args)
+    #sim = Simulation()
+    #sim.Setup(args)
+    #a,b = sim.Run()
+    vary_model_and_steps(args)
     
 if __name__ == "__main__":
     Main(sys.argv[1:])

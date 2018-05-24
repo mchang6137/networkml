@@ -17,21 +17,19 @@ def vary_model_and_steps(args):
                 'vgg16': [24,25,26,27,28]}
 
     model_candidates = ['inception-v3','vgg16','resnet-200', 'resnet-101']
-    model_candidates = ['resnet-200']
-    #step_num['resnet-200'] = [42]
-    bandwidths = [10, 25, 50, 100]
-    for bandwidth in bandwidths:
-        args = set_bandwidth(args, bandwidth)
-        for model_name in model_candidates:
-            print 'Trying with model name {}'.format(model_name)
-            args = set_model(args, model_name)
-            step_list = step_num[args.model_name]
-            for step in step_list:
-                print 'Trying step number {}'.format(step)
-                args.step_num = step
-                vary_param_optimality(args)
-                print 'Finished with step number {}'.format(step)
-            print 'Finished simulating with model name {}'.format(model_name)
+    model_candidates = ['inception-v3']
+    bandwidth = 100
+    args = set_bandwidth(args, bandwidth)
+    for model_name in model_candidates:
+        print 'Trying with model name {}'.format(model_name)
+        args = set_model(args, model_name)
+        step_list = step_num[args.model_name]
+        for step in step_list:
+            print 'Trying step number {}'.format(step)
+            args.step_num = step
+            vary_param_optimality(args)
+            print 'Finished with step number {}'.format(step)
+        print 'Finished simulating with model name {}'.format(model_name)
 
 def run_sim(args):
     sim = Simulation()
@@ -169,9 +167,8 @@ def vary_workers_exp_horovod(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     model_name = args.model_name
     for workers in num_workers:
         args.num_workers = workers
-        args.num_ps = ps
 
-        print '{}: {} ps {} wk, with aggregation and multicast'.format(model_name, ps, workers)
+        print '{}: {} wk, with horovod'.format(model_name, workers)
         args.use_multicast = 0
         args.in_network_computation = 0
         args.horovod = 1
@@ -185,9 +182,8 @@ def vary_workers_exp_horovod_multicast(args, num_workers=[2,4,8,16,32], num_ps=[
     model_name = args.model_name
     for workers in num_workers:
         args.num_workers = workers
-        args.num_ps = ps
 
-        print '{}: {} ps {} wk, with aggregation and multicast'.format(model_name, ps, workers)
+        print '{}: {} wk, with horovod and multicast'.format(model_name, workers)
         args.use_multicast = 1
         args.in_network_computation = 0
         args.horovod = 1
@@ -206,8 +202,8 @@ def vary_param_optimality(args):
     args.optimal_param_distribution = 0
     vary_workers_exp(args, num_workers, num_ps)
     vary_workers_exp_multicast(args, num_workers, num_ps)
-    vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
+    vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_horovod(args, num_workers, num_ps)
     vary_workers_exp_horovod_multicast(args, num_workers, num_ps)
     '''
