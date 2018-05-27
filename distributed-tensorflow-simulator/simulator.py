@@ -30,7 +30,7 @@ def write_to_csv(args, finish_time, worker_receive_times):
         writer = csv.DictWriter(out, delimiter=',', lineterminator='\n',fieldnames=headers)
         if not file_exists:
             writer.writeheader()
-        print 'For {}, an iteration time of {} was calculated'.format(args.model_name, finish_time)
+        #print 'For {}, an iteration time of {} was calculated'.format(args.model_name, finish_time)
         print 'For {}, an iteration time of {} was recorded'.format(args.model_name, args_dict['iteration_time'])
 	writer.writerow(args_dict)
 

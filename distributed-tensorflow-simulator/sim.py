@@ -409,6 +409,7 @@ class Simulation (object):
         if self.ctx.horovod:
             csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*_{}.csv'.format(step_num)))]
             wk_path = random.choice(csvs)
+            wk_path = csvs[0]
             trace = open(wk_path).readlines()
             self.load_relative_send_schedule_horovod(trace, args)
         elif os.path.exists(tracename_basedir) is True:
