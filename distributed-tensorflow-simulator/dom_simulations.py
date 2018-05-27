@@ -16,7 +16,7 @@ def vary_model_and_steps(args):
                 'resnet-101': [41,42,43,44,45,46,47],
                 'vgg16': [24,25,26,27,28]}
 
-    model_candidates = ['inception-v3','vgg16','resnet-200', 'resnet-101']
+    model_candidates = ['vgg16','resnet-200', 'resnet-101', 'inception-v3']
     model_candidates = ['inception-v3']
     bandwidth = 100
     args = set_bandwidth(args, bandwidth)
@@ -195,14 +195,14 @@ def vary_workers_exp_horovod_multicast(args, num_workers=[2,4,8,16,32], num_ps=[
 # Try different types of parameters
 def vary_param_optimality(args):
     model_name = args.model_name
-    num_workers = [2,4,8,16,32]
+    num_workers = [8,16,32]
     num_ps = [1,8]
     
     print '{} Testing with suboptimal (real) parameter distributions'.format(model_name)
     args.optimal_param_distribution = 0
     vary_workers_exp(args, num_workers, num_ps)
     vary_workers_exp_multicast(args, num_workers, num_ps)
-    vary_workers_exp_aggregation(args, num_workers, num_ps)
+    #vary_workers_exp_aggregation(args, num_workers, num_ps)
     vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_horovod(args, num_workers, num_ps)
     vary_workers_exp_horovod_multicast(args, num_workers, num_ps)

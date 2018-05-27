@@ -27,7 +27,7 @@ json/
 --num-global-switches=4
 --gradient-size=0
 --timeout=3000
---MTU=5000000
+--MTU=120000
 --input-as-bytes=0
 --topology=
 --horovod=0
