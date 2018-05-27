@@ -17,8 +17,9 @@ def vary_model_and_steps(args):
                 'vgg16': [24,25,26,27,28]}
 
     model_candidates = ['vgg16','resnet-200', 'resnet-101', 'inception-v3']
-    model_candidates = ['inception-v3']
-    bandwidth = 100
+    bandwidths = [10, 25, 50, 100]
+    model_candidates = [model_candidates[0]]
+    bandwidth = bandwidths[0]
     args = set_bandwidth(args, bandwidth)
     for model_name in model_candidates:
         print 'Trying with model name {}'.format(model_name)
@@ -200,10 +201,10 @@ def vary_param_optimality(args):
     
     print '{} Testing with suboptimal (real) parameter distributions'.format(model_name)
     args.optimal_param_distribution = 0
-    vary_workers_exp(args, num_workers, num_ps)
-    vary_workers_exp_multicast(args, num_workers, num_ps)
+    #vary_workers_exp(args, num_workers, num_ps)
+    #vary_workers_exp_multicast(args, num_workers, num_ps)
     #vary_workers_exp_aggregation(args, num_workers, num_ps)
-    vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
+    #vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_horovod(args, num_workers, num_ps)
     vary_workers_exp_horovod_multicast(args, num_workers, num_ps)
     '''
