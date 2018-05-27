@@ -362,9 +362,8 @@ class Simulation (object):
                             if dest not in step_obj.in_network:
                                 step_obj.in_network[dest] = 0
                             step_obj.in_network[dest] += 1
-            
-        if not self.ctx.horovod and not self.ctx.scattercast:
-            self.load_parameter_mapping(jsonname, args)
+        self.load_parameter_mapping(jsonname, args)
+        if not self.ctx.scattercast and not self.ctx.horovod:
             self.load_relative_dist_schedule(distribution_trace_base_dir, args)
         self.load_relative_send_schedule(tracename_base_dir, args)
 
@@ -377,15 +376,17 @@ class Simulation (object):
             split = 1
             #for idx in range(split):
             idx = 0
-            for arr in self.ctx.sendschedule["worker"]:
-                idx = idx % len(self.ctx.workers)
-                #idx = 0
+            keys = list(self.ctx.pmappings.keys())
+            for idx in range(len(self.ctx.workers)):
                 worker = self.ctx.workers[idx]
                 nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
                 wk_obj = self.ctx.objs[worker]
-                time_delta = wk_obj.fwd_pass_time + arr[0]
-                self.ctx.schedule_send(time_delta, arr[1] / split, worker, nworker, name=arr[3])
-                idx += 1
+                for arr in self.ctx.sendschedule[worker_name]:
+                    if (keys.index(arr[3]) % len(self.ctx.workers)) == idx:
+                        pass
+                        wk_obj.ready.add(arr[3])
+                    time_delta = wk_obj.fwd_pass_time + arr[0]
+                    self.ctx.schedule_send(time_delta, arr[1] / split, worker, nworker, name=arr[3])
         elif self.ctx.scattercast:
             for worker in self.ctx.workers:
                 wk_obj = self.ctx.objs[worker]
@@ -406,13 +407,7 @@ class Simulation (object):
         orig_tracename_basedir = tracename_basedir
 
         tracename_basedir = tracename_basedir + '{}/'.format(num_workers)
-        if self.ctx.horovod:
-            csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*_{}.csv'.format(step_num)))]
-            wk_path = random.choice(csvs)
-            wk_path = csvs[0]
-            trace = open(wk_path).readlines()
-            self.load_relative_send_schedule_horovod(trace, args)
-        elif os.path.exists(tracename_basedir) is True:
+        if os.path.exists(tracename_basedir) is True:
             for worker_id in range(num_workers):
                 worker_name = 'worker{}'.format(worker_id)
                 assert worker_name in all_worker_names
@@ -449,12 +444,17 @@ class Simulation (object):
                 continue
             parts = ev.strip().split(',')
             time = float(parts[0])
-            size = float(parts[1])
+            edgename = str(parts[2])
+            if edgename not in self.ctx.edge_weights:
+                continue
+            size = self.ctx.edge_weights[edgename]
             if args.inputs_as_bytes:
                 size *= 8
-            edgename = str(parts[2])
-            if self.ctx.scattercast:
-                self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
+            if self.ctx.horovod or self.ctx.scattercast:
+                if edgename in self.ctx.pmappings:
+                    self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
+                elif self.ctx.verbosity:
+                    print "%s not assigned a parameter server" % edgename
             elif use_optimal_ps == 0:
                 if edgename in self.ctx.pmappings:
                     self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
@@ -475,20 +475,21 @@ class Simulation (object):
                 print 'Use Optimal PS is invalid. Exiting...'
                 exit()
                 
-    def load_relative_send_schedule_horovod(self, trace, args):
-        worker_name = "worker"
+    def load_relative_send_schedule_horovod(self, trace, worker_name, args):
         self.ctx.sendschedule[worker_name] = []
         for ev in trace:
             if ev.startswith("//") or ev.startswith('"'):
                 continue
             parts = ev.strip().split(',')
             time = float(parts[0])
-            size = float(parts[1])
+            edgename = str(parts[2])
+            size = self.ctx.edge_weights[edgename]
             if args.inputs_as_bytes:
                 size *= 8
-            edgename = str(parts[2])
-            self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
-            self.ctx.edge_weights[edgename] = size
+            if edgename in self.ctx.pmappings:
+                self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
+            elif self.ctx.verbosity:
+                print "%s not assigned a parameter server" % edgename
 
     def load_relative_dist_schedule(self, tracename_basedir, args):
         all_ps_names = self.ctx.pses
@@ -573,14 +574,16 @@ class Simulation (object):
         
         f = open(jsonname, 'r')
         datastore = json.load(f)
-        if use_optimal_ps == 0:
+        if self.ctx.horovod or self.ctx.scattercast:
+            datastore = datastore['1']
+        elif use_optimal_ps == 0:
             datastore = datastore[str(len(self.ctx.pses))]
         elif use_optimal_ps == 1:
             datastore = datastore['1']
         self.ctx.pmappings = {}
-
-        if use_optimal_ps == 0:
+        if use_optimal_ps == 0 or self.ctx.horovod:
             for ps, arr in datastore.iteritems():
+                print(len(arr))
                 self.ctx.ps_num_items[ps] = 0
                 for item in arr:
                     event_name = item[5]
