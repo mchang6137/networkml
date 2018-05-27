@@ -5,7 +5,7 @@ results = []
 
 def Main(args):
     for model_name in ['vgg16', 'resnet-200', 'resnet-101', 'inception-v3']:
-        results_file = './dom_results/' + model_name + '/horovodexp_uneven_striping.csv'
+        results_file = './dom_results/' + model_name + '/horovodonly_uneven_striping.csv'
         f = open(results_file, 'r')
         reader = csv.reader(f)
         for num_workers in [32, 16, 8]:
@@ -25,7 +25,7 @@ def Main(args):
                     average_step(f, num_workers, num_ps, multicast, aggregation, horovod, bandwidth, model_name)
         f.close()
     f = open("dom_results/horovod.csv", "wb")
-    writer = csv.writer(f, delimiter=";")
+    writer = csv.writer(f, delimiter=",")
     for line in range(48):
         writer.writerow([results.pop(0) for _ in range(8)])
     f.close()
@@ -52,7 +52,7 @@ def average_step(f, num_workers, num_ps, multicast, aggregation, horovod, bandwi
             pass
         #print row
     print '{}: num__workers {}, num_ps {}, multicast {} aggregation {} horovod {} bandwidth {} time {:.3f}, {}'.format(model_name, num_workers, num_ps, \
-        multicast, aggregation, horovod, bandwidth, total / count, count)
+        multicast, aggregation, horovod, bandwidth, total / count if count != 0 else 0.0, count)
     if count != 0:
         results.append(total / count)
     else:
