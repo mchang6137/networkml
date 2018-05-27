@@ -583,7 +583,6 @@ class Simulation (object):
         self.ctx.pmappings = {}
         if use_optimal_ps == 0 or self.ctx.horovod:
             for ps, arr in datastore.iteritems():
-                print(len(arr))
                 self.ctx.ps_num_items[ps] = 0
                 for item in arr:
                     event_name = item[5]
