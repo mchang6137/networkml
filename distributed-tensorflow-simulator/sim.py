@@ -420,18 +420,28 @@ class Simulation (object):
                 trace = open(wk_path).readlines()
                 self.load_relative_send_schedule_one_worker(trace, worker_name, args)
         else:
-            csvs = [y for x in os.walk(orig_tracename_basedir) for z in ['4', '8', '12'] \
-                for y in glob.glob(os.path.join(x[0], z, '*_{}.csv'.format(step_num)))]
+            csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*_{}.csv'.format(step_num)))]
             for worker_id in range(num_workers):
                 worker_name = 'worker{}'.format(worker_id)
                 assert worker_name in all_worker_names
-                wk_path = random.choice(csvs)
+                while True:
+                    wk_path = random.choice(csvs)
 
-                if os.path.exists(wk_path) is False:
-                    print 'There is no csv {}'.format(wk_path)
-                    exit()
-            
-                trace = open(wk_path).readlines()
+                    if os.path.exists(wk_path) is False:
+                        print 'There is no csv {}'.format(wk_path)
+                        exit()
+                
+                    trace = open(wk_path).readlines()
+                    if args.model_name == 'resnet-101' and float(trace[-1][0]) > 400:
+                        continue
+                    if args.model_name == 'resnet-200' and float(trace[-1][0]) > 500:
+                        continue
+                    if args.model_name == 'inception-v3' and float(trace[-1][0]) > 400:
+                        continue
+                    if args.model_name == 'vgg16' and float(trace[-1][0]) > 40:
+                        continue
+                    break
+
                 self.load_relative_send_schedule_one_worker(trace, worker_name, args)
     
 
