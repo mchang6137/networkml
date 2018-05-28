@@ -381,10 +381,10 @@ class Simulation (object):
                 worker = self.ctx.workers[idx]
                 nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
                 wk_obj = self.ctx.objs[worker]
-                for arr in self.ctx.sendschedule[worker_name]:
+                for arr in self.ctx.sendschedule[worker]:
                     if (keys.index(arr[3]) % len(self.ctx.workers)) == idx:
                         pass
-                        wk_obj.ready.add(arr[3])
+                        wk_obj.ready[arr[3]] = "root"
                     time_delta = wk_obj.fwd_pass_time + arr[0]
                     self.ctx.schedule_send(time_delta, arr[1] / split, worker, nworker, name=arr[3])
         elif self.ctx.scattercast:
@@ -420,7 +420,8 @@ class Simulation (object):
                 trace = open(wk_path).readlines()
                 self.load_relative_send_schedule_one_worker(trace, worker_name, args)
         else:
-            csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*_{}.csv'.format(step_num)))]
+            csvs = [y for x in os.walk(orig_tracename_basedir) for z in ['4', '8', '12'] \
+                for y in glob.glob(os.path.join(x[0], z, '*_{}.csv'.format(step_num)))]
             for worker_id in range(num_workers):
                 worker_name = 'worker{}'.format(worker_id)
                 assert worker_name in all_worker_names
@@ -439,14 +440,16 @@ class Simulation (object):
         use_optimal_ps = self.ctx.use_optimal_param
 
         self.ctx.sendschedule[worker_name] = []
+        seen = set()
         for ev in trace:
             if ev.startswith("//") or ev.startswith('"'):
                 continue
             parts = ev.strip().split(',')
             time = float(parts[0])
             edgename = str(parts[2])
-            if edgename not in self.ctx.edge_weights:
+            if edgename not in self.ctx.edge_weights or edgename in seen:
                 continue
+            seen.add(edgename)
             size = self.ctx.edge_weights[edgename]
             if args.inputs_as_bytes:
                 size *= 8

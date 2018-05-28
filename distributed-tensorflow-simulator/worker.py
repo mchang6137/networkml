@@ -8,13 +8,19 @@ class Worker (Entity):
         self.first_layer_received = 0
         self.model_name = model_name
         self.use_optimal_param = use_optimal_param
-        self.ready = set()
+        self.ready = {}
 
     def queuesend(self, packet):
-        if self.ctx.horovod and packet.name not in self.ready:
-            self.ready.add(packet.name)
-            return
-        Entity.queuesend(self, packet)
+        if self.ctx.horovod:
+            if packet.name not in self.ready:
+                self.ready[packet.name] = "ready"
+                return
+            if callable(self.ready[packet.name]):
+                self.ready[packet.name]()
+            else:
+                Entity.queuesend(self, packet)
+        else:
+            Entity.queuesend(self, packet)
 
     def lastbitrecv(self, packet):
         node_name = self.name
@@ -55,9 +61,12 @@ class Worker (Entity):
                         self.ctx.schedule_send(time_delta, arr[1], self.name, arr[2], name=arr[3])
 
     def lastbitrecvhorovod(self, packet):
-        if packet.name not in self.ready:
-            self.ready.add(packet.name)
+        if packet.MF:
             return
+        if packet.name not in self.ready:
+            self.ready[packet.name] = lambda: self.lastbitrecvhorovod(packet)
+            return
+        self.ready[packet.name] = "ready"
         idx = self.ctx.workers.index(self.name)
         nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
         packet.degree += 1
