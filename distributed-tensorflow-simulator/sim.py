@@ -432,13 +432,13 @@ class Simulation (object):
                         exit()
                 
                     trace = open(wk_path).readlines()
-                    if args.model_name == 'resnet-101' and float(trace[-1][0]) > 400:
+                    if args.model_name == 'resnet-101' and float(trace[-1].strip().split(',')[0]) > 400:
                         continue
-                    if args.model_name == 'resnet-200' and float(trace[-1][0]) > 500:
+                    if args.model_name == 'resnet-200' and float(trace[-1].strip().split(',')[0]) > 500:
                         continue
-                    if args.model_name == 'inception-v3' and float(trace[-1][0]) > 400:
+                    if args.model_name == 'inception-v3' and float(trace[-1].strip().split(',')[0]) > 400:
                         continue
-                    if args.model_name == 'vgg16' and float(trace[-1][0]) > 40:
+                    if args.model_name == 'vgg16' and float(trace[-1].strip().split(',')[0]) > 40:
                         continue
                     break
 
