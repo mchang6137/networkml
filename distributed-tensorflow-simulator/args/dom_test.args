@@ -1,14 +1,15 @@
 csv/
 distribution_csv/
 json/
---model_name=resnet-200
---step_num=44
---num_workers=8
+--model_name=vgg16
+--step_num=26
+--num_workers=4
 --num_ps=1
 --on_same_rack=1
 --fat_tree=1
---striping=0
---optimal_param_distribution=1
+--striping=1
+--optimal_param_distribution=0
+--real_distribution=0
 --multicast=1
 --in-network-computation=1
 --fwd_pass_time=0.169
@@ -19,8 +20,8 @@ json/
 --ps-recv-rate=10
 --worker-send-rate=10
 --worker-recv-rate=10
---tor-send-rate=10
---tor-recv-rate=10
+--tor-send-rate=100
+--tor-recv-rate=100
 --global-switch-send-rate=10
 --global-switch-recv-rate=10
 --num-global-switches=4
@@ -30,3 +31,4 @@ json/
 --input-as-bytes=0
 --topology=
 --horovod=0
+--scattercast=0

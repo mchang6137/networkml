@@ -8,7 +8,7 @@ from dom_simulations import *
 
 def write_to_csv(args, finish_time, worker_receive_times):
     args_dict = vars(args)
-    results_file = './dom_results/' + args.model_name + '/10gbps_inrack'
+    results_file = './dom_results/' + args.model_name + '/horovodexp'
     if args_dict['optimal_param_distribution'] == 1:
         results_file = results_file + '_even'
     elif args_dict['optimal_param_distribution'] == 0:
@@ -18,7 +18,7 @@ def write_to_csv(args, finish_time, worker_receive_times):
     elif args_dict['striping'] == 0:
         results_file = results_file + '_nostriping'
     results_file = results_file + '.csv'
-    results_file = './dom_results/{}/results.csv'.format(args.model_name)
+    #results_file = './dom_results/{}/results.csv'.format(args.model_name)
     file_exists = os.path.isfile(results_file)
     
     #args_dict = vars(args)
@@ -30,7 +30,7 @@ def write_to_csv(args, finish_time, worker_receive_times):
         writer = csv.DictWriter(out, delimiter=',', lineterminator='\n',fieldnames=headers)
         if not file_exists:
             writer.writeheader()
-        print 'For {}, an iteration time of {} was calculated'.format(args.model_name, finish_time)
+        #print 'For {}, an iteration time of {} was calculated'.format(args.model_name, finish_time)
         print 'For {}, an iteration time of {} was recorded'.format(args.model_name, args_dict['iteration_time'])
 	writer.writerow(args_dict)
 
@@ -273,6 +273,18 @@ def Main (args):
         action="store",
         default=0)
     parser.add_argument(
+        "--scattercast",
+        dest="scattercast",
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
+        "--real_distribution",
+        dest="real_distribution",
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
         "--verbosity",
         dest="verbosity",
         type=int,
@@ -300,16 +312,13 @@ def Main (args):
     if args.json == 'json/':
         args.json += '{}_param_ps_assignment.json'.format(args.model_name)
     #args.striping = 0
-    #vary_args(args)
+    #vary_model_and_steps(args)
     #args.striping = 1
-    #vary_args(args)
+    #vary_model_and_steps(args)
     #vary_bandwidths(args)
     #sim = Simulation()
     #sim.Setup(args)
     #a,b = sim.Run()
-    #args.striping = 0
-    #vary_model_and_steps(args)
-    #args.striping = 1
     vary_model_and_steps(args)
     
 if __name__ == "__main__":
