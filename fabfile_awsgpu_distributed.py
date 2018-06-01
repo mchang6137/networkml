@@ -21,7 +21,7 @@ AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
 # import ssh public key to AWS
 my_aws_key = 'michael'
-worker_base_name = 'what{}u'.format(my_aws_key)
+worker_base_name = 'g{}u'.format(my_aws_key)
 ps_base_name = '{}server'.format(my_aws_key)
 NUM_WORKERS=1
 NUM_PARAM_SERVERS=0
