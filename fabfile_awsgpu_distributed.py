@@ -11,20 +11,20 @@ import boto3
 import os
 import time
 
-tgt_ami = 'ami-8ca83fec'
-# tgt_ami = 'ami-bec91fc6'
-# tgt_ami = 'ami-bec91fc6'
-# tgt_ami = 'ami-0d7da775' # -- OUR AMI
+# old ami
+#tgt_ami = 'ami-8ca83fec'
+# new ami
+tgt_ami = 'ami-85e19bfd'
 
 AWS_REGION = 'us-west-2'
 AWS_AVAILABILITY_ZONE = 'us-west-2b'
 
 # import ssh public key to AWS
-my_aws_key = 'pranay'
-worker_base_name = 'g{}u'.format(my_aws_key)
+my_aws_key = 'michael'
+worker_base_name = 'what{}u'.format(my_aws_key)
 ps_base_name = '{}server'.format(my_aws_key)
-NUM_WORKERS=8
-NUM_PARAM_SERVERS=1
+NUM_WORKERS=1
+NUM_PARAM_SERVERS=0
 worker_names = [worker_base_name + str(i) for i in range(NUM_WORKERS)]
 ps_names = [ps_base_name + str(i) for i in range(NUM_PARAM_SERVERS)]
 
@@ -401,7 +401,6 @@ def s3_setup():
         run('s3cmd --config=$HOME/s3_config_file --recursive get s3://tf-bucket-mikeypoo/ .')
         run('tar -xzvf validation_of.tar.gz')
 
-    
 @task
 @parallel
 def cuda_setup8():
