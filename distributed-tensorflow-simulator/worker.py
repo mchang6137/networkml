@@ -19,6 +19,8 @@ class Worker (Entity):
                 self.ready[packet.name]()
             else:
                 Entity.queuesend(self, packet)
+            if self.ctx.butterfly:
+                self.ready[packet.name] = "butterfly-{}".format(packet.degree)
         else:
             Entity.queuesend(self, packet)
 
@@ -66,14 +68,25 @@ class Worker (Entity):
         if packet.name not in self.ready:
             self.ready[packet.name] = lambda: self.lastbitrecvhorovod(packet)
             return
-        self.ready[packet.name] = "ready"
+        if self.ctx.butterfly and "butterfly-{}".format(packet.degree) != self.ready[packet.name]:
+            self.ready[packet.name] = lambda: self.lastbitrecvhorovod(packet)
+        else:
+            self.ready[packet.name] = "ready"
         idx = self.ctx.workers.index(self.name)
-        nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
-        packet.degree += 1
-        if packet.degree >= len(self.ctx.workers) and not packet.MF:
+        if packet.degree >= len(self.ctx.workers)-1 and not packet.MF:
             self.received_packets += 1
             if self.received_packets == len(self.ctx.sendschedule[self.name]) and self.ctx.verbosity:
                 print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
+        elif 2 ** packet.degree == len(self.ctx.workers) and self.ctx.butterfly and not packet.MF:
+            self.received_packets += 1
+            if self.received_packets == len(self.ctx.sendschedule[self.name]) and self.ctx.verbosity:
+                print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
+            return
+        nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
+        if self.ctx.butterfly:
+            factor = 2 ** (packet.degree)
+            nworker = self.ctx.workers[idx + factor - 2 * ((idx//factor)%2) * factor]
+        packet.degree += 1
         if self.ctx.use_multicast and packet.degree == len(self.ctx.workers) and not packet.MF:
             packet.src = self.name
             packet.dest = self.name
@@ -81,12 +94,13 @@ class Worker (Entity):
             packet.multicast = True
             packet.size = self.ctx.edge_weights[packet.name]
             packet.degree = len(self.ctx.workers) * 2
-            self.ctx.schedule_task(0.001, lambda: self.queuesend(packet))
+            self.ctx.schedule_task(0.0001, lambda: self.queuesend(packet))
         elif packet.degree < len(self.ctx.workers) * 2 - 1 and not packet.MF:
+            packet = packet.copy()
             packet.src = self.name
             packet.dest = nworker
             packet.path = self.ctx.paths[packet.src + packet.dest]
             packet.size = self.ctx.edge_weights[packet.name]
-            self.ctx.schedule_task(0.001, lambda: self.queuesend(packet))
+            self.ctx.schedule_task(0.0001, lambda: self.queuesend(packet))
             
                     

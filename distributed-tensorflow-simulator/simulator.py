@@ -279,6 +279,12 @@ def Main (args):
         action="store",
         default=0)
     parser.add_argument(
+        "--butterfly",
+        dest="butterfly",
+        type=int,
+        action="store",
+        default=0)
+    parser.add_argument(
         "--real_distribution",
         dest="real_distribution",
         type=int,
@@ -316,10 +322,13 @@ def Main (args):
     #args.striping = 1
     #vary_model_and_steps(args)
     #vary_bandwidths(args)
-    #sim = Simulation()
-    #sim.Setup(args)
-    #a,b = sim.Run()
-    vary_model_and_steps(args)
+    #for i in range(100):
+    sim = Simulation()
+    sim.Setup(args)
+    a,b = sim.Run()
+    if a > 0.6 or a < 0.550:
+        print(a)
+    #vary_model_and_steps(args)
     
 if __name__ == "__main__":
     Main(sys.argv[1:])

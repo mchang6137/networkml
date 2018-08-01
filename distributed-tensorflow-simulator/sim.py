@@ -41,13 +41,17 @@ class Simulation (object):
 
         args.fwd_pass_time = fw_pass_time_dict[args.model_name]
         gigabit = 10**9
-        if args.horovod:
+        if args.horovod or args.butterfly:
             args.on_same_rack = 1
             args.num_ps = 0
             args.in_network_computation = 0
             self.ctx.in_network_computation = 0
             self.ctx.use_optimal_param = 0
             self.ctx.horovod = 1
+            self.ctx.butterfly = args.butterfly
+            if args.butterfly:
+                args.use_multicast = 0
+                self.ctx.use_multicast = 0
         if args.scattercast:
             args.on_same_rack = 1
             args.num_ps = 0
@@ -58,6 +62,10 @@ class Simulation (object):
             self.ctx.use_optimal_param = 0
             self.ctx.horovod = 0
             self.ctx.scattercast = 1
+        # Checks if num_workers is power of 2... tricky hack but it works. It will consider 0 and 1 a power of 2 though
+        if args.butterfly and (args.num_workers & (args.num_workers - 1)):
+            print('num_workers must be power of 2 for butterfly-reduce')
+            exit()
         if args.topology == '':
             # Store Workers and PS all on same rack
             if args.on_same_rack == 1:
@@ -377,16 +385,22 @@ class Simulation (object):
             #for idx in range(split):
             idx = 0
             keys = list(self.ctx.pmappings.keys())
+            weight = 0
             for idx in range(len(self.ctx.workers)):
                 worker = self.ctx.workers[idx]
                 nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
                 wk_obj = self.ctx.objs[worker]
                 for arr in self.ctx.sendschedule[worker]:
-                    if (keys.index(arr[3]) % len(self.ctx.workers)) == idx:
-                        pass
+                    if self.ctx.butterfly:
+                        wk_obj.ready[arr[3]] = "butterfly-0"
+                        nworker = self.ctx.workers[idx + 1 - 2 * (idx % 2)]
+                    elif (keys.index(arr[3]) % len(self.ctx.workers)) == idx:
                         wk_obj.ready[arr[3]] = "root"
+                        weight += arr[1] / split
+                        pass
                     time_delta = wk_obj.fwd_pass_time + arr[0]
                     self.ctx.schedule_send(time_delta, arr[1] / split, worker, nworker, name=arr[3])
+                print weight
         elif self.ctx.scattercast:
             for worker in self.ctx.workers:
                 wk_obj = self.ctx.objs[worker]
