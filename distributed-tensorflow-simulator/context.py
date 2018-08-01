@@ -30,6 +30,7 @@ class Context (object):
         self.verbosity = 1
         self.use_optimal_param = 0
         self.horovod = 0
+        self.butterfly = 0
         self.scattercast = 0
 
     def schedule_task(self, delta, task):

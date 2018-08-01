@@ -97,6 +97,8 @@ class Entity (object):
                 self.semaphore[nexthop] -= 1
                 self.send(packet)
             else:
+                if packet.nexthop != nexthop:
+                    print "issues detected!!"
                 self.outbuffer[nexthop].put(packet)
 
     def send(self, packet):
@@ -126,6 +128,10 @@ class Entity (object):
             rate = max(self.send_rate, nextobj.recv_rate)
         if not self.outbuffer[nexthop].empty():
             nextpacket = self.outbuffer[nexthop].get()
+            if nextpacket.nexthop != nexthop:
+                print "Consistency issue detected - packet edited by another function"
+                print "{}\t{}\t{}".format(nextpacket,nextpacket.degree,nextpacket.path)
+                print "" + self.name + nextpacket.nexthop + nextpacket.src + nextpacket.dest
             self.send(nextpacket)
         elif rate != -1:
             self.semaphore[nexthop] += 1
