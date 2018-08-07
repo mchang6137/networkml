@@ -392,7 +392,8 @@ class Simulation (object):
                 wk_obj = self.ctx.objs[worker]
                 for arr in self.ctx.sendschedule[worker]:
                     if self.ctx.butterfly:
-                        wk_obj.ready[arr[3]] = "butterfly-0"
+                        wk_obj.ready[arr[3]] = {}
+                        wk_obj.ready[arr[3]][1] = "ready"
                         nworker = self.ctx.workers[idx + 1 - 2 * (idx % 2)]
                     elif (keys.index(arr[3]) % len(self.ctx.workers)) == idx:
                         wk_obj.ready[arr[3]] = "root"

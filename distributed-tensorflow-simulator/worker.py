@@ -10,8 +10,25 @@ class Worker (Entity):
         self.use_optimal_param = use_optimal_param
         self.ready = {}
 
-    def queuesend(self, packet):
-        if self.ctx.horovod:
+    def queuesend(self, packet): #self.ctx.schedule_task(0.0001, lambda: self.queuesend(packet))
+        if self.ctx.butterfly:
+            if packet.name not in self.ready:
+                if self.ctx.verbosity:
+                    print "Gradient {} dropped by {}".format(packet.name, self)
+                return
+            if packet.degree not in self.ready[packet.name]:
+                self.ready[packet.name][packet.degree] = lambda: self.queuesend(packet)
+                return
+            if self.ready[packet.name][packet.degree] == "ready":
+                Entity.queuesend(self, packet)
+            if packet.degree + 1 not in self.ready[packet.name]:
+                self.ready[packet.name][packet.degree] = "ready"
+            elif callable(self.ready[packet.name][packet.degree+1]):
+                fun = self.ready[packet.name][packet.degree+1]
+                self.ready[packet.name][packet.degree+1] = "ready"
+                fun()
+            self.ready[packet.name][packet.degree+1] = "ready"
+        elif self.ctx.horovod:
             if packet.name not in self.ready:
                 self.ready[packet.name] = "ready"
                 return
@@ -19,8 +36,6 @@ class Worker (Entity):
                 self.ready[packet.name]()
             else:
                 Entity.queuesend(self, packet)
-            if self.ctx.butterfly:
-                self.ready[packet.name] = "butterfly-{}".format(packet.degree)
         else:
             Entity.queuesend(self, packet)
 
@@ -65,12 +80,10 @@ class Worker (Entity):
     def lastbitrecvhorovod(self, packet):
         if packet.MF:
             return
-        if packet.name not in self.ready:
+        if packet.name not in self.ready and not self.ctx.butterfly:
             self.ready[packet.name] = lambda: self.lastbitrecvhorovod(packet)
             return
-        if self.ctx.butterfly and "butterfly-{}".format(packet.degree) != self.ready[packet.name]:
-            self.ready[packet.name] = lambda: self.lastbitrecvhorovod(packet)
-        else:
+        elif not self.ctx.butterfly:
             self.ready[packet.name] = "ready"
         idx = self.ctx.workers.index(self.name)
         if packet.degree >= len(self.ctx.workers)-1 and not packet.MF:

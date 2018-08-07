@@ -1,8 +1,8 @@
 csv/
 distribution_csv/
 json/
---model_name=vgg16
---step_num=25
+--model_name=inception-v3
+--step_num=44
 --num_workers=8
 --num_ps=1
 --on_same_rack=1
