@@ -8,10 +8,10 @@ def Main(args):
         results_file = './dom_results/' + model_name + '/messaging.csv'
         f = open(results_file, 'r')
         reader = csv.reader(f)
-        for message_size in [1,2,4,8,16,32,64,128,256,512,1024]:
-            message_size = float(message_size * 1000000)
-            for num_workers in [32]:
-                for bandwidth in [10.0, 25.0, 50.0, 100.0]:
+        for num_workers in [32]:
+            for bandwidth in [10.0, 25.0, 50.0, 100.0]:
+                for message_size in [1,2,4,8,16,32,64,128,256,512,1024]:
+                    message_size = float(message_size * 1000000)
                     horovod = 0
                     butterfly = 0
                     for num_ps in [1, 8]:
@@ -28,8 +28,8 @@ def Main(args):
         f.close()
     f = open("dom_results/messaging.csv", "wb")
     writer = csv.writer(f, delimiter=",")
-    for line in range(48):
-        writer.writerow([results.pop(0) for _ in range(8)])
+    for line in range(16):
+        writer.writerow([results.pop(0) for _ in range(77)])
     f.close()
 
 def average_step(f, num_workers, num_ps, multicast, aggregation, horovod, butterfly, bandwidth, message_size, model_name):
@@ -56,9 +56,21 @@ def average_step(f, num_workers, num_ps, multicast, aggregation, horovod, butter
         #print row
     if count == 0:
         return
-    print '{}: num__workers {}, num_ps {}, multicast {} aggregation {} horovod {} butterfly {} bandwidth {} message size {} time {:.3f}, {}'.format( \
-        model_name, num_workers, num_ps, \
-        multicast, aggregation, horovod, butterfly, bandwidth, message_size, total / count if count != 0 else 0.0, count)
+    type = "num_ps {}, default".format(num_ps)
+    if butterfly:
+        type = "butterfly"
+    elif horovod and multicast:
+        type = "horocast"
+    elif horovod:
+        type = "horovod"
+    elif multicast and aggregation:
+        type = "num_ps {}, multiagg".format(num_ps)
+    elif multicast:
+        type = "num_ps {}, multicast".format(num_ps)
+    elif multicast and aggregation:
+        type = "num_ps {}, agg".format(num_ps)
+    print '{}: num__workers {}, {:20s} bandwidth {} message size {} time {:.3f}, {}'.format( \
+        model_name, num_workers, type, bandwidth, message_size, total / count if count != 0 else 0.0, count)
     if count != 0:
         results.append(total / count)
     else:
