@@ -27,6 +27,7 @@ class Simulation (object):
         self.ctx.latency_std = args.latency_std
         self.ctx.timeout = args.timeout
         self.ctx.MTU = args.MTU
+        self.ctx.message_size = args.message_size
         self.ctx.use_multicast = args.use_multicast
         self.ctx.in_network_computation = args.in_network_computation
         self.ctx.striping = args.striping
@@ -401,7 +402,7 @@ class Simulation (object):
                         pass
                     time_delta = wk_obj.fwd_pass_time + arr[0]
                     self.ctx.schedule_send(time_delta, arr[1] / split, worker, nworker, name=arr[3])
-                print weight
+                #print weight
         elif self.ctx.scattercast:
             for worker in self.ctx.workers:
                 wk_obj = self.ctx.objs[worker]
@@ -471,53 +472,41 @@ class Simulation (object):
                 continue
             parts = ev.strip().split(',')
             time = float(parts[0])
-            edgename = str(parts[2])
-            if edgename not in self.ctx.edge_weights or edgename in seen:
-                continue
-            seen.add(edgename)
-            size = self.ctx.edge_weights[edgename]
-            if args.inputs_as_bytes:
-                size *= 8
-            if self.ctx.horovod or self.ctx.scattercast:
-                if edgename in self.ctx.pmappings:
-                    self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
-                elif self.ctx.verbosity:
-                    print "%s not assigned a parameter server" % edgename
-            elif use_optimal_ps == 0:
-                if edgename in self.ctx.pmappings:
-                    self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
-                    self.adjust_in_network(worker_name, self.ctx.pmappings[edgename], edgename)
-                elif self.ctx.verbosity:
-                    print "%s not assigned a parameter server" % edgename
-            elif use_optimal_ps == 1:
-                # Split the parameter evenly between all the parameter servers
-                revised_size  = size / float(num_ps)
-                for ps_index in range(num_ps):
-                    new_edgename = edgename + '_ps{}'.format(ps_index)
-                    if new_edgename in self.ctx.pmappings:
-                        self.ctx.sendschedule[worker_name].append((time / 1000, revised_size, self.ctx.pmappings[new_edgename], new_edgename))
-                        self.adjust_in_network(worker_name, self.ctx.pmappings[new_edgename], new_edgename)
+            main_name = str(parts[2])
+            index = 1
+            while True:
+                edgename = main_name + "x{}".format(index)
+                if edgename not in self.ctx.edge_weights or edgename in seen:
+                    break
+                seen.add(edgename)
+                size = self.ctx.edge_weights[edgename]
+                if args.inputs_as_bytes:
+                    size *= 8
+                if self.ctx.horovod or self.ctx.scattercast:
+                    if edgename in self.ctx.pmappings:
+                        self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
                     elif self.ctx.verbosity:
                         print "%s not assigned a parameter server" % edgename
-            else:
-                print 'Use Optimal PS is invalid. Exiting...'
-                exit()
-                
-    def load_relative_send_schedule_horovod(self, trace, worker_name, args):
-        self.ctx.sendschedule[worker_name] = []
-        for ev in trace:
-            if ev.startswith("//") or ev.startswith('"'):
-                continue
-            parts = ev.strip().split(',')
-            time = float(parts[0])
-            edgename = str(parts[2])
-            size = self.ctx.edge_weights[edgename]
-            if args.inputs_as_bytes:
-                size *= 8
-            if edgename in self.ctx.pmappings:
-                self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
-            elif self.ctx.verbosity:
-                print "%s not assigned a parameter server" % edgename
+                elif use_optimal_ps == 0:
+                    if edgename in self.ctx.pmappings:
+                        self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
+                        self.adjust_in_network(worker_name, self.ctx.pmappings[edgename], edgename)
+                    elif self.ctx.verbosity:
+                        print "%s not assigned a parameter server" % edgename
+                elif use_optimal_ps == 1:
+                    # Split the parameter evenly between all the parameter servers
+                    revised_size  = size / float(num_ps)
+                    for ps_index in range(num_ps):
+                        new_edgename = edgename + '_ps{}'.format(ps_index)
+                        if new_edgename in self.ctx.pmappings:
+                            self.ctx.sendschedule[worker_name].append((time / 1000, revised_size, self.ctx.pmappings[new_edgename], new_edgename))
+                            self.adjust_in_network(worker_name, self.ctx.pmappings[new_edgename], new_edgename)
+                        elif self.ctx.verbosity:
+                            print "%s not assigned a parameter server" % edgename
+                else:
+                    print 'Use Optimal PS is invalid. Exiting...'
+                    exit()
+                index += 1
 
     def load_relative_dist_schedule(self, tracename_basedir, args):
         all_ps_names = self.ctx.pses
@@ -576,6 +565,7 @@ class Simulation (object):
                 size = size / float(num_ps)
                 edgename = edgename + '_ps{}'.format(ps_id)
             send_tuple = (size, edgename)
+            # DEPRECATED?
             if self.ctx.real_distribution:
                 dest = str(parts[3])
                 send_tuple = (size, edgename, dest)
@@ -614,8 +604,17 @@ class Simulation (object):
                 self.ctx.ps_num_items[ps] = 0
                 for item in arr:
                     event_name = item[5]
-                    self.ctx.pmappings[event_name] = ps
-                    self.ctx.edge_weights[event_name] = item[1] * 8
+                    param_size = item[1] * 8
+                    index = 1
+                    while param_size > self.ctx.message_size:
+                        sub_name = event_name + "x{}".format(index)
+                        self.ctx.pmappings[sub_name] = ps
+                        self.ctx.edge_weights[sub_name] = self.ctx.message_size
+                        param_size -= self.ctx.message_size
+                        index += 1
+                    sub_name = event_name + "x{}".format(index)
+                    self.ctx.pmappings[sub_name] = ps
+                    self.ctx.edge_weights[sub_name] = param_size
                     #print '{} added to pmappings'.format(event_name)
             	    #self.ctx.schedule_send(0, item[1] * 8, ps, ps, name=str(ps)+"."+event_name)
         elif use_optimal_ps == 1:
@@ -626,8 +625,15 @@ class Simulation (object):
                     self.ctx.ps_num_items[ps_name] = 0
                     for item in arr:
                         event_name = item[5] + '_ps{}'.format(ps_index)
-                        param_size = item[1] / float(num_ps)
-                        self.ctx.edge_weights[event_name] = param_size * 8
+                        param_size = item[1] / float(num_ps) * 8
+                        index = 1
+                        while param_size > self.ctx.message_size:
+                            sub_name = event_name + "x{}".format(index)
+                            self.ctx.pmappings[sub_name] = ps_name
+                            self.ctx.edge_weights[sub_name] = self.ctx.message_size
+                            param_size -= self.ctx.message_size
+                            index += 1
+                        self.ctx.edge_weights[event_name] = param_size
                         self.ctx.pmappings[event_name] = ps_name
                         #self.ctx.schedule_send(0, param_size* 8.0, ps_name, ps_name, name=str(ps_name)+"."+event_name)
                     

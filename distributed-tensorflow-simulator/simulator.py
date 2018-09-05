@@ -8,15 +8,15 @@ from dom_simulations import *
 
 def write_to_csv(args, finish_time, worker_receive_times):
     args_dict = vars(args)
-    results_file = './dom_results/' + args.model_name + '/horovodexp'
-    if args_dict['optimal_param_distribution'] == 1:
-        results_file = results_file + '_even'
-    elif args_dict['optimal_param_distribution'] == 0:
-        results_file = results_file + '_uneven'
-    if args_dict['striping'] == 1:
-        results_file = results_file + '_striping'
-    elif args_dict['striping'] == 0:
-        results_file = results_file + '_nostriping'
+    results_file = './dom_results/' + args.model_name + '/messaging'
+    # if args_dict['optimal_param_distribution'] == 1:
+    #     results_file = results_file + '_even'
+    # elif args_dict['optimal_param_distribution'] == 0:
+    #     results_file = results_file + '_uneven'
+    # if args_dict['striping'] == 1:
+    #     results_file = results_file + '_striping'
+    # elif args_dict['striping'] == 0:
+    #     results_file = results_file + '_nostriping'
     results_file = results_file + '.csv'
     #results_file = './dom_results/{}/results.csv'.format(args.model_name)
     file_exists = os.path.isfile(results_file)
@@ -200,6 +200,12 @@ def Main (args):
         action="store",
         default=-1)
     parser.add_argument(
+        "--message-size",
+        dest="message_size",
+        type=float,
+        action="store",
+        default=999999999999)
+    parser.add_argument(
         "--input-as-bytes",
         dest="inputs_as_bytes",
         type=int,
@@ -320,14 +326,14 @@ def Main (args):
     #args.striping = 0
     #vary_model_and_steps(args)
     #args.striping = 1
-    #vary_model_and_steps(args)
+    vary_model_and_steps(args)
     #vary_bandwidths(args)
     #for i in range(100):
-    sim = Simulation()
-    sim.Setup(args)
-    a,b = sim.Run()
-    if a > 0.6 or a < 0.550:
-        print(a)
+    #sim = Simulation()
+    #sim.Setup(args)
+    #a,b = sim.Run()
+    # if a > 0.6 or a < 0.550:
+    #     print(a)
     #vary_model_and_steps(args)
     
 if __name__ == "__main__":
