@@ -34,7 +34,8 @@ class Simulation (object):
         self.ctx.real_distribution = args.real_distribution
         self.ctx.verbosity = args.verbosity
         self.ctx.use_optimal_param = args.optimal_param_distribution
-
+        self.ctx.multi_step = args.multi_step
+        self.ctx.forward_pass_as_bytes = args.forward_pass_as_bytes
         fw_pass_time_dict = {'inception-v3': 0.176,
                     'resnet-200': 0.357,
                     'vgg16': 0.169,
@@ -467,6 +468,7 @@ class Simulation (object):
 
         self.ctx.sendschedule[worker_name] = []
         seen = set()
+        cumm_size = 0
         for ev in trace:
             if ev.startswith("//") or ev.startswith('"'):
                 continue
@@ -480,6 +482,7 @@ class Simulation (object):
                     break
                 seen.add(edgename)
                 size = self.ctx.edge_weights[edgename]
+                cumm_size += size
                 if args.inputs_as_bytes:
                     size *= 8
                 if self.ctx.horovod or self.ctx.scattercast:
@@ -507,6 +510,10 @@ class Simulation (object):
                     print 'Use Optimal PS is invalid. Exiting...'
                     exit()
                 index += 1
+        last_one = self.ctx.sendschedule["worker0"][-1]
+        self.ctx.sendschedule["worker0"][-1] = (100, last_one[1], last_one[2], last_one[3])
+        if self.ctx.verbosity:
+            print 'Cumm size is {}:\t{}'.format(worker_name, cumm_size)
 
     def load_relative_dist_schedule(self, tracename_basedir, args):
         all_ps_names = self.ctx.pses
@@ -550,6 +557,11 @@ class Simulation (object):
         #print self.ctx.pmappings.keys()
         #print len(self.ctx.pmappings.keys())
         cum_size = 0
+        first_layer_dict = {'inception-v3': 'conv0/weights/read',
+                            'resnet-200': 'resnet_v2_200/block2/unit_1/bottleneck_v2/conv2/weights/read',
+                            'resnet-101': 'resnet_v2_101/conv1/weights/read',
+                            'vgg16': 'conv0/weights/read'
+                            }
         for ev in trace:
             #print ev
             if ev.startswith("//") or ev.startswith('"'):
@@ -569,9 +581,24 @@ class Simulation (object):
             if self.ctx.real_distribution:
                 dest = str(parts[3])
                 send_tuple = (size, edgename, dest)
+            index = 1
+            if self.ctx.striping >= 2 and edgename != first_layer_dict[args.model_name]:
+                while size > self.ctx.message_size and self.ctx.message_size != -1:
+                    self.ctx.sendschedule[ps_name].append((self.ctx.message_size, str(edgename) + \
+                                                           "x{}".format(index)))
+                    if edgename not in self.ctx.edge_weights:
+                        self.ctx.edge_weights[edgename] = self.ctx.message_size
+                    size -= self.ctx.message_size
+                    index += 1
+                edgename = str(edgename) + "x{}".format(index)
+            send_tuple = (size, edgename)
             self.ctx.sendschedule[ps_name].append(send_tuple)
-            self.ctx.num_from_ps += 1
+            if edgename not in self.ctx.edge_weights:
+                self.ctx.edge_weights[edgename] = size
             cum_size += size
+            if edgename == first_layer_dict[args.model_name] and args.forward_pass_as_bytes:
+                self.ctx.forward_pass_size = cum_size
+        self.ctx.num_from_ps += len(self.ctx.sendschedule[ps_name])
         if self.ctx.verbosity:
             print 'Cumm size is {}:\t{}'.format(ps_name, cum_size)
 
@@ -606,7 +633,7 @@ class Simulation (object):
                     event_name = item[5]
                     param_size = item[1] * 8
                     index = 1
-                    while param_size > self.ctx.message_size:
+                    while param_size > self.ctx.message_size and self.ctx.message_size != -1:
                         sub_name = event_name + "x{}".format(index)
                         self.ctx.pmappings[sub_name] = ps
                         self.ctx.edge_weights[sub_name] = self.ctx.message_size
@@ -627,7 +654,7 @@ class Simulation (object):
                         event_name = item[5] + '_ps{}'.format(ps_index)
                         param_size = item[1] / float(num_ps) * 8
                         index = 1
-                        while param_size > self.ctx.message_size:
+                        while param_size > self.ctx.message_size and self.ctx.message_size != -1:
                             sub_name = event_name + "x{}".format(index)
                             self.ctx.pmappings[sub_name] = ps_name
                             self.ctx.edge_weights[sub_name] = self.ctx.message_size

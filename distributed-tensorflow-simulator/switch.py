@@ -26,3 +26,5 @@ class Switch (Entity):
                     packet.size = self.ctx.edge_weights[packet.name]
                     packet.degree = self.in_network[packet.name]
                     self.queuesend(packet)
+                    if self.ctx.multi_step:
+                        self.received_packets[packet.name] = 0

@@ -32,6 +32,11 @@ class Context (object):
         self.horovod = 0
         self.butterfly = 0
         self.scattercast = 0
+        self.multi_step = 1
+        self.forward_pass_as_bytes = 0
+        self.forward_pass_size = 0
+        self.start_time = 0
+        self.finish_time = 0
 
     def schedule_task(self, delta, task):
         self.queue.put_nowait((self.current_time + delta, task))
@@ -62,13 +67,18 @@ class Context (object):
             (time, task) = self.queue.get_nowait()
             self.current_time = time
             task()
-        self.final_time = self.current_time
+        if self.multi_step == 1:
+            self.final_time = self.current_time
+        else:
+            self.final_time = self.finish_time - self.start_time
         if self.verbosity:
             for worker in self.workers:
-                print '{}:\tReceived {}/{}'.format(worker, self.objs[worker].received_packets, len(self.sendschedule[worker]))
+                print '{}:\tReceived {}/{}'.format(worker, self.objs[worker].received_packets, self.num_from_ps)
                 print '{}:\tSent {}'.format(worker, self.objs[worker].packets_sent)
             for ps in self.pses:
                 print '{}:\tReceived {}/{}'.format(ps, self.objs[ps].received_packets, self.ps_num_items[ps])
+            #print self.edge_weights
+        #print "{}, {}, {}".format(self.final_time, self.start_time, self.finish_time)
 
     def make_packet(self, size, src, dest, name):
         mpacket = Packet(size, src=src, dest=dest, name=name)

@@ -6,9 +6,30 @@ import os
 from sim import Simulation
 from dom_simulations import *
 
+def check_csv(args):
+    results_file = './dom_results/' + args.model_name + '/multistep.csv'
+    file_exists = os.path.isfile(results_file)
+    if not file_exists:
+        return False
+    f = open(results_file, 'r')
+    f.seek(0)
+    reader = csv.DictReader(f)
+    for row in reader:
+        if int(row['num_workers']) == args.num_workers and (int(row['num_ps']) == args.num_ps or args.horovod) \
+                and int(row['use_multicast']) == args.use_multicast \
+                and int(row['in_network_computation']) == args.in_network_computation \
+                and int(row['horovod']) == args.horovod and float(row['worker_send_rate']) == args.worker_send_rate \
+                and int(row['butterfly']) == args.butterfly and float(row['message_size']) == args.message_size \
+                and int(row['step_num']) == args.step_num and int(row['striping']) == args.striping \
+                and int(row['multi_step']) == args.multi_step:
+            f.close()
+            return True
+    f.close()
+    return False
+
 def write_to_csv(args, finish_time, worker_receive_times):
     args_dict = vars(args)
-    results_file = './dom_results/' + args.model_name + '/messaging'
+    results_file = './dom_results/' + args.model_name + '/multistep'
     # if args_dict['optimal_param_distribution'] == 1:
     #     results_file = results_file + '_even'
     # elif args_dict['optimal_param_distribution'] == 0:
@@ -204,7 +225,7 @@ def Main (args):
         dest="message_size",
         type=float,
         action="store",
-        default=999999999999)
+        default=-1)
     parser.add_argument(
         "--input-as-bytes",
         dest="inputs_as_bytes",
@@ -297,6 +318,18 @@ def Main (args):
         action="store",
         default=0)
     parser.add_argument(
+        "--first-pass-as-bytes",
+        dest="forward_pass_as_bytes",
+        type=int,
+        action="store",
+        default=1)
+    parser.add_argument(
+        "--multi-step",
+        dest="multi_step",
+        type=int,
+        action="store",
+        default=1)
+    parser.add_argument(
         "--verbosity",
         dest="verbosity",
         type=int,
@@ -326,12 +359,12 @@ def Main (args):
     #args.striping = 0
     #vary_model_and_steps(args)
     #args.striping = 1
-    vary_model_and_steps(args)
+    #vary_model_and_steps(args)
     #vary_bandwidths(args)
     #for i in range(100):
-    #sim = Simulation()
-    #sim.Setup(args)
-    #a,b = sim.Run()
+    sim = Simulation()
+    sim.Setup(args)
+    a,b = sim.Run()
     # if a > 0.6 or a < 0.550:
     #     print(a)
     #vary_model_and_steps(args)

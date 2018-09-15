@@ -18,25 +18,42 @@ def vary_model_and_steps(args):
 
     model_candidates = ['vgg16','resnet-200', 'resnet-101', 'inception-v3']
     bandwidths = [10, 25, 50, 100]
-    message_sizes = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+    message_sizes = [10, 10000]
+    stripings = [1, 2]
+    step_counts = [1, 3]
+    #bandwidths = [10]
+    #message_sizes = [16, 1000000, -1]
     #model_candidates = [model_candidates[2]]
     #bandwidths = [5]
-    for message_size in message_sizes:
-        args = set_message_size(args, float(message_size * 1000000))
-        for bandwidth in bandwidths:
-            args = set_bandwidth(args, bandwidth)
-            for model_name in model_candidates:
-                print 'Trying with model name {}'.format(model_name)
-                args = set_model(args, model_name)
-                step_list = step_num[args.model_name]
-                for step in step_list:
-                    print 'Trying step number {}'.format(step)
-                    args.step_num = step
-                    vary_param_optimality(args)
-                    print 'Finished with step number {}'.format(step)
-                print 'Finished simulating with model name {}'.format(model_name)
+    for step_count in step_counts:
+        print 'switching step count to {}'.format(step_count)
+        args.multi_step = step_count
+        for striping in stripings:
+            print 'switching striping to {}'.format(striping)
+            args.striping = striping
+            for message_size in message_sizes:
+                print 'switching message_size to {}'.format(message_size)
+                args = set_message_size(args, float(message_size * 1000000))
+                if message_size == -1:
+                    args = set_message_size(args, float(-1))
+                for bandwidth in bandwidths:
+                    print 'switching bandwidth to {}'.format(bandwidth)
+                    args = set_bandwidth(args, bandwidth)
+                    for model_name in model_candidates:
+                        print 'Trying with model name {}'.format(model_name)
+                        args = set_model(args, model_name)
+                        step_list = step_num[args.model_name]
+                        for step in step_list:
+                            print 'Trying step number {}'.format(step)
+                            args.step_num = step
+                            vary_param_optimality(args)
+                            print 'Finished with step number {}'.format(step)
+                        print 'Finished simulating with model name {}'.format(model_name)
 
 def run_sim(args):
+    if check_csv(args):
+        print "entry already exists"
+        return
     sim = Simulation()
     sim.Setup(args)
     finish_time, worker_receive_times = sim.Run()
@@ -134,10 +151,10 @@ def vary_workers_exp_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,
             args.in_network_computation = 1
             args.horovod = 0
             args.butterfly = 0
-            try:
-                run_sim(args)
-            except:
-                print 'this experiment failed in aggregation part'
+            # try:
+            run_sim(args)
+            # except:
+            #     print 'this experiment failed in aggregation part'
 
 def vary_workers_exp(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -230,17 +247,17 @@ def vary_param_optimality(args):
     num_workers = [8,16,32]
     num_ps = [1,8]
     num_workers = [32]
-    #num_ps = [1]
+    num_ps = [1]
     
     print '{} Testing with suboptimal (real) parameter distributions'.format(model_name)
     args.optimal_param_distribution = 0
-    #vary_workers_exp(args, num_workers, num_ps)
-    #vary_workers_exp_multicast(args, num_workers, num_ps)
+    vary_workers_exp(args, num_workers, num_ps)
+    vary_workers_exp_multicast(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
     vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
-    vary_workers_exp_horovod(args, num_workers, num_ps)
-    vary_workers_exp_horovod_multicast(args, num_workers, num_ps)
-    vary_workers_exp_butterfly(args, num_workers, num_ps)
+    #vary_workers_exp_horovod(args, num_workers, num_ps)
+    #vary_workers_exp_horovod_multicast(args, num_workers, num_ps)
+    #vary_workers_exp_butterfly(args, num_workers, num_ps)
     '''
     print '{} Testing with optimal parameter distributions'.format(model_name)
     args.optimal_param_distribution = 1

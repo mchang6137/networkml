@@ -9,6 +9,8 @@ class Worker (Entity):
         self.model_name = model_name
         self.use_optimal_param = use_optimal_param
         self.ready = {}
+        self.phase = 0
+        self.bits_received = 0
 
     def queuesend(self, packet): #self.ctx.schedule_task(0.0001, lambda: self.queuesend(packet))
         if self.ctx.butterfly:
@@ -53,22 +55,34 @@ class Worker (Entity):
         if self.use_optimal_param == 1:
             split_keyword = '_ps'
             packet_name = packet_name.split(split_keyword)[0]
+
+        if not packet.MF and packet.name in self.ctx.edge_weights:
+
+            self.bits_received += self.ctx.edge_weights[packet.name]
         
-        if packet_name == first_layer_dict[self.model_name] and not packet.MF:
+        if ((packet_name == first_layer_dict[self.model_name] and not self.ctx.forward_pass_as_bytes) or \
+                (self.ctx.forward_pass_as_bytes and self.phase == 0 and self.bits_received >= self.ctx.forward_pass_size)) \
+                and not packet.MF :
             self.first_layer_received = self.ctx.now
+            self.phase = 1
             if self.ctx.verbosity:
                 print "%s has received read packet at time %0.3f" % (self.name, self.ctx.now)
         if self.ctx.horovod:
             self.lastbitrecvhorovod(packet)
         elif not packet.MF:
+            if self.name == "worker0" and self.ctx.verbosity > 2:
+                print(packet.name)
             self.received_packets += 1
-            if self.ctx.sendschedule[node_name] and self.received_packets == self.ctx.num_from_ps:
+            if self.ctx.sendschedule[node_name] and self.received_packets % self.ctx.num_from_ps == 0:
                 if self.ctx.verbosity:
-                    print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
+                    print "%s has received all gradients at time %0.3f %d" % (self.name, self.ctx.now, self.bits_received)
                 self.ctx.worker_receive.append(self.ctx.now)
                 if self.ctx.now >= self.first_layer_received + self.fwd_pass_time:
                     for arr in self.ctx.sendschedule[node_name]:
                         self.ctx.schedule_send(arr[0], arr[1], self.name, arr[2], name=arr[3])
+                    #self.received_packets = 0
+                    self.bits_received = 0
+                    self.phase = 0
                 else:
                     send_at = self.first_layer_received + self.fwd_pass_time
                     if self.ctx.verbosity:
@@ -76,6 +90,9 @@ class Worker (Entity):
                     for arr in self.ctx.sendschedule[node_name]:
                         time_delta = send_at + arr[0] - self.ctx.now
                         self.ctx.schedule_send(time_delta, arr[1], self.name, arr[2], name=arr[3])
+                    #self.received_packets = 0
+                    self.bits_received = 0
+                    self.phase = 0
 
     def lastbitrecvhorovod(self, packet):
         if packet.MF:
