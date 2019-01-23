@@ -1,0 +1,2 @@
+{"1" : {"/job:ps/replica:0/task:0/device:CPU:0" : [[0, 2500000000.0, {}, "/job:worker/replica:0/task:1/device:GPU:0", "/job:ps/replica:0/task:0/device:CPU:0", "layer1"],
+  [0, 2500000000.0, {}, "/job:worker/replica:0/task:1/device:GPU:0", "/job:ps/replica:0/task:0/device:CPU:0", "layer2"]]}}

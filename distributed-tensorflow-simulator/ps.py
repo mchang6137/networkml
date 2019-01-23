@@ -27,21 +27,25 @@ class PS (Entity):
             #     self.bytes_hit = 1
             if self.ctx.multi_step and min([val for key, val in self.bits_received.items()]) > 0 and self.bits_sent == 0 and self.phase == 1:
                 self.ctx.start_time = self.ctx.now
-            if self.ctx.multi_step and min([val for key, val in self.bits_received.items()]) > 0 and self.bits_sent == 0 and not self.finish_time_assigned:
+            if self.ctx.multi_step and min([val for key, val in self.bits_received.items()]) > 0 and self.bits_sent == 0 \
+                    and not self.finish_time_assigned \
+                    and (self.ctx.in_network_computation or len(self.bits_received) == len(self.ctx.workers)):
                 self.ctx.finish_time = self.ctx.now
                 self.finish_time_assigned = 1
             if self.ctx.multi_step and self.phase < self.ctx.multi_step:
                 self.redistribute()
-            if self.received_packets == self.ctx.ps_num_items[self.name]:
+            if self.received_packets >= self.ctx.ps_num_items[self.name]:
                 if self.ctx.verbosity:
                     print "%s has received all gradient updates at time %0.3f" % (self.name, self.ctx.now)
                     print "{} bits received".format(min([val for key, val in self.bits_received.items()]))
+                if self.ctx.multi_step == 1:
+                    self.ctx.finish_time = self.ctx.now
                 if self.ctx.multi_step and self.phase < self.ctx.multi_step:
                     #self.distribute()
                     self.phase += 1
                     self.bits_received = {}
                     self.bits_sent = 0
-                    self.received_packets = 0
+                    self.received_packets -= self.ctx.ps_num_items[self.name]
                     self.finish_time_assigned = 0
 
     def redistribute(self):

@@ -36,8 +36,16 @@ class Simulation (object):
         self.ctx.use_optimal_param = args.optimal_param_distribution
         self.ctx.multi_step = args.multi_step
         self.ctx.forward_pass_as_bytes = args.forward_pass_as_bytes
+        self.ctx.max_param_size = args.max_param_size
         fw_pass_time_dict = {'inception-v3': 0.176,
+                             'inception-v3_alternate': 0.194,
+                             'inception-v3_alternate_1': 0.184,
+                             'inception-v3_alternate_5': 0.216,
+                             'inception-v3_alternate_25': 0.376,
+                             'inception-v3_alternate_125': 1.176,
+                             'dummy_model': 1.0,
                     'resnet-200': 0.357,
+                    'resnet-200_alternate': 0.400,
                     'vgg16': 0.169,
                     'resnet-101': 0.176}
 
@@ -453,7 +461,19 @@ class Simulation (object):
                         continue
                     if args.model_name == 'resnet-200' and float(trace[-1].strip().split(',')[0]) > 500:
                         continue
+                    if args.model_name == 'resnet-200_alternate' and float(trace[-1].strip().split(',')[0]) > 700:
+                        continue
                     if args.model_name == 'inception-v3' and float(trace[-1].strip().split(',')[0]) > 400:
+                        continue
+                    if args.model_name == 'inception-v3_alternate' and float(trace[-1].strip().split(',')[0]) > 500:
+                        continue
+                    if args.model_name == 'inception-v3_alternate_1' and float(trace[-1].strip().split(',')[0]) > 500:
+                        continue
+                    if args.model_name == 'inception-v3_alternate_5' and float(trace[-1].strip().split(',')[0]) > 600:
+                        continue
+                    if args.model_name == 'inception-v3_alternate_25' and float(trace[-1].strip().split(',')[0]) > 1100:
+                        continue
+                    if args.model_name == 'inception-v3_alternate_125' and float(trace[-1].strip().split(',')[0]) > 3000:
                         continue
                     if args.model_name == 'vgg16' and float(trace[-1].strip().split(',')[0]) > 40:
                         continue
@@ -470,48 +490,40 @@ class Simulation (object):
         seen = set()
         cumm_size = 0
         for ev in trace:
-            if ev.startswith("//") or ev.startswith('"'):
-                continue
-            parts = ev.strip().split(',')
-            time = float(parts[0])
-            main_name = str(parts[2])
-            index = 1
-            while True:
-                edgename = main_name + "x{}".format(index)
-                if edgename not in self.ctx.edge_weights or edgename in seen:
-                    break
-                seen.add(edgename)
-                size = self.ctx.edge_weights[edgename]
-                cumm_size += size
-                if args.inputs_as_bytes:
-                    size *= 8
-                if self.ctx.horovod or self.ctx.scattercast:
-                    if edgename in self.ctx.pmappings:
-                        self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
-                    elif self.ctx.verbosity:
-                        print "%s not assigned a parameter server" % edgename
-                elif use_optimal_ps == 0:
-                    if edgename in self.ctx.pmappings:
-                        self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
-                        self.adjust_in_network(worker_name, self.ctx.pmappings[edgename], edgename)
-                    elif self.ctx.verbosity:
-                        print "%s not assigned a parameter server" % edgename
-                elif use_optimal_ps == 1:
-                    # Split the parameter evenly between all the parameter servers
-                    revised_size  = size / float(num_ps)
-                    for ps_index in range(num_ps):
-                        new_edgename = edgename + '_ps{}'.format(ps_index)
-                        if new_edgename in self.ctx.pmappings:
-                            self.ctx.sendschedule[worker_name].append((time / 1000, revised_size, self.ctx.pmappings[new_edgename], new_edgename))
-                            self.adjust_in_network(worker_name, self.ctx.pmappings[new_edgename], new_edgename)
+            for ps_index in range(num_ps):
+                if ev.startswith("//") or ev.startswith('"'):
+                    continue
+                parts = ev.strip().split(',')
+                time = float(parts[0])
+                main_name = str(parts[2])
+                if use_optimal_ps:
+                    main_name = str(parts[2]) + '_ps{}'.format(ps_index)
+                index = 1
+                while True:
+                    edgename = main_name + "x{}".format(index)
+                    if edgename not in self.ctx.edge_weights or edgename in seen:
+                        break
+                    seen.add(edgename)
+                    size = self.ctx.edge_weights[edgename]
+                    if self.ctx.max_param_size != -1 and size > self.ctx.max_param_size:
+                        size = self.ctx.max_param_size
+                    cumm_size += size
+                    if args.inputs_as_bytes:
+                        size *= 8
+                    if self.ctx.horovod or self.ctx.scattercast:
+                        if edgename in self.ctx.pmappings:
+                            self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
                         elif self.ctx.verbosity:
                             print "%s not assigned a parameter server" % edgename
-                else:
-                    print 'Use Optimal PS is invalid. Exiting...'
-                    exit()
-                index += 1
-        last_one = self.ctx.sendschedule["worker0"][-1]
-        self.ctx.sendschedule["worker0"][-1] = (100, last_one[1], last_one[2], last_one[3])
+                    else:
+                        if edgename in self.ctx.pmappings:
+                            self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
+                            self.adjust_in_network(worker_name, self.ctx.pmappings[edgename], edgename)
+                        elif self.ctx.verbosity:
+                            print "%s not assigned a parameter server" % edgename
+                    index += 1
+        # last_one = self.ctx.sendschedule["worker0"][-1]
+        # self.ctx.sendschedule["worker0"][-1] = (100, last_one[1], last_one[2], last_one[3])
         if self.ctx.verbosity:
             print 'Cumm size is {}:\t{}'.format(worker_name, cumm_size)
 
@@ -558,7 +570,14 @@ class Simulation (object):
         #print len(self.ctx.pmappings.keys())
         cum_size = 0
         first_layer_dict = {'inception-v3': 'conv0/weights/read',
+                            'inception-v3_alternate': 'conv0/weights/read',
+                            'inception-v3_alternate_1': 'conv0/weights/read',
+                            'inception-v3_alternate_5': 'conv0/weights/read',
+                            'inception-v3_alternate_25': 'conv0/weights/read',
+                            'inception-v3_alternate_125': 'conv0/weights/read',
+                            'dummy_model': 'layer1',
                             'resnet-200': 'resnet_v2_200/block2/unit_1/bottleneck_v2/conv2/weights/read',
+                            'resnet-200_alternate': 'resnet_v2_200/block2/unit_1/bottleneck_v2/conv2/weights/read',
                             'resnet-101': 'resnet_v2_101/conv1/weights/read',
                             'vgg16': 'conv0/weights/read'
                             }
@@ -571,6 +590,8 @@ class Simulation (object):
             size = float(parts[1])
             if args.inputs_as_bytes:
                 size *= 8
+            if self.ctx.max_param_size != -1 and size > self.ctx.max_param_size:
+                size = self.ctx.max_param_size
             edgename = str(parts[2])
             if use_optimal_ps == 1:
                 # Split the parameter evenly between all the parameter servers
@@ -632,6 +653,8 @@ class Simulation (object):
                 for item in arr:
                     event_name = item[5]
                     param_size = item[1] * 8
+                    if self.ctx.max_param_size != -1 and param_size > self.ctx.max_param_size:
+                        param_size = self.ctx.max_param_size
                     index = 1
                     while param_size > self.ctx.message_size and self.ctx.message_size != -1:
                         sub_name = event_name + "x{}".format(index)
@@ -660,8 +683,9 @@ class Simulation (object):
                             self.ctx.edge_weights[sub_name] = self.ctx.message_size
                             param_size -= self.ctx.message_size
                             index += 1
-                        self.ctx.edge_weights[event_name] = param_size
-                        self.ctx.pmappings[event_name] = ps_name
+                        sub_name = event_name + "x{}".format(index)
+                        self.ctx.edge_weights[sub_name] = param_size
+                        self.ctx.pmappings[sub_name] = ps_name
                         #self.ctx.schedule_send(0, param_size* 8.0, ps_name, ps_name, name=str(ps_name)+"."+event_name)
                     
     def Run (self):

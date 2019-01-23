@@ -11,6 +11,8 @@ class Worker (Entity):
         self.ready = {}
         self.phase = 0
         self.bits_received = 0
+        self.backprop_finish = 0.0
+        self.steps_complete = 0
 
     def queuesend(self, packet): #self.ctx.schedule_task(0.0001, lambda: self.queuesend(packet))
         if self.ctx.butterfly:
@@ -46,7 +48,14 @@ class Worker (Entity):
         Entity.lastbitrecv(self, packet)
 
         first_layer_dict = {'inception-v3':  'conv0/weights/read',
+                            'inception-v3_alternate': 'conv0/weights/read',
+                            'inception-v3_alternate_1': 'conv0/weights/read',
+                            'inception-v3_alternate_5': 'conv0/weights/read',
+                            'inception-v3_alternate_25': 'conv0/weights/read',
+                            'inception-v3_alternate_125': 'conv0/weights/read',
+                            'dummy_model': 'layer1',
                             'resnet-200': 'resnet_v2_200/block2/unit_1/bottleneck_v2/conv2/weights/read',
+                            'resnet-200_alternate': 'resnet_v2_200/block2/unit_1/bottleneck_v2/conv2/weights/read',
                             'resnet-101': 'resnet_v2_101/conv1/weights/read',
                             'vgg16': 'conv0/weights/read'
                             }
@@ -62,8 +71,10 @@ class Worker (Entity):
         
         if ((packet_name == first_layer_dict[self.model_name] and not self.ctx.forward_pass_as_bytes) or \
                 (self.ctx.forward_pass_as_bytes and self.phase == 0 and self.bits_received >= self.ctx.forward_pass_size)) \
-                and not packet.MF :
+                and not packet.MF  and not self.ctx.horovod:
             self.first_layer_received = self.ctx.now
+            if self.first_layer_received < self.backprop_finish:
+                self.first_layer_received = self.backprop_finish
             self.phase = 1
             if self.ctx.verbosity:
                 print "%s has received read packet at time %0.3f" % (self.name, self.ctx.now)
@@ -77,22 +88,49 @@ class Worker (Entity):
                 if self.ctx.verbosity:
                     print "%s has received all gradients at time %0.3f %d" % (self.name, self.ctx.now, self.bits_received)
                 self.ctx.worker_receive.append(self.ctx.now)
+                # self.received_packets = 0
+                self.bits_received = 0
+                self.phase = 0
                 if self.ctx.now >= self.first_layer_received + self.fwd_pass_time:
-                    for arr in self.ctx.sendschedule[node_name]:
-                        self.ctx.schedule_send(arr[0], arr[1], self.name, arr[2], name=arr[3])
-                    #self.received_packets = 0
-                    self.bits_received = 0
-                    self.phase = 0
+                    self.backprop()
                 else:
                     send_at = self.first_layer_received + self.fwd_pass_time
+                    send_delta = send_at - self.ctx.now
                     if self.ctx.verbosity:
                         print 'Worker {} waiting until at least {} for forward pass to complete'.format(self.name, send_at)
-                    for arr in self.ctx.sendschedule[node_name]:
-                        time_delta = send_at + arr[0] - self.ctx.now
-                        self.ctx.schedule_send(time_delta, arr[1], self.name, arr[2], name=arr[3])
-                    #self.received_packets = 0
-                    self.bits_received = 0
-                    self.phase = 0
+                    self.ctx.schedule_task(send_delta, lambda: self.backprop())
+
+    def forwardpasshorovod(self):
+        pause = self.fwd_pass_time
+        if self.ctx.now + self.fwd_pass_time < self.backprop_finish:
+            pause = self.backprop_finish - self.ctx.now
+        self.received_packets = 0
+        self.bits_received = 0
+        self.ctx.schedule_task(pause, lambda: self.backprop())
+
+
+    def backprop(self):
+        if self.ctx.horovod:
+            #split = num_workers
+            split = 1
+            keys = list(self.ctx.pmappings.keys())
+            idx = self.ctx.workers.index(self.name)
+            nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
+            for arr in self.ctx.sendschedule[self.name]:
+                if self.ctx.butterfly:
+                    self.ready[arr[3]] = {}
+                    self.ready[arr[3]][1] = "ready"
+                    nworker = self.ctx.workers[idx + 1 - 2 * (idx % 2)]
+                elif (keys.index(arr[3]) % len(self.ctx.workers)) == idx:
+                    self.ready[arr[3]] = "root"
+                    pass
+                time_delta = arr[0]
+                self.ctx.schedule_send(time_delta, arr[1] / split, self.name, nworker, name=arr[3])
+                self.backprop_finish = self.ctx.now + arr[0]
+        else:
+            for arr in self.ctx.sendschedule[self.name]:
+                self.ctx.schedule_send(arr[0], arr[1], self.name, arr[2], name=arr[3])
+                self.backprop_finish = self.ctx.now + arr[0]
 
     def lastbitrecvhorovod(self, packet):
         if packet.MF:
@@ -105,12 +143,28 @@ class Worker (Entity):
         idx = self.ctx.workers.index(self.name)
         if packet.degree >= len(self.ctx.workers)-1 and not packet.MF:
             self.received_packets += 1
-            if self.received_packets == len(self.ctx.sendschedule[self.name]) and self.ctx.verbosity:
-                print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
+            if self.received_packets == len(self.ctx.sendschedule[self.name]):
+                self.steps_complete += 1
+                if self.steps_complete < self.ctx.multi_step:
+                    self.forwardpasshorovod()
+                if self.steps_complete == 1 and self.ctx.start_time == 0:
+                    self.ctx.start_time = self.ctx.now
+                if self.steps_complete == self.ctx.multi_step and self.ctx.finish_time == 0:
+                    self.ctx.finish_time = self.ctx.now
+                if self.ctx.verbosity:
+                    print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
         elif 2 ** packet.degree == len(self.ctx.workers) and self.ctx.butterfly and not packet.MF:
             self.received_packets += 1
-            if self.received_packets == len(self.ctx.sendschedule[self.name]) and self.ctx.verbosity:
-                print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
+            if self.received_packets == len(self.ctx.sendschedule[self.name]):
+                self.steps_complete += 1
+                if self.steps_complete < self.ctx.multi_step:
+                    self.forwardpasshorovod()
+                if self.steps_complete == 1 and self.ctx.start_time == 0:
+                    self.ctx.start_time = self.ctx.now
+                if self.steps_complete == self.ctx.multi_step and self.ctx.finish_time == 0:
+                    self.ctx.finish_time = self.ctx.now
+                if self.ctx.verbosity:
+                    print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
             return
         nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
         if self.ctx.butterfly:

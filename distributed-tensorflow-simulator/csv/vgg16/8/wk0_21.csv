@@ -1,16 +1,16 @@
 "relative_time, bits_sent, raw_edgename"
 0.0,32032.0,gradients/vgg/logits/xw_plus_b_grad/tuple/control_dependency_1
 0.0,131203072.0,gradients/AddN
-1.0,131072.0,gradients/vgg/fc2/xw_plus_b_grad/tuple/control_dependency_1
-1.0,131072.0,gradients/vgg/fc1/xw_plus_b_grad/tuple/control_dependency_1
-1.0,536870912.0,gradients/AddN_1
-2.0,16384.0,gradients/vgg/conv12/BatchNorm/batchnorm/sub_grad/tuple/control_dependency
-2.0,5435817984.0,gradients/AddN_2
-3.0,16384.0,gradients/vgg/conv11/BatchNorm/batchnorm/sub_grad/tuple/control_dependency
-3.0,75497472.0,gradients/AddN_5
+1.0,131072.0,gradients/vgg/fc2/xw_plus_b_grad/tuple/control_dependency_1 4096 * 32 bits/word
+1.0,131072.0,gradients/vgg/fc1/xw_plus_b_grad/tuple/control_dependency_1 4096 * 32 bits/word
+1.0,536870912.0,gradients/AddN_1 4096 * 4096 * 32 bits/word
+2.0,16384.0,gradients/vgg/conv12/BatchNorm/batchnorm/sub_grad/tuple/control_dependency 512 * 32 bits/word
+2.0,5435817984.0,gradients/AddN_2 512 * 4096 * 9 * 9 * 32 bits/word
+3.0,16384.0,gradients/vgg/conv11/BatchNorm/batchnorm/sub_grad/tuple/control_dependency 512 * 32 bits/word
+3.0,75497472.0,gradients/AddN_5 512 * 512 * 3 * 3 * 32 bits/word
 4.0,16384.0,gradients/vgg/conv10/BatchNorm/batchnorm/sub_grad/tuple/control_dependency
-4.0,75497472.0,gradients/AddN_8
-5.0,75497472.0,gradients/AddN_11
+4.0,75497472.0,gradients/AddN_8 512 * 512 * 3 * 3 * 32 bits/wor
+5.0,75497472.0,gradients/AddN_11 512 * 512 * 3 * 3 * 32 bits/wor
 6.0,16384.0,gradients/vgg/conv9/BatchNorm/batchnorm/sub_grad/tuple/control_dependency
 7.0,16384.0,gradients/vgg/conv8/BatchNorm/batchnorm/sub_grad/tuple/control_dependency
 7.0,75497472.0,gradients/AddN_14

@@ -7,7 +7,7 @@ from sim import Simulation
 from dom_simulations import *
 
 def check_csv(args):
-    results_file = './dom_results/' + args.model_name + '/multistep.csv'
+    results_file = './dom_results/' + args.model_name + '/maxparamsize.csv'
     file_exists = os.path.isfile(results_file)
     if not file_exists:
         return False
@@ -21,7 +21,8 @@ def check_csv(args):
                 and int(row['horovod']) == args.horovod and float(row['worker_send_rate']) == args.worker_send_rate \
                 and int(row['butterfly']) == args.butterfly and float(row['message_size']) == args.message_size \
                 and int(row['step_num']) == args.step_num and int(row['striping']) == args.striping \
-                and int(row['multi_step']) == args.multi_step:
+                and int(row['multi_step']) == args.multi_step and float(row['max_param_size']) == args.max_param_size \
+                and int(row['optimal_param_distribution']) == args.optimal_param_distribution:
             f.close()
             return True
     f.close()
@@ -29,7 +30,7 @@ def check_csv(args):
 
 def write_to_csv(args, finish_time, worker_receive_times):
     args_dict = vars(args)
-    results_file = './dom_results/' + args.model_name + '/multistep'
+    results_file = './dom_results/' + args.model_name + '/maxparamsize'
     # if args_dict['optimal_param_distribution'] == 1:
     #     results_file = results_file + '_even'
     # elif args_dict['optimal_param_distribution'] == 0:
@@ -41,6 +42,10 @@ def write_to_csv(args, finish_time, worker_receive_times):
     results_file = results_file + '.csv'
     #results_file = './dom_results/{}/results.csv'.format(args.model_name)
     file_exists = os.path.isfile(results_file)
+    try:
+        os.makedirs(os.path.dirname(results_file))
+    except OSError as e:
+        pass
     
     #args_dict = vars(args)
     args_dict['iteration_time'] = finish_time
@@ -324,6 +329,12 @@ def Main (args):
         action="store",
         default=1)
     parser.add_argument(
+        "--max-param-size",
+        dest="max_param_size",
+        type=float,
+        action="store",
+        default=-1.0)
+    parser.add_argument(
         "--multi-step",
         dest="multi_step",
         type=int,
@@ -359,12 +370,12 @@ def Main (args):
     #args.striping = 0
     #vary_model_and_steps(args)
     #args.striping = 1
-    #vary_model_and_steps(args)
+    vary_model_and_steps(args)
     #vary_bandwidths(args)
     #for i in range(100):
-    sim = Simulation()
-    sim.Setup(args)
-    a,b = sim.Run()
+    #sim = Simulation()
+    #sim.Setup(args)
+    #a,b = sim.Run()
     # if a > 0.6 or a < 0.550:
     #     print(a)
     #vary_model_and_steps(args)

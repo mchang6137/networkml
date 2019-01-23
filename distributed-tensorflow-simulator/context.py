@@ -35,6 +35,7 @@ class Context (object):
         self.multi_step = 1
         self.forward_pass_as_bytes = 0
         self.forward_pass_size = 0
+        self.max_param_size = -1.0
         self.start_time = 0
         self.finish_time = 0
 
@@ -69,6 +70,8 @@ class Context (object):
             task()
         if self.multi_step == 1:
             self.final_time = self.current_time
+            if self.use_multicast and self.in_network_computation:
+                self.final_time = self.finish_time
         else:
             self.final_time = self.finish_time - self.start_time
         if self.verbosity:
@@ -78,6 +81,8 @@ class Context (object):
             for ps in self.pses:
                 print '{}:\tReceived {}/{}'.format(ps, self.objs[ps].received_packets, self.ps_num_items[ps])
             #print self.edge_weights
+            for worker in self.workers:
+                print self.sendschedule[worker][-1]
         #print "{}, {}, {}".format(self.final_time, self.start_time, self.finish_time)
 
     def make_packet(self, size, src, dest, name):
