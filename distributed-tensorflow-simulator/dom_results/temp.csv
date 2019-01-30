@@ -1,0 +1,25 @@
+32workers,,,,
+vgg16,multiagg,butterfly,horovod,multiagg no barrier
+10.0,3.722,6.919,2.906,3.805
+25.0,1.490,2.982,1.367,1.704
+50.0,0.821,1.661,0.854,1.024
+,,,,
+32workers,,,,
+resnet-200,multiagg,butterfly,horovod,multiagg no barrier
+10.0,1.424,2.801,1.631,1.406
+25.0,1.388,1.549,1.389,1.381
+50.0,1.376,1.365,1.381,1.374
+,,,,
+32workers,,,,
+resnet-101,multiagg,butterfly,horovod,multiagg no barrier
+10.0,1.078,1.987,1.160,0.904
+25.0,0.818,1.127,0.835,0.738
+50.0,0.775,0.840,0.748,0.735
+,,,,
+32workers,,,,
+inception-v3,multiagg,butterfly,horovod,multiagg no barrier
+10.0,1.041,1.058,1.119,0.954
+25.0,0.981,0.943,0.981,0.947
+50.0,0.962,0.943,0.965,0.944
+,,,,
+,,,,

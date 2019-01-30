@@ -2,12 +2,13 @@ import sys
 import argparse
 import csv
 import os
+import glob
 
 from sim import Simulation
 from dom_simulations import *
 
 def check_csv(args):
-    results_file = './dom_results/' + args.model_name + '/maxparamsize.csv'
+    results_file = './dom_results/' + args.model_name + '/globalbarrier.csv'
     file_exists = os.path.isfile(results_file)
     if not file_exists:
         return False
@@ -22,7 +23,8 @@ def check_csv(args):
                 and int(row['butterfly']) == args.butterfly and float(row['message_size']) == args.message_size \
                 and int(row['step_num']) == args.step_num and int(row['striping']) == args.striping \
                 and int(row['multi_step']) == args.multi_step and float(row['max_param_size']) == args.max_param_size \
-                and int(row['optimal_param_distribution']) == args.optimal_param_distribution:
+                and int(row['optimal_param_distribution']) == args.optimal_param_distribution \
+                and float(row['gpu_speedup']) == args.gpu_speedup and float(row['iteration_time']) > 0.0:
             f.close()
             return True
     f.close()
@@ -30,7 +32,7 @@ def check_csv(args):
 
 def write_to_csv(args, finish_time, worker_receive_times):
     args_dict = vars(args)
-    results_file = './dom_results/' + args.model_name + '/maxparamsize'
+    results_file = './dom_results/' + args.model_name + '/globalbarrier'
     # if args_dict['optimal_param_distribution'] == 1:
     #     results_file = results_file + '_even'
     # elif args_dict['optimal_param_distribution'] == 0:
@@ -51,6 +53,7 @@ def write_to_csv(args, finish_time, worker_receive_times):
     args_dict['iteration_time'] = finish_time
     args_dict['worker_receive_time'] = worker_receive_times
     headers = args_dict.keys()
+    headers.sort()
     #print args_dict
     with open(results_file, 'a') as out:
         writer = csv.DictWriter(out, delimiter=',', lineterminator='\n',fieldnames=headers)
@@ -58,7 +61,62 @@ def write_to_csv(args, finish_time, worker_receive_times):
             writer.writeheader()
         #print 'For {}, an iteration time of {} was calculated'.format(args.model_name, finish_time)
         print 'For {}, an iteration time of {} was recorded'.format(args.model_name, args_dict['iteration_time'])
-	writer.writerow(args_dict)
+        writer.writerow(args_dict)
+
+def update_csvs(args):
+    # this one needs a comment....
+    # for x in os.walk(orig_tracename_basedir):
+    #   for y in glob.glob(os.path.join(x[0], '*_{step_num}.csv'):
+    #       yield y
+    # os.walk yields a 3-tuple of [root, subdirectories, files]
+    # glob is regex for filenames
+    csvs = [z for (root, subdirectories, files) in os.walk("dom_results")
+            for y in subdirectories
+            for z in glob.glob(os.path.join(root, y, '*.csv'))]
+    for csv in csvs:
+        print csv
+        try:
+            update_csv(args, csv)
+        except ValueError as ve:
+            continue
+
+def update_csv(args, csv_file):
+    args_dict = vars(args)
+    tempfilename = os.path.splitext(csv_file)[0] + '.bak'
+    try:
+        os.remove(tempfilename)  # delete any existing temp file
+    except OSError:
+        pass
+    os.rename(csv_file, tempfilename)
+
+    # create a temporary dictionary from the input file
+    with open(tempfilename, mode='rb') as infile:
+        reader = csv.DictReader(infile)
+        infile.seek(0)
+        temp_dict = [row for row in reader]
+
+    if len(temp_dict) == 0:
+        print "no items found???"
+        return
+
+    args_dict['iteration_time'] = 0.0
+    args_dict['worker_receive_time'] = 0.0
+    headers = args_dict.keys()
+    headers.sort()
+
+    # create updated version of file
+    with open(csv_file, mode='wb') as outfile:
+        writer = csv.DictWriter(outfile, delimiter=',', lineterminator='\n', fieldnames=headers)
+        writer.writeheader()
+        for item in temp_dict:
+            if float(item['iteration_time']) <= 0.0:
+                continue
+            for key in headers:
+                if key not in item:
+                    item[key] = args_dict[key]
+            writer.writerow(item)
+
+    os.remove(tempfilename)  # delete backed-up original
 
 def vary_worker_step_time(args):
     num_workers = [2,4,8,12]
@@ -100,6 +158,12 @@ def Main (args):
         type=int,
         action="store",
         default=10)
+    parser.add_argument(
+        "--gpu_speedup",
+        dest="gpu_speedup",
+        type=float,
+        action="store",
+        default=1.0)
     # latency takes the form of --latency 2 --latency-distribution standard --latency-std 1
     # or --latency 2 --latency-distribution uniform --latency-std 1
     # or --latency 2
@@ -367,15 +431,16 @@ def Main (args):
         args.distribution_trace_base_dir += args.model_name  + '/'
     if args.json == 'json/':
         args.json += '{}_param_ps_assignment.json'.format(args.model_name)
+    #update_csvs(args)
     #args.striping = 0
     #vary_model_and_steps(args)
     #args.striping = 1
-    vary_model_and_steps(args)
+    #vary_model_and_steps(args)
     #vary_bandwidths(args)
     #for i in range(100):
-    #sim = Simulation()
-    #sim.Setup(args)
-    #a,b = sim.Run()
+    sim = Simulation()
+    sim.Setup(args)
+    a,b = sim.Run()
     # if a > 0.6 or a < 0.550:
     #     print(a)
     #vary_model_and_steps(args)

@@ -31,9 +31,9 @@ def Main(args):
                             continue
                         line = row.strip().split(",")
                         lines.append(line)
-                        if model_name == "inception-v3" and "mixed_17x17x768e" in line[2]:
+                        if model_name == "inception-v3" and "mixed_35x35x288b" in line[2]:
                             line = line[:]
-                            line[2] = line[2].replace("mixed_17x17x768e", "mixed_17x17x768f")
+                            line[2] = line[2].replace("mixed_35x35x288b", "mixed_35x35x288c")
                             newblock.append(line)
                             if "weights/read" in line[2]:
                                 idx = line[2].find("branch")
@@ -74,7 +74,7 @@ def Main(args):
                         lines[idx][0] = idx
                         #print(lines[idx])
 
-                    dist_file_alt = dist_file.replace(model_name, model_name + "_alternate_" + str(repeat_count))
+                    dist_file_alt = dist_file.replace(model_name, model_name + "_extend_35x35_count_" + str(repeat_count))
                     try:
                         os.makedirs(os.path.dirname(dist_file_alt))
                     except OSError as e:
@@ -107,10 +107,10 @@ def Main(args):
                             line = row.strip().split(",")
                             #print(line)
                             if model_name == "inception-v3":
-                                if "mixed_17x17x768e" in line[2] and blockstart == -1.0:
+                                if "mixed_35x35x288b" in line[2] and blockstart == -1.0:
                                     blockstart = float(line[0])
-                                if "mixed_17x17x768e" in line[2]:
-                                    line[2] = line[2].replace("mixed_17x17x768e", "mixed_17x17x768f")
+                                if "mixed_35x35x288b" in line[2]:
+                                    line[2] = line[2].replace("mixed_35x35x288b", "mixed_35x35x288c")
                                     newblock.append(line)
                             elif model_name == "resnet-200":
                                 if "block4" in line[2] and blockstart == -1.0:
@@ -197,7 +197,7 @@ def Main(args):
                             #print(line)
                         output.extend(newblock)
                         output.sort(key=lambda a: float(a[0]))
-                        agg_file_alt = agg_file.replace(model_name, model_name + "_alternate_" + str(repeat_count))
+                        agg_file_alt = agg_file.replace(model_name, model_name + "_extend_35x35_count_" + str(repeat_count))
                         try:
                             os.makedirs(os.path.dirname(agg_file_alt))
                         except OSError as e:
@@ -209,7 +209,7 @@ def Main(args):
                         g.close()
                         f.close()
                         if step_num == step_nums[model_name][0] and worker == 0 and workers == agg_workers[0]:
-                            json_file_alt = json_file.replace(model_name, model_name + "_alternate_" + str(repeat_count))
+                            json_file_alt = json_file.replace(model_name, model_name + "_extend_35x35_count_" + str(repeat_count))
                             jsf = open(json_file_alt, "wb")
                             jstuff = {}
                             jstuff["1"] = {}

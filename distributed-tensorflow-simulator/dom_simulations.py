@@ -11,62 +11,67 @@ Dom's Means of automating experiments
 
 # Average results over multiple steps
 def vary_model_and_steps(args):
-    step_num = {'inception-v3': [41,42,43,44,45,46,47],
+    step_num = {'inception-v3': [0] ,#+ [x for x in range(31, 50)],
                 'inception-v3_alternate': [41, 42, 43, 44, 45, 46, 47],
-                'inception-v3_alternate_1': [41, 42, 43, 44, 45, 46, 47],
-                'inception-v3_alternate_5': [41, 42, 43, 44, 45, 46, 47],
-                'inception-v3_alternate_25': [41, 42, 43, 44, 45, 46, 47],
-                'inception-v3_alternate_125': [41, 42, 43, 44, 45, 46, 47],
-                'resnet-200': [41,42,43,44,45,46,47],
+                'resnet-200': [0] ,#+ [x for x in range(31, 50)],
                 'resnet-200_alternate': [41, 42, 43, 44, 45, 46, 47],
-                'resnet-101': [41,42,43,44,45,46,47],
-                'vgg16': [24,25,26,27,28]}
+                'resnet-101': [0] ,#+ [x for x in range(31, 50)],
+                'vgg16': [0] #+ [24,25,26,27,28]
+                }
 
-    model_candidates = ['vgg16','resnet-200', 'resnet-200_alternate',
-                        'resnet-101', 'inception-v3', 'inception-v3_alternate',
-                        'inception-v3_alternate_1',
-                        'inception-v3_alternate_5',
-                        'inception-v3_alternate_25',
-                        'inception-v3_alternate_125']
-    model_candidates = [model_candidates[9]]
-    bandwidths = [10.0, 25.0, 50.0, 75.0, 100.0]
-    bandwidths = [bandwidths[1]]
+    model_candidates = ['vgg16','resnet-200',
+                        'resnet-101', 'inception-v3']
+    # model_candidates = ['inception-v3_extend_17x17_count_' + str(x) for x in [1,5,25,125]] + \
+    # ['inception-v3_extend_35x35_count_' + str(x) for x in [1, 5, 25, 125]]
+    #model_candidates = [model_candidates[0]]
+    bandwidths = [10.0, 25.0, 50.0, 75.0, 100.0, 125.0]
+    bandwidths = bandwidths[0:3]
     message_sizes = [-1.0]
+    #message_sizes = [2.0 ** y for y in range(4, 14)]
     stripings = [1]
-    step_counts = [1]
+    step_counts = [3]
     max_param_sizes = map(lambda x: x * (10 ** 8), map(lambda y: 2 ** y, range(7)))
     max_param_sizes = [-1.0]
     #bandwidths = [25.0]
-    message_sizes = [-1.0]
+    speedups = [1.0, 1.5, 2.0, 2.5, 3.0]
+    speedups = [speedups[0]]
     #model_candidates = [model_candidates[2]]
     #bandwidths = [5]
-    for max_param_size in max_param_sizes:
-        print 'switching max param size to {}'.format(max_param_size)
-        args.max_param_size = max_param_size
-        for step_count in step_counts:
-            print 'switching step count to {}'.format(step_count)
-            args.multi_step = step_count
-            for striping in stripings:
-                print 'switching striping to {}'.format(striping)
-                args.striping = striping
-                for message_size in message_sizes:
-                    print 'switching message_size to {}'.format(message_size)
-                    args = set_message_size(args, float(message_size * 1000000))
-                    if message_size == -1:
-                        args = set_message_size(args, float(-1))
-                    for bandwidth in bandwidths:
-                        print 'switching bandwidth to {}'.format(bandwidth)
-                        args = set_bandwidth(args, bandwidth)
-                        for model_name in model_candidates:
-                            print 'Trying with model name {}'.format(model_name)
-                            args = set_model(args, model_name)
-                            step_list = step_num[args.model_name]
-                            for step in step_list:
-                                print 'Trying step number {}'.format(step)
-                                args.step_num = step
-                                vary_param_optimality(args)
-                                print 'Finished with step number {}'.format(step)
-                            print 'Finished simulating with model name {}'.format(model_name)
+    for speedup in speedups:
+        print 'switching speedup to {}'.format(speedup)
+        args.gpu_speedup = speedup
+        for max_param_size in max_param_sizes:
+            print 'switching max param size to {}'.format(max_param_size)
+            args.max_param_size = max_param_size
+            for step_count in step_counts:
+                print 'switching step count to {}'.format(step_count)
+                args.multi_step = step_count
+                for striping in stripings:
+                    print 'switching striping to {}'.format(striping)
+                    args.striping = striping
+                    for message_size in message_sizes:
+                        print 'switching message_size to {}'.format(message_size)
+                        args = set_message_size(args, float(message_size * 1000000))
+                        if message_size == -1:
+                            args = set_message_size(args, float(-1))
+                        for bandwidth in bandwidths:
+                            print 'switching bandwidth to {}'.format(bandwidth)
+                            args = set_bandwidth(args, bandwidth)
+                            for model_name in model_candidates:
+                                print 'Trying with model name {}'.format(model_name)
+                                args = set_model(args, model_name)
+                                # if True:
+                                #     step_list = [0]
+                                if "_extend" in args.model_name:
+                                    step_list = step_num[args.model_name[:args.model_name.find("_extend")]]
+                                else:
+                                    step_list = step_num[args.model_name]
+                                for step in step_list:
+                                    print 'Trying step number {}'.format(step)
+                                    args.step_num = step
+                                    vary_param_optimality(args)
+                                    print 'Finished with step number {}'.format(step)
+                                print 'Finished simulating with model name {}'.format(model_name)
 
 def run_sim(args):
     if check_csv(args):
@@ -270,9 +275,9 @@ def vary_param_optimality(args):
 
     print '{} Testing with suboptimal (real) parameter distributions'.format(model_name)
     args.optimal_param_distribution = 0
-    vary_workers_exp(args, num_workers, num_ps)
-    vary_workers_exp_multicast(args, num_workers, num_ps)
-    vary_workers_exp_aggregation(args, num_workers, num_ps)
+    #vary_workers_exp(args, num_workers, num_ps)
+    #vary_workers_exp_multicast(args, num_workers, num_ps)
+    #vary_workers_exp_aggregation(args, num_workers, num_ps)
     vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     #vary_workers_exp_horovod(args, num_workers, num_ps)
     #vary_workers_exp_horovod_multicast(args, num_workers, num_ps)

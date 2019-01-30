@@ -60,6 +60,9 @@ class Worker (Entity):
                             'vgg16': 'conv0/weights/read'
                             }
 
+        original_model_name = self.model_name
+        if "_extend" in original_model_name:
+            original_model_name = original_model_name[:original_model_name.find("_extend")]
         packet_name = packet.name
         if self.use_optimal_param == 1:
             split_keyword = '_ps'
@@ -69,8 +72,10 @@ class Worker (Entity):
 
             self.bits_received += self.ctx.edge_weights[packet.name]
         
-        if ((packet_name == first_layer_dict[self.model_name] and not self.ctx.forward_pass_as_bytes) or \
-                (self.ctx.forward_pass_as_bytes and self.phase == 0 and self.bits_received >= self.ctx.forward_pass_size)) \
+        if ((packet_name == first_layer_dict[original_model_name] and not self.ctx.forward_pass_as_bytes) or
+                (self.ctx.forward_pass_as_bytes and self.phase == 0 and self.steps_complete == 0 and
+                 self.bits_received >= self.ctx.forward_pass_size) or
+                (self.ctx.forward_pass_as_bytes and self.phase == 0 and self.bits_received >= self.ctx.model_size)) \
                 and not packet.MF  and not self.ctx.horovod:
             self.first_layer_received = self.ctx.now
             if self.first_layer_received < self.backprop_finish:
@@ -128,6 +133,7 @@ class Worker (Entity):
                 self.ctx.schedule_send(time_delta, arr[1] / split, self.name, nworker, name=arr[3])
                 self.backprop_finish = self.ctx.now + arr[0]
         else:
+            self.steps_complete += 1
             for arr in self.ctx.sendschedule[self.name]:
                 self.ctx.schedule_send(arr[0], arr[1], self.name, arr[2], name=arr[3])
                 self.backprop_finish = self.ctx.now + arr[0]

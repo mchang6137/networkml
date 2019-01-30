@@ -32,6 +32,8 @@ class PS (Entity):
                     and (self.ctx.in_network_computation or len(self.bits_received) == len(self.ctx.workers)):
                 self.ctx.finish_time = self.ctx.now
                 self.finish_time_assigned = 1
+                if self.ctx.verbosity:
+                    print "Finish time assigned for {}".format(self.name)
             if self.ctx.multi_step and self.phase < self.ctx.multi_step:
                 self.redistribute()
             if self.received_packets >= self.ctx.ps_num_items[self.name]:
@@ -54,7 +56,7 @@ class PS (Entity):
             return
         bit_recv = min([val for key, val in self.bits_received.items()])
         if self.ctx.use_multicast:
-            for arr in self.ctx.sendschedule[self.name]:
+            for arr in self.ctx.sendschedule[self.name][::-1]:
                 if base + arr[0] > self.bits_sent and \
                         (base + arr[0] < bit_recv or self.received_packets == self.ctx.ps_num_items[self.name]):
                     self.queuesend(self.ctx.make_packet(arr[0], self.name, self.name, name=arr[1]))
@@ -63,7 +65,7 @@ class PS (Entity):
         else:
             #print self.name + ":\t" + str(len(self.ctx.sendschedule[self.name]))
             if self.ctx.striping:
-                for arr in self.ctx.sendschedule[self.name]:
+                for arr in self.ctx.sendschedule[self.name][::-1]:
                     if base + arr[0] > self.bits_sent and \
                             (base + arr[0] <= bit_recv or self.received_packets == self.ctx.ps_num_items[self.name]):
                         random_wk_list = copy.deepcopy(self.ctx.workers)
@@ -73,6 +75,9 @@ class PS (Entity):
                         self.bits_sent += arr[0]
                         #print "re-sent {} bits at {}".format(self.bits_sent, self.ctx.now)
                     base += arr[0]
+            else:
+                print("ERROR: no-striping is not compatible with multi-step")
+                exit()
 
     def distribute(self):
         #print '{}:\n\t{}'.format(self.name, self.ctx.sendschedule[self.name])

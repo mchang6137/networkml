@@ -35,6 +35,7 @@ class Context (object):
         self.multi_step = 1
         self.forward_pass_as_bytes = 0
         self.forward_pass_size = 0
+        self.model_size = 0
         self.max_param_size = -1.0
         self.start_time = 0
         self.finish_time = 0

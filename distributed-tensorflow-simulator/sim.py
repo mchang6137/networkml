@@ -39,17 +39,19 @@ class Simulation (object):
         self.ctx.max_param_size = args.max_param_size
         fw_pass_time_dict = {'inception-v3': 0.176,
                              'inception-v3_alternate': 0.194,
-                             'inception-v3_alternate_1': 0.184,
-                             'inception-v3_alternate_5': 0.216,
-                             'inception-v3_alternate_25': 0.376,
-                             'inception-v3_alternate_125': 1.176,
                              'dummy_model': 1.0,
                     'resnet-200': 0.357,
                     'resnet-200_alternate': 0.400,
                     'vgg16': 0.169,
                     'resnet-101': 0.176}
 
-        args.fwd_pass_time = fw_pass_time_dict[args.model_name]
+        if "_extend" not in args.model_name:
+            args.fwd_pass_time = fw_pass_time_dict[args.model_name]
+        else:
+            args.fwd_pass_time = fw_pass_time_dict[args.model_name[:args.model_name.find("_extend")]]
+            rest = args.model_name[args.model_name.find("count_") + 6:]
+            args.fwd_pass_time += 0.008 * int(rest)
+        args.fwd_pass_time = args.fwd_pass_time / args.gpu_speedup
         gigabit = 10**9
         if args.horovod or args.butterfly:
             args.on_same_rack = 1
@@ -386,9 +388,10 @@ class Simulation (object):
         self.load_relative_send_schedule(tracename_base_dir, args)
 
         #print self.ctx.pses
-        for ps_name in self.ctx.pses:
-            ps_obj = self.ctx.objs[ps_name]
-            ps_obj.distribute()
+        if not self.ctx.horovod:
+            for ps_name in self.ctx.pses:
+                ps_obj = self.ctx.objs[ps_name]
+                ps_obj.distribute()
         if self.ctx.horovod:
             #split = num_workers
             split = 1
@@ -423,6 +426,21 @@ class Simulation (object):
         all_worker_names = self.ctx.workers
         num_workers = args.num_workers
         step_num = args.step_num
+
+        average_traces = {'vgg16' : '8/wk7_26.csv',
+                          'resnet-200' : '4/wk1_42.csv',
+                          'resnet-101' : '8/wk1_41.csv',
+                          'inception-v3' : '8/wk0_43.csv'}
+
+        # TODO turn to false when not checking prototypical step
+        if step_num == 0:
+            for worker_id in range(num_workers):
+                worker_name = 'worker{}'.format(worker_id)
+                assert worker_name in all_worker_names
+                wk_path = tracename_basedir + average_traces[args.model_name]
+                trace = open(wk_path).readlines()
+                self.load_relative_send_schedule_one_worker(trace, worker_name, args)
+            return
         
         # Open up individual trace file per worker
 
@@ -432,7 +450,7 @@ class Simulation (object):
         orig_tracename_basedir = tracename_basedir
 
         tracename_basedir = tracename_basedir + '{}/'.format(num_workers)
-        if os.path.exists(tracename_basedir) is True:
+        if False: # and os.path.exists(tracename_basedir) is True:
             for worker_id in range(num_workers):
                 worker_name = 'worker{}'.format(worker_id)
                 assert worker_name in all_worker_names
@@ -445,6 +463,12 @@ class Simulation (object):
                 trace = open(wk_path).readlines()
                 self.load_relative_send_schedule_one_worker(trace, worker_name, args)
         else:
+            # this one needs a comment....
+            # for x in os.walk(orig_tracename_basedir):
+            #   for y in glob.glob(os.path.join(x[0], '*_{step_num}.csv'):
+            #       yield y
+            # os.walk yields a 3-tuple of [root, subdirectories, files]
+            # glob is regex for filenames
             csvs = [y for x in os.walk(orig_tracename_basedir) for y in glob.glob(os.path.join(x[0], '*_{}.csv'.format(step_num)))]
             for worker_id in range(num_workers):
                 worker_name = 'worker{}'.format(worker_id)
@@ -455,7 +479,8 @@ class Simulation (object):
                     if os.path.exists(wk_path) is False:
                         print 'There is no csv {}'.format(wk_path)
                         exit()
-                
+                    if self.ctx.verbosity >= 2:
+                        print wk_path
                     trace = open(wk_path).readlines()
                     if args.model_name == 'resnet-101' and float(trace[-1].strip().split(',')[0]) > 400:
                         continue
@@ -467,14 +492,11 @@ class Simulation (object):
                         continue
                     if args.model_name == 'inception-v3_alternate' and float(trace[-1].strip().split(',')[0]) > 500:
                         continue
-                    if args.model_name == 'inception-v3_alternate_1' and float(trace[-1].strip().split(',')[0]) > 500:
-                        continue
-                    if args.model_name == 'inception-v3_alternate_5' and float(trace[-1].strip().split(',')[0]) > 600:
-                        continue
-                    if args.model_name == 'inception-v3_alternate_25' and float(trace[-1].strip().split(',')[0]) > 1100:
-                        continue
-                    if args.model_name == 'inception-v3_alternate_125' and float(trace[-1].strip().split(',')[0]) > 3000:
-                        continue
+                    if args.model_name.startswith('inception-v3_extend_'):
+                        addition = args.model_name.find('count_') + 6
+                        num = int(args.model_name[addition:])
+                        if  float(trace[-1].strip().split(',')[0]) > 400 + num * 60:
+                            continue
                     if args.model_name == 'vgg16' and float(trace[-1].strip().split(',')[0]) > 40:
                         continue
                     break
@@ -483,7 +505,7 @@ class Simulation (object):
     
 
     def load_relative_send_schedule_one_worker(self, trace, worker_name, args):
-        num_ps = args.num_ps
+        num_ps = args.num_ps if not self.ctx.horovod else 1
         use_optimal_ps = self.ctx.use_optimal_param
 
         self.ctx.sendschedule[worker_name] = []
@@ -495,6 +517,7 @@ class Simulation (object):
                     continue
                 parts = ev.strip().split(',')
                 time = float(parts[0])
+                time = time / args.gpu_speedup
                 main_name = str(parts[2])
                 if use_optimal_ps:
                     main_name = str(parts[2]) + '_ps{}'.format(ps_index)
@@ -581,6 +604,9 @@ class Simulation (object):
                             'resnet-101': 'resnet_v2_101/conv1/weights/read',
                             'vgg16': 'conv0/weights/read'
                             }
+        original_model_name = args.model_name
+        if "_extend" in original_model_name:
+            original_model_name = args.model_name[:args.model_name.find("_extend")]
         for ev in trace:
             #print ev
             if ev.startswith("//") or ev.startswith('"'):
@@ -603,7 +629,7 @@ class Simulation (object):
                 dest = str(parts[3])
                 send_tuple = (size, edgename, dest)
             index = 1
-            if self.ctx.striping >= 2 and edgename != first_layer_dict[args.model_name]:
+            if self.ctx.striping >= 2 and edgename != first_layer_dict[original_model_name]:
                 while size > self.ctx.message_size and self.ctx.message_size != -1:
                     self.ctx.sendschedule[ps_name].append((self.ctx.message_size, str(edgename) + \
                                                            "x{}".format(index)))
@@ -617,9 +643,10 @@ class Simulation (object):
             if edgename not in self.ctx.edge_weights:
                 self.ctx.edge_weights[edgename] = size
             cum_size += size
-            if edgename == first_layer_dict[args.model_name] and args.forward_pass_as_bytes:
+            if edgename == first_layer_dict[original_model_name] and args.forward_pass_as_bytes:
                 self.ctx.forward_pass_size = cum_size
         self.ctx.num_from_ps += len(self.ctx.sendschedule[ps_name])
+        self.ctx.model_size += cum_size
         if self.ctx.verbosity:
             print 'Cumm size is {}:\t{}'.format(ps_name, cum_size)
 
