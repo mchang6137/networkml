@@ -11,25 +11,25 @@ Dom's Means of automating experiments
 
 # Average results over multiple steps
 def vary_model_and_steps(args):
-    step_num = {'inception-v3': [0] ,#+ [x for x in range(31, 50)],
+    step_num = {'inception-v3': [0] + [x for x in range(31, 50)], #[0] + [x for x in range(31, 50)],
                 'inception-v3_alternate': [41, 42, 43, 44, 45, 46, 47],
-                'resnet-200': [0] ,#+ [x for x in range(31, 50)],
+                'resnet-200': [0] + [x for x in range(31, 50)],
                 'resnet-200_alternate': [41, 42, 43, 44, 45, 46, 47],
-                'resnet-101': [0] ,#+ [x for x in range(31, 50)],
-                'vgg16': [0] #+ [24,25,26,27,28]
+                'resnet-101': [0] + [x for x in range(31, 50)],
+                'vgg16': [0] + [24,25,26,27,28]
                 }
 
     model_candidates = ['vgg16','resnet-200',
                         'resnet-101', 'inception-v3']
     # model_candidates = ['inception-v3_extend_17x17_count_' + str(x) for x in [1,5,25,125]] + \
     # ['inception-v3_extend_35x35_count_' + str(x) for x in [1, 5, 25, 125]]
-    #model_candidates = [model_candidates[0]]
+    model_candidates = [model_candidates[3]]
     bandwidths = [10.0, 25.0, 50.0, 75.0, 100.0, 125.0]
-    bandwidths = bandwidths[0:3]
-    message_sizes = [-1.0]
+    bandwidths = [bandwidths[1]]
+    message_sizes = [16.0]
     #message_sizes = [2.0 ** y for y in range(4, 14)]
     stripings = [1]
-    step_counts = [3]
+    step_counts = [1]
     max_param_sizes = map(lambda x: x * (10 ** 8), map(lambda y: 2 ** y, range(7)))
     max_param_sizes = [-1.0]
     #bandwidths = [25.0]
@@ -278,9 +278,9 @@ def vary_param_optimality(args):
     #vary_workers_exp(args, num_workers, num_ps)
     #vary_workers_exp_multicast(args, num_workers, num_ps)
     #vary_workers_exp_aggregation(args, num_workers, num_ps)
-    vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
-    #vary_workers_exp_horovod(args, num_workers, num_ps)
-    #vary_workers_exp_horovod_multicast(args, num_workers, num_ps)
+    #vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
+    vary_workers_exp_horovod(args, num_workers, num_ps)
+    vary_workers_exp_horovod_multicast(args, num_workers, num_ps)
     #vary_workers_exp_butterfly(args, num_workers, num_ps)
 
     print '{} Testing with optimal parameter distributions'.format(model_name)

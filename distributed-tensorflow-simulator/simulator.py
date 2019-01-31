@@ -8,7 +8,7 @@ from sim import Simulation
 from dom_simulations import *
 
 def check_csv(args):
-    results_file = './dom_results/' + args.model_name + '/globalbarrier.csv'
+    results_file = './dom_results/' + args.model_name + '/maxparamsize.csv'
     file_exists = os.path.isfile(results_file)
     if not file_exists:
         return False
@@ -32,7 +32,7 @@ def check_csv(args):
 
 def write_to_csv(args, finish_time, worker_receive_times):
     args_dict = vars(args)
-    results_file = './dom_results/' + args.model_name + '/globalbarrier'
+    results_file = './dom_results/' + args.model_name + '/maxparamsize'
     # if args_dict['optimal_param_distribution'] == 1:
     #     results_file = results_file + '_even'
     # elif args_dict['optimal_param_distribution'] == 0:
@@ -435,12 +435,12 @@ def Main (args):
     #args.striping = 0
     #vary_model_and_steps(args)
     #args.striping = 1
-    #vary_model_and_steps(args)
+    vary_model_and_steps(args)
     #vary_bandwidths(args)
     #for i in range(100):
-    sim = Simulation()
-    sim.Setup(args)
-    a,b = sim.Run()
+    #sim = Simulation()
+    #sim.Setup(args)
+    #a,b = sim.Run()
     # if a > 0.6 or a < 0.550:
     #     print(a)
     #vary_model_and_steps(args)

@@ -64,6 +64,7 @@ for subdir in sorted(subdirs):
         fp_time += 0.008 * int(rest)
     average_time = average(times) / 1000.0
     average_size = average(sizes)
+    print(average_size)
     average_agg = average_size / (10 * 10 ** 9)
     simple_divergence = average_time / average_agg / 5
 

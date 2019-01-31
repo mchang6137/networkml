@@ -4,11 +4,13 @@ import csv
 average_traces = {'vgg16' : 'vgg16/8/wk7_26.csv',
                       'resnet-200' : 'resnet-200/4/wk1_42.csv',
                       'resnet-101' : 'resnet-101/12/wk0_43.csv',
-                      'inception-v3' : 'inception-v3/8/wk0_43.csv'}
+                      'inception-v3' : 'inception-v3/8/wk0_43.csv',
+                        'inception-v3_extend_17x17_count_125' : 'inception-v3_extend_17x17_count_125/8/wk0_43.csv',
+                        'inception-v3_extend_35x35_count_125' : 'inception-v3_extend_35x35_count_125/8/wk0_43.csv'}
 
 model_names = average_traces.keys()
 basedir = './csv'
-bws = [x * (10 ** 9) for x in [10, 25]]
+bws = [x * (10 ** 9) for x in [25.0/32]]
 
 for model in model_names:
     for bw in bws:
@@ -42,4 +44,6 @@ for model in model_names:
                     queue += bits_added[time]
                 writer.writerow([time, queue / model_size, "" if time != max(keys) else 1.0])
                 time += 1.0
+                if time % 1000.0 == 0:
+                    print(time, queue)
 
