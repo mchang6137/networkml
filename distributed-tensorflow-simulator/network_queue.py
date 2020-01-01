@@ -8,7 +8,7 @@ average_traces = {'vgg16' : 'vgg16/8/wk7_26.csv',
                         'inception-v3_extend_17x17_count_125' : 'inception-v3_extend_17x17_count_125/8/wk0_43.csv',
                         'inception-v3_extend_35x35_count_125' : 'inception-v3_extend_35x35_count_125/8/wk0_43.csv'}
 
-model_names = average_traces.keys()
+model_names = list(average_traces.keys())
 basedir = './csv'
 bws = [x * (10 ** 9) for x in [25.0/32]]
 
@@ -31,7 +31,7 @@ for model in model_names:
             model_size += size
         time = 0.0
         queue = 0.0
-        keys = bits_added.keys()
+        keys = list(bits_added.keys())
         dest_path = os.path.join("./dom_results", model + "_net_use_{}.csv".format(str(bw)))
         with open(dest_path, "wb") as f:
             writer = csv.writer(f, delimiter=",")
@@ -45,5 +45,5 @@ for model in model_names:
                 writer.writerow([time, queue / model_size, "" if time != max(keys) else 1.0])
                 time += 1.0
                 if time % 1000.0 == 0:
-                    print(time, queue)
+                    print((time, queue))
 

@@ -8,7 +8,7 @@ def write_to_csv(args, mcsv):
     file_exists = os.path.isfile(results_file)
     
     args_dict = args
-    headers = args_dict.keys()
+    headers = list(args_dict.keys())
     
     #print args_dict
     with open(results_file, 'a') as out:

@@ -3,7 +3,7 @@ import argparse
 import csv
 import os
 
-from simulator import *
+from .simulator import *
 
 '''
 Dom's Means of automating experiments
@@ -30,7 +30,7 @@ def vary_model_and_steps(args):
     #message_sizes = [2.0 ** y for y in range(4, 14)]
     stripings = [1]
     step_counts = [1]
-    max_param_sizes = map(lambda x: x * (10 ** 8), map(lambda y: 2 ** y, range(7)))
+    max_param_sizes = [x * (10 ** 8) for x in [2 ** y for y in range(7)]]
     max_param_sizes = [-1.0]
     #bandwidths = [25.0]
     speedups = [1.0, 1.5, 2.0, 2.5, 3.0]
@@ -38,27 +38,27 @@ def vary_model_and_steps(args):
     #model_candidates = [model_candidates[2]]
     #bandwidths = [5]
     for speedup in speedups:
-        print 'switching speedup to {}'.format(speedup)
+        print('switching speedup to {}'.format(speedup))
         args.gpu_speedup = speedup
         for max_param_size in max_param_sizes:
-            print 'switching max param size to {}'.format(max_param_size)
+            print('switching max param size to {}'.format(max_param_size))
             args.max_param_size = max_param_size
             for step_count in step_counts:
-                print 'switching step count to {}'.format(step_count)
+                print('switching step count to {}'.format(step_count))
                 args.multi_step = step_count
                 for striping in stripings:
-                    print 'switching striping to {}'.format(striping)
+                    print('switching striping to {}'.format(striping))
                     args.striping = striping
                     for message_size in message_sizes:
-                        print 'switching message_size to {}'.format(message_size)
+                        print('switching message_size to {}'.format(message_size))
                         args = set_message_size(args, float(message_size * 1000000))
                         if message_size == -1:
                             args = set_message_size(args, float(-1))
                         for bandwidth in bandwidths:
-                            print 'switching bandwidth to {}'.format(bandwidth)
+                            print('switching bandwidth to {}'.format(bandwidth))
                             args = set_bandwidth(args, bandwidth)
                             for model_name in model_candidates:
-                                print 'Trying with model name {}'.format(model_name)
+                                print('Trying with model name {}'.format(model_name))
                                 args = set_model(args, model_name)
                                 # if True:
                                 #     step_list = [0]
@@ -67,15 +67,15 @@ def vary_model_and_steps(args):
                                 else:
                                     step_list = step_num[args.model_name]
                                 for step in step_list:
-                                    print 'Trying step number {}'.format(step)
+                                    print('Trying step number {}'.format(step))
                                     args.step_num = step
                                     vary_param_optimality(args)
-                                    print 'Finished with step number {}'.format(step)
-                                print 'Finished simulating with model name {}'.format(model_name)
+                                    print('Finished with step number {}'.format(step))
+                                print('Finished simulating with model name {}'.format(model_name))
 
 def run_sim(args):
     if check_csv(args):
-        print "entry already exists"
+        print("entry already exists")
         return
     sim = Simulation()
     sim.Setup(args)
@@ -116,9 +116,9 @@ def vary_bandwidths(args):
         args.ps_recv_rate = bw
         args.worker_recv_rate = bw
 
-        print 'INFO: trying with bandwidth {}gbps'.format(bw)
+        print('INFO: trying with bandwidth {}gbps'.format(bw))
         vary_model(args)
-        print 'INFO: Done trying with bandwidth {}gbps'.format(bw)
+        print('INFO: Done trying with bandwidth {}gbps'.format(bw))
 
 # Try various kinds of models and 
 def vary_model(args):
@@ -135,9 +135,9 @@ def vary_model(args):
         args.trace_base_dir = 'csv/' + model_name + '/'
         args.distribution_trace_base_dir = 'distribution_csv/{}/'.format(args.model_name)
         args.json = 'json/' + '{}_param_ps_assignment.json'.format(model_name)
-        print 'INFO: trying with model {}'.format(model_name)
+        print('INFO: trying with model {}'.format(model_name))
         vary_param_optimality(args)
-        print 'INFO: DONE WITH MODEL {}'.format(model_name)
+        print('INFO: DONE WITH MODEL {}'.format(model_name))
 
 def vary_workers_exp_multicast(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -149,7 +149,7 @@ def vary_workers_exp_multicast(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]
                 args.num_workers = workers
                 args.num_ps = ps
 
-                print '{}: {} ps, {} wk, with only multicast'.format(model_name, ps, workers)
+                print('{}: {} ps, {} wk, with only multicast'.format(model_name, ps, workers))
                 args.use_multicast = 1
                 args.in_network_computation = 0
                 args.horovod = 0
@@ -157,7 +157,7 @@ def vary_workers_exp_multicast(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]
                 try:
                     run_sim(args)
                 except:
-                    print 'this experiment failed in multicast fct'
+                    print('this experiment failed in multicast fct')
 
 def vary_workers_exp_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -169,7 +169,7 @@ def vary_workers_exp_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,
             args.num_workers = workers
             args.num_ps = ps
             
-            print '{}: {} ps, {} wk, with aggregation only'.format(model_name, ps, workers)
+            print('{}: {} ps, {} wk, with aggregation only'.format(model_name, ps, workers))
             args.use_multicast = 0
             args.in_network_computation = 1
             args.horovod = 0
@@ -188,7 +188,7 @@ def vary_workers_exp(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
             args.num_workers = workers
             args.num_ps = ps
 
-            print '{}: {} ps, {} wk, with no agg, no multicast'.format(model_name, ps, workers)
+            print('{}: {} ps, {} wk, with no agg, no multicast'.format(model_name, ps, workers))
             args.use_multicast = 0
             args.in_network_computation = 0
             args.horovod = 0
@@ -196,7 +196,7 @@ def vary_workers_exp(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
             try:
                 run_sim(args)
             except:
-                print 'this experiment failed in no network improvement'
+                print('this experiment failed in no network improvement')
 
 def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -206,7 +206,7 @@ def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,16,32], num_
             args.num_workers = workers
             args.num_ps = ps
 
-            print '{}: {} ps {} wk, with aggregation and multicast'.format(model_name, ps, workers)
+            print('{}: {} ps {} wk, with aggregation and multicast'.format(model_name, ps, workers))
             args.use_multicast = 1
             args.in_network_computation = 1
             args.horovod = 0
@@ -214,7 +214,7 @@ def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,16,32], num_
             try:
                 run_sim(args)
             except:
-                print 'This experiment has failed in both the agg and multicast'
+                print('This experiment has failed in both the agg and multicast')
 
 def vary_workers_exp_horovod(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -222,7 +222,7 @@ def vary_workers_exp_horovod(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     for workers in num_workers:
         args.num_workers = workers
 
-        print '{}: {} wk, with horovod'.format(model_name, workers)
+        print('{}: {} wk, with horovod'.format(model_name, workers))
         args.use_multicast = 0
         args.in_network_computation = 0
         args.horovod = 1
@@ -230,7 +230,7 @@ def vary_workers_exp_horovod(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
         try:
             run_sim(args)
         except:
-            print 'This experiment has failed in the horovod'
+            print('This experiment has failed in the horovod')
 
 def vary_workers_exp_horovod_multicast(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -238,7 +238,7 @@ def vary_workers_exp_horovod_multicast(args, num_workers=[2,4,8,16,32], num_ps=[
     for workers in num_workers:
         args.num_workers = workers
 
-        print '{}: {} wk, with horovod and multicast'.format(model_name, workers)
+        print('{}: {} wk, with horovod and multicast'.format(model_name, workers))
         args.use_multicast = 1
         args.in_network_computation = 0
         args.horovod = 1
@@ -246,7 +246,7 @@ def vary_workers_exp_horovod_multicast(args, num_workers=[2,4,8,16,32], num_ps=[
         try:
             run_sim(args)
         except:
-            print 'This experiment has failed in both the horovod and multicast'
+            print('This experiment has failed in both the horovod and multicast')
 
 def vary_workers_exp_butterfly(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -254,7 +254,7 @@ def vary_workers_exp_butterfly(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]
     for workers in num_workers:
         args.num_workers = workers
 
-        print '{}: {} wk, with butterfly'.format(model_name, workers)
+        print('{}: {} wk, with butterfly'.format(model_name, workers))
         args.use_multicast = 0
         args.in_network_computation = 0
         args.horovod = 1
@@ -262,7 +262,7 @@ def vary_workers_exp_butterfly(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]
         try:
             run_sim(args)
         except:
-            print 'This experiment has failed in the horovod'
+            print('This experiment has failed in the horovod')
 
 # Try different types of parameters
 def vary_param_optimality(args):
@@ -273,7 +273,7 @@ def vary_param_optimality(args):
     num_ps = [1]
 
 
-    print '{} Testing with suboptimal (real) parameter distributions'.format(model_name)
+    print('{} Testing with suboptimal (real) parameter distributions'.format(model_name))
     args.optimal_param_distribution = 0
     #vary_workers_exp(args, num_workers, num_ps)
     #vary_workers_exp_multicast(args, num_workers, num_ps)
@@ -283,7 +283,7 @@ def vary_param_optimality(args):
     vary_workers_exp_horovod_multicast(args, num_workers, num_ps)
     #vary_workers_exp_butterfly(args, num_workers, num_ps)
 
-    print '{} Testing with optimal parameter distributions'.format(model_name)
+    print('{} Testing with optimal parameter distributions'.format(model_name))
     args.optimal_param_distribution = 1
     #vary_workers_exp(args, num_workers, num_ps)
     #vary_workers_exp_multicast(args, num_workers, num_ps)

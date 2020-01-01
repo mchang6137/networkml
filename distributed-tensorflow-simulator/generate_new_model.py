@@ -86,9 +86,9 @@ def Main(args):
                     g.close()
                     f.close()
                     for addN in addNs:
-                        print addN
+                        print(addN)
                         for item in addNs[addN]:
-                            print "\t" + str(item)
+                            print("\t" + str(item))
 
             for workers in agg_workers:
                 for worker in range(workers):

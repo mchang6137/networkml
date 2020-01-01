@@ -78,9 +78,9 @@ def update_dict(dict1, num_ps, num_workers, iteration_time):
     if num_ps not in dict1:
         dict1[num_ps] = {}
     if num_workers in dict1[num_ps]:
-        print 'extra csv points'
-        print dict1[num_ps][num_workers]
-        print iteration_time
+        print('extra csv points')
+        print(dict1[num_ps][num_workers])
+        print(iteration_time)
     dict1[num_ps][num_workers] = iteration_time
     
 # Assumes num_ps -> num_workers
@@ -102,7 +102,7 @@ def plot_dict(dict1, model_name, title):
     for num_ps in dict1:
         results = dict1[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, ':', label='{} ps'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -168,28 +168,28 @@ def plot_vary_wk_vary_ps(result_csv_dict, model_name):
     for num_ps in both_ps_worker_time:
         results = both_ps_worker_time[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, '-.', label='{} ps, Both'.format(num_ps))
         all_lines.append(distr_line)
 
     for num_ps in in_network_ps_worker_time:
         results = in_network_ps_worker_time[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, '--', label='{} ps, In-Network'.format(num_ps))
         all_lines.append(distr_line)
 
     for num_ps in multicast_ps_worker_time:
         results = multicast_ps_worker_time[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, ':', label='{} ps, Multicast'.format(num_ps))
         all_lines.append(distr_line)
 
     for	num_ps in ps_worker_time:
 	results = ps_worker_time[num_ps]
 	distr_lists = sorted(results.items())
-	x,y = zip(*distr_lists)
+	x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y,label='{} ps, Unicast'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -203,14 +203,14 @@ def plot_vary_wk_vary_ps(result_csv_dict, model_name):
     for num_ps in percent_improvement:
         results = percent_improvement[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, ':', label='{} ps, Unicast'.format(num_ps))
         all_lines_alt.append(distr_line)
 
     for num_ps in alt_percent_improvement:
         results = alt_percent_improvement[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, '-', label='{} ps, Multicast'.format(num_ps))
         all_lines_alt.append(distr_line)
 
@@ -247,12 +247,12 @@ def plot_step_variance(result_csv_dict, model_name, use_multicast):
     import numpy as np
     config_cv = {}
     for config in config_average:
-        print '{}, median = {}, 90th = {}, 10th = {}'.format(config,
+        print('{}, median = {}, 90th = {}, 10th = {}'.format(config,
                                                              np.percentile(config_average[config], 50),
                                                              np.percentile(config_average[config], 80),
                                                              np.percentile(config_average[config], 20)
 
-        )
+        ))
 
         config_cv[config] = np.std(config_average[config]) / np.mean(config_average[config])
 
@@ -280,14 +280,14 @@ def compare_results(result1_dict, result2_dict, title, result1_legend, result2_l
     for num_ps in revised_result1:
         results = revised_result1[num_ps]
 	distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, '.', label='{} ps {}'.format(num_ps, result1_legend))
         all_lines.append(distr_line)
 
     for num_ps in revised_result2:
         results = revised_result2[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, 'x', label='{} ps {}'.format(num_ps, result2_legend))
         all_lines.append(distr_line)
 
@@ -343,7 +343,7 @@ def plot_vary_parameter_aggregation(result_csv_dict, model_name, filter_bandwidt
             if num_ps not in multips_time:
                 multips_time[num_ps] = {}
             if num_workers in multips_time[num_ps]:
-                print 'extra csv points'
+                print('extra csv points')
                 #if iteration_time != multips_time[num_ps][num_workers]:
                 #    exit()
             multips_time[num_ps][num_workers] = iteration_time
@@ -353,7 +353,7 @@ def plot_vary_parameter_aggregation(result_csv_dict, model_name, filter_bandwidt
             if num_ps not in multips_even_split_time:
                 multips_even_split_time[num_ps] = {}
             if num_workers in multips_even_split_time[num_ps]:
-                print 'Extra csv points'
+                print('Extra csv points')
                 #if iteration_time != multips_even_split_time[num_ps][num_workers]:
                 #    exit()
             multips_even_split_time[num_ps][num_workers] = iteration_time
@@ -363,7 +363,7 @@ def plot_vary_parameter_aggregation(result_csv_dict, model_name, filter_bandwidt
             if num_ps not in agg_uneven_split_time:
                 agg_uneven_split_time[num_ps] = {}
             if num_workers in agg_uneven_split_time[num_ps]:
-                print 'Extra csv points'
+                print('Extra csv points')
                 #if agg_uneven_split_time[num_ps][num_workers] != iteration_time:
                 #    exit()
             agg_uneven_split_time[num_ps][num_workers] = iteration_time
@@ -373,7 +373,7 @@ def plot_vary_parameter_aggregation(result_csv_dict, model_name, filter_bandwidt
             if num_ps not in agg_even_split_time:
                 agg_even_split_time[num_ps] = {}
             if num_workers in agg_even_split_time[num_ps]:
-                print 'Extra csv points'
+                print('Extra csv points')
                 #if agg_even_split_time[num_ps][num_workers] != iteration_time:
                 #    exit()
             agg_even_split_time[num_ps][num_workers] = iteration_time
@@ -404,7 +404,7 @@ def plot_vary_parameter_aggregation(result_csv_dict, model_name, filter_bandwidt
     for num_ps in agg_even_vs_agg_uneven:
         results = agg_even_vs_agg_uneven[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, ':', label='{} ps'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -418,7 +418,7 @@ def plot_vary_parameter_aggregation(result_csv_dict, model_name, filter_bandwidt
     for num_ps in unicast_even_vs_unicast_uneven:
         results = unicast_even_vs_unicast_uneven[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, ':', label='{} ps'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -432,7 +432,7 @@ def plot_vary_parameter_aggregation(result_csv_dict, model_name, filter_bandwidt
     for num_ps in percent_improvement_over_even:
         results = percent_improvement_over_even[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, ':', label='{} ps'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -445,7 +445,7 @@ def plot_vary_parameter_aggregation(result_csv_dict, model_name, filter_bandwidt
     for num_ps in percent_improvement_over_baseline:
         results = percent_improvement_over_baseline[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, '--', label='{} parameter servers'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -500,7 +500,7 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name, filter_bandwid
             if num_ps not in multips_time:
                 multips_time[num_ps] = {}
             if num_workers in multips_time[num_ps]:
-                print 'extra csv points'
+                print('extra csv points')
                 #if iteration_time != multips_time[num_ps][num_workers]:
                 #    exit()
             multips_time[num_ps][num_workers] = iteration_time
@@ -510,7 +510,7 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name, filter_bandwid
             if num_ps not in multips_even_split_time:
                 multips_even_split_time[num_ps] = {}
             if num_workers in multips_even_split_time[num_ps]:
-                print 'Extra csv points'
+                print('Extra csv points')
                 #if iteration_time != multips_even_split_time[num_ps][num_workers]:
                 #    exit()
             multips_even_split_time[num_ps][num_workers] = iteration_time
@@ -520,7 +520,7 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name, filter_bandwid
             if num_ps not in multicast_uneven_split_time:
                 multicast_uneven_split_time[num_ps] = {}
             if num_workers in multicast_uneven_split_time[num_ps]:
-                print 'Extra csv points'
+                print('Extra csv points')
                 #if multicast_uneven_split_time[num_ps][num_workers] != iteration_time:
                 #    exit()
             multicast_uneven_split_time[num_ps][num_workers] = iteration_time
@@ -530,7 +530,7 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name, filter_bandwid
             if num_ps not in multicast_even_split_time:
                 multicast_even_split_time[num_ps] = {}
             if num_workers in multicast_even_split_time[num_ps]:
-                print 'Extra csv points'
+                print('Extra csv points')
                 #if multicast_even_split_time[num_ps][num_workers] != iteration_time:
                 #    exit()
             multicast_even_split_time[num_ps][num_workers] = iteration_time
@@ -561,7 +561,7 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name, filter_bandwid
     for num_ps in multicast_even_vs_multicast_uneven:
         results = multicast_even_vs_multicast_uneven[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, ':', label='{} ps'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -576,7 +576,7 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name, filter_bandwid
     for num_ps in unicast_even_vs_unicast_uneven:
         results = unicast_even_vs_unicast_uneven[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, ':', label='{} ps'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -590,7 +590,7 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name, filter_bandwid
     for num_ps in percent_improvement_over_even:
         results = percent_improvement_over_even[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, ':', label='{} ps'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -603,7 +603,7 @@ def plot_vary_parameter_distribution(result_csv_dict, model_name, filter_bandwid
     for num_ps in percent_improvement_over_baseline:
         results = percent_improvement_over_baseline[num_ps]
         distr_lists = sorted(results.items())
-        x,y = zip(*distr_lists)
+        x,y = list(zip(*distr_lists))
         distr_line, = plt.plot(x,y, '--', label='{} parameter servers'.format(num_ps))
         all_lines.append(distr_line)
 
@@ -623,7 +623,7 @@ if __name__ == "__main__":
     
     file_exists = os.path.isfile(args.result_csv)
     if not file_exists:
-        print 'This data file does not exist'
+        print('This data file does not exist')
         exit()
 
     result_csv_dict = list(csv.DictReader(open(args.result_csv)))
@@ -636,9 +636,9 @@ if __name__ == "__main__":
     if args.experiment_name == 'multicast_agg_compare':
         plot_compare_agg_distr(result_csv_dict, args.model_name, float(args.filter_bandwidth), use_even_split=1)
     if args.experiment_name == 'step_variance':
-        print 'Without multicast'
+        print('Without multicast')
         unicast_cv = plot_step_variance(result_csv_dict, args.model_name, use_multicast=0)
-        print 'With Multicast'
+        print('With Multicast')
         multicast_cv = plot_step_variance(result_csv_dict, args.model_name, use_multicast=1)
         compare_results(unicast_cv, multicast_cv,
                         'Performance variation with and without multicast', 'Unicast', 'Multicast')

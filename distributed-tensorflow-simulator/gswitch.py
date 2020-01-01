@@ -1,4 +1,4 @@
-from switch import Switch
+from .switch import Switch
 
 class GSwitch (Switch):
     def __init__(self, ctx, name="GSwitch", inbuffer_size=0):

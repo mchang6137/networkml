@@ -81,7 +81,7 @@ if __name__ == "__main__":
         file_name = base_file + '/ps' + str(ps_index)
         result_file_list.append(file_name)
 
-    print result_file_list
+    print(result_file_list)
 
     # Present results by device
     src_device_event = {}
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     # Sort the tuple by 
     time_event = sorted(time_event, key=lambda x: x[0])
 
-    print src_device_event.keys()
+    print(list(src_device_event.keys()))
     #exit()
     
     output_filename = 'sorted_time_{}w_{}ps'.format(args.num_workers, args.num_ps)
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         else:
             occurances[event[4]] += "[{} : {}]".format(event[2], event[3])
     klist = []
-    for key in occurances.keys():
+    for key in list(occurances.keys()):
         bloop = ["", 0]
         bloop[0] = key
         try:

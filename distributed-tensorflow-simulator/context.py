@@ -1,12 +1,12 @@
-import Queue
+import queue
 import random
-from packet import Packet
-from entity import Entity
-from ps import PS
+from .packet import Packet
+from .entity import Entity
+from .ps import PS
 
 class Context (object):
     def __init__(self):
-        self.queue = Queue.PriorityQueue()
+        self.queue = queue.PriorityQueue()
         self.current_time = 0
         self.final_time = -1
         self.objs = {}
@@ -59,7 +59,7 @@ class Context (object):
         else:
             mlatency = self.internal_latency
         if mlatency < 0:
-            print "Latency cannot result in a negative value, but was {}".format(mlatency)
+            print("Latency cannot result in a negative value, but was {}".format(mlatency))
             exit(1)
             mlatency = 0
         return mlatency
@@ -77,13 +77,13 @@ class Context (object):
             self.final_time = self.finish_time - self.start_time
         if self.verbosity:
             for worker in self.workers:
-                print '{}:\tReceived {}/{}'.format(worker, self.objs[worker].received_packets, self.num_from_ps)
-                print '{}:\tSent {}'.format(worker, self.objs[worker].packets_sent)
+                print('{}:\tReceived {}/{}'.format(worker, self.objs[worker].received_packets, self.num_from_ps))
+                print('{}:\tSent {}'.format(worker, self.objs[worker].packets_sent))
             for ps in self.pses:
-                print '{}:\tReceived {}/{}'.format(ps, self.objs[ps].received_packets, self.ps_num_items[ps])
+                print('{}:\tReceived {}/{}'.format(ps, self.objs[ps].received_packets, self.ps_num_items[ps]))
             #print self.edge_weights
             for worker in self.workers:
-                print self.sendschedule[worker][-1]
+                print(self.sendschedule[worker][-1])
         #print "{}, {}, {}".format(self.final_time, self.start_time, self.finish_time)
 
     def make_packet(self, size, src, dest, name):

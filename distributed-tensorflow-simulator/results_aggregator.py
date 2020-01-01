@@ -107,7 +107,7 @@ def average_step(f, num_workers, num_ps, multicast, aggregation, horovod, butter
             if int(row['inputs_as_bytes']) != '1':
                 pass
         except:
-            print '{}'.format(row)
+            print('{}'.format(row))
             exit(-1)
         try:
             if int(row['num_workers']) == num_workers and (int(row['num_ps']) == num_ps or horovod) \
@@ -141,8 +141,8 @@ def average_step(f, num_workers, num_ps, multicast, aggregation, horovod, butter
         type = "num_ps {}, multicast".format(num_ps)
     elif aggregation:
         type = "num_ps {}, agg".format(num_ps)
-    print '{}: num__workers {}, {:20s} bandwidth {} message size {} striping {} optimal_distr {} time {:.3f\}, {}'.format( \
-        model_name, num_workers, type, bandwidth, message_size, striping, optimal_distr, total / count if count != 0 else 0.0, count)
+    print('{}: num__workers {}, {:20s} bandwidth {} message size {} striping {} optimal_distr {} time {:.3f\}, {}'.format( \
+        model_name, num_workers, type, bandwidth, message_size, striping, optimal_distr, total / count if count != 0 else 0.0, count))
     # if multi_step == 1:
     #     total *= 2
     if count != 0:

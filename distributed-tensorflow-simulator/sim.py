@@ -4,13 +4,13 @@ import json
 import os
 import glob
 
-from packet import Packet
-from context import Context
-from worker import Worker
-from ps import PS
-from tor import TOR
-from gswitch import GSwitch
-from switch import Switch
+from .packet import Packet
+from .context import Context
+from .worker import Worker
+from .ps import PS
+from .tor import TOR
+from .gswitch import GSwitch
+from .switch import Switch
 
 class Simulation (object):
     def __init__ (self):
@@ -203,12 +203,12 @@ class Simulation (object):
                         self.ctx.objs[name].recv_rate = args.worker_recv_rate * gigabit
                         self.ctx.workers.append(name)
                     else:
-                        print 'Could not determine the type of ' + name
+                        print('Could not determine the type of ' + name)
                         exit()
                     self.ctx.objs[name].rack = rack_number
                     self.ctx.racks[rack_number].append(name)
                 rack_number += 1
-            for key, value in self.ctx.objs.iteritems():
+            for key, value in self.ctx.objs.items():
                 pass
         for objname in self.ctx.objs:
             for objname2 in self.ctx.objs[objname].parents:
@@ -309,11 +309,11 @@ class Simulation (object):
                 if self.ctx.verbosity < 2:
                     continue
                 gs_obj = self.ctx.objs[gswitch]
-                print str(gs_obj)
-                print "\tparents: " + str(gs_obj.parents)
-                print "\tchildren: " + str(gs_obj.children)
-                for connection, value in gs_obj.semaphore.iteritems():
-                    print "\t\t%s: %d" % (connection, value)
+                print(str(gs_obj))
+                print("\tparents: " + str(gs_obj.parents))
+                print("\tchildren: " + str(gs_obj.children))
+                for connection, value in gs_obj.semaphore.items():
+                    print("\t\t%s: %d" % (connection, value))
                 #print "\tnetwork: " + str(gs_obj.in_network)
                 #print "\tps branch: " + str(gs_obj.ps_branch)
         else:
@@ -445,7 +445,7 @@ class Simulation (object):
         # Open up individual trace file per worker
 
         if os.path.exists(tracename_basedir) is False:
-            print 'The provided basename directory does not exist'
+            print('The provided basename directory does not exist')
             exit()
         orig_tracename_basedir = tracename_basedir
 
@@ -457,7 +457,7 @@ class Simulation (object):
                 wk_path = tracename_basedir + 'wk{}_{}.csv'.format(worker_id, step_num)
 
                 if os.path.exists(wk_path) is False:
-                    print 'There is no trace data for {} cluster, wkid {}, step_num {}'.format(num_workers, worker_id, step_num)
+                    print('There is no trace data for {} cluster, wkid {}, step_num {}'.format(num_workers, worker_id, step_num))
                     exit()
             
                 trace = open(wk_path).readlines()
@@ -477,10 +477,10 @@ class Simulation (object):
                     wk_path = random.choice(csvs)
 
                     if os.path.exists(wk_path) is False:
-                        print 'There is no csv {}'.format(wk_path)
+                        print('There is no csv {}'.format(wk_path))
                         exit()
                     if self.ctx.verbosity >= 2:
-                        print wk_path
+                        print(wk_path)
                     trace = open(wk_path).readlines()
                     if args.model_name == 'resnet-101' and float(trace[-1].strip().split(',')[0]) > 400:
                         continue
@@ -537,18 +537,18 @@ class Simulation (object):
                         if edgename in self.ctx.pmappings:
                             self.ctx.sendschedule[worker_name].append((time / 1000, size, worker_name, edgename))
                         elif self.ctx.verbosity:
-                            print "%s not assigned a parameter server" % edgename
+                            print("%s not assigned a parameter server" % edgename)
                     else:
                         if edgename in self.ctx.pmappings:
                             self.ctx.sendschedule[worker_name].append((time / 1000, size, self.ctx.pmappings[edgename], edgename))
                             self.adjust_in_network(worker_name, self.ctx.pmappings[edgename], edgename)
                         elif self.ctx.verbosity:
-                            print "%s not assigned a parameter server" % edgename
+                            print("%s not assigned a parameter server" % edgename)
                     index += 1
         # last_one = self.ctx.sendschedule["worker0"][-1]
         # self.ctx.sendschedule["worker0"][-1] = (100, last_one[1], last_one[2], last_one[3])
         if self.ctx.verbosity:
-            print 'Cumm size is {}:\t{}'.format(worker_name, cumm_size)
+            print('Cumm size is {}:\t{}'.format(worker_name, cumm_size))
 
     def load_relative_dist_schedule(self, tracename_basedir, args):
         all_ps_names = self.ctx.pses
@@ -557,7 +557,7 @@ class Simulation (object):
         # Open up individual trace file per ps
 
         if os.path.exists(tracename_basedir) is False:
-            print 'The provided basename directory does not exist'
+            print('The provided basename directory does not exist')
             exit()
 
         if self.ctx.use_optimal_param:
@@ -575,13 +575,13 @@ class Simulation (object):
                 if self.ctx.use_optimal_param:
                     ps_path = tracename_basedir + 'ps0.csv'
                 if os.path.exists(ps_path) is False:
-                    print 'There is no trace data for {} cluster, psid {}'.format(num_ps, ps_id)
+                    print('There is no trace data for {} cluster, psid {}'.format(num_ps, ps_id))
                     exit()
             
                 trace = open(ps_path).readlines()
                 self.load_relative_send_schedule_one_ps(trace, ps_name, ps_id, args)
         else:
-            print 'There is no trace data in the basename directory for {} cluster'.format(num_ps)
+            print('There is no trace data in the basename directory for {} cluster'.format(num_ps))
             exit()
 
     def load_relative_send_schedule_one_ps(self, trace, ps_name, ps_id, args):
@@ -648,7 +648,7 @@ class Simulation (object):
         self.ctx.num_from_ps += len(self.ctx.sendschedule[ps_name])
         self.ctx.model_size += cum_size
         if self.ctx.verbosity:
-            print 'Cumm size is {}:\t{}'.format(ps_name, cum_size)
+            print('Cumm size is {}:\t{}'.format(ps_name, cum_size))
 
     def adjust_in_network(self, src, dest, edgename):
         self.ctx.ps_num_items[dest] += 1
@@ -675,7 +675,7 @@ class Simulation (object):
             datastore = datastore['1']
         self.ctx.pmappings = {}
         if use_optimal_ps == 0 or self.ctx.horovod:
-            for ps, arr in datastore.iteritems():
+            for ps, arr in datastore.items():
                 self.ctx.ps_num_items[ps] = 0
                 for item in arr:
                     event_name = item[5]
@@ -696,7 +696,7 @@ class Simulation (object):
             	    #self.ctx.schedule_send(0, item[1] * 8, ps, ps, name=str(ps)+"."+event_name)
         elif use_optimal_ps == 1:
             # Should only be the results from the first parameter server
-            for ps, arr in datastore.iteritems():
+            for ps, arr in datastore.items():
                 for ps_index in range(num_ps):
                     ps_name = '/job:ps/replica:0/task:{}/device:CPU:0'.format(ps_index)
                     self.ctx.ps_num_items[ps_name] = 0
@@ -717,8 +717,8 @@ class Simulation (object):
                     
     def Run (self):
         if self.ctx.verbosity:
-            print "Starting replay"        
+            print("Starting replay")        
         self.ctx.run()
         if self.ctx.verbosity:
-            print "Done replay at %0.3f, left %d items"%(self.ctx.final_time, self.ctx.queue.qsize()) 
+            print("Done replay at %0.3f, left %d items"%(self.ctx.final_time, self.ctx.queue.qsize())) 
         return self.ctx.final_time, self.ctx.worker_receive

@@ -4,8 +4,8 @@ import csv
 import os
 import glob
 
-from sim import Simulation
-from dom_simulations import *
+from .sim import Simulation
+from .dom_simulations import *
 
 def check_csv(args):
     results_file = './dom_results/' + args.model_name + '/maxparamsize.csv'
@@ -52,7 +52,7 @@ def write_to_csv(args, finish_time, worker_receive_times):
     #args_dict = vars(args)
     args_dict['iteration_time'] = finish_time
     args_dict['worker_receive_time'] = worker_receive_times
-    headers = args_dict.keys()
+    headers = list(args_dict.keys())
     headers.sort()
     #print args_dict
     with open(results_file, 'a') as out:
@@ -60,7 +60,7 @@ def write_to_csv(args, finish_time, worker_receive_times):
         if not file_exists:
             writer.writeheader()
         #print 'For {}, an iteration time of {} was calculated'.format(args.model_name, finish_time)
-        print 'For {}, an iteration time of {} was recorded'.format(args.model_name, args_dict['iteration_time'])
+        print('For {}, an iteration time of {} was recorded'.format(args.model_name, args_dict['iteration_time']))
         writer.writerow(args_dict)
 
 def update_csvs(args):
@@ -74,7 +74,7 @@ def update_csvs(args):
             for y in subdirectories
             for z in glob.glob(os.path.join(root, y, '*.csv'))]
     for csv in csvs:
-        print csv
+        print(csv)
         try:
             update_csv(args, csv)
         except ValueError as ve:
@@ -96,12 +96,12 @@ def update_csv(args, csv_file):
         temp_dict = [row for row in reader]
 
     if len(temp_dict) == 0:
-        print "no items found???"
+        print("no items found???")
         return
 
     args_dict['iteration_time'] = 0.0
     args_dict['worker_receive_time'] = 0.0
-    headers = args_dict.keys()
+    headers = list(args_dict.keys())
     headers.sort()
 
     # create updated version of file
@@ -415,14 +415,14 @@ def Main (args):
     #if not args.trace_base_dir.endswith(".csv") or not args.json.endswith(".json"):
         #print "The trace is supposed to be a file ending with .csv and a parameter mapping ending with .json"
     if args.latency_distribution != "none" and args.latency_distribution != "uniform" and args.latency_distribution != "standard":
-        print "Unknown distribution {}, defaulting to none".format(args.latency_distribution)
+        print("Unknown distribution {}, defaulting to none".format(args.latency_distribution))
         args.latency_distribution = "none"
     if args.latency == 0 and args.latency_distribution != "none" :
-        print "Cannot have a latency distribution with zero latency"
+        print("Cannot have a latency distribution with zero latency")
     if args.latency_distribution != "none" and not args.latency_std :
-        print "Cannot have a latency distribution without variance"
+        print("Cannot have a latency distribution without variance")
     if args.topology == 'none':
-        print 'Defaulting to in-rack or across racks based on args.in_rack'
+        print('Defaulting to in-rack or across racks based on args.in_rack')
 
     # Set the arguments based on the model name
     if args.trace_base_dir == 'csv/':

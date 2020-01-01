@@ -9,7 +9,7 @@ def average(arr):
     return sum(arr) / len(arr)
 
 trace_dir = "./csv"
-(root, subdirs, file) = os.walk(trace_dir).next()
+(root, subdirs, file) = next(os.walk(trace_dir))
 for subdir in sorted(subdirs):
     times = []
     sizes = []
@@ -45,7 +45,7 @@ for subdir in sorted(subdirs):
                     total += float(row.strip().split(',')[1])
                 sizes.append(total)
     if len(times) == 0 or len(sizes) == 0:
-        print("model {}: failed with times {} and sizes {}".format(subdir, len(times), len(sizes)))
+        print(("model {}: failed with times {} and sizes {}".format(subdir, len(times), len(sizes))))
         continue
 
     fw_pass_time_dict = {'inception-v3': 0.176,
@@ -71,7 +71,7 @@ for subdir in sorted(subdirs):
     multiagg_time = average_agg + fp_time + max(average_agg, average_time)
     butterfly_time = fp_time + max(average_agg * 5, average_time)
     real_divergence = average_time / (average_agg * 4)
-    print(("model {}:\n\taverage bp time {}" +
+    print((("model {}:\n\taverage bp time {}" +
             "\n\tworst bp time {}"
             "\n\taverage send time {}" +
             "\n\tsimple divergence >= {}" +
@@ -85,4 +85,4 @@ for subdir in sorted(subdirs):
                 simple_divergence, \
                 multiagg_time, \
                 butterfly_time, \
-                real_divergence))
+                real_divergence)))

@@ -1,4 +1,4 @@
-from entity import Entity
+from .entity import Entity
 
 class Switch (Entity):
     def __init__(self, ctx, name="switch", inbuffer_size=0):

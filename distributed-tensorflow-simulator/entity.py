@@ -1,5 +1,5 @@
 import context
-import Queue
+import queue
 
 class Entity (object):
     def __init__(self, ctx, name="Entity", inbuffer_size=0):
@@ -11,7 +11,7 @@ class Entity (object):
         self.used_outbuffer = {}
         self.rack = 0
         self.used_inbuffer = 0
-        self.inbuffer = Queue.Queue(maxsize=inbuffer_size)
+        self.inbuffer = queue.Queue(maxsize=inbuffer_size)
         self.inbuffer_size = inbuffer_size
         self.parents = []
         self.children = []
@@ -92,13 +92,13 @@ class Entity (object):
             self.send(packet)
         else:
             if nexthop not in self.outbuffer:
-                self.outbuffer[nexthop] = Queue.Queue()
+                self.outbuffer[nexthop] = queue.Queue()
             if self.semaphore[nexthop] > 0:
                 self.semaphore[nexthop] -= 1
                 self.send(packet)
             else:
                 if packet.nexthop != nexthop:
-                    print "issues detected!!"
+                    print("issues detected!!")
                 self.outbuffer[nexthop].put(packet)
 
     def send(self, packet):
@@ -129,9 +129,9 @@ class Entity (object):
         if not self.outbuffer[nexthop].empty():
             nextpacket = self.outbuffer[nexthop].get()
             if nextpacket.nexthop != nexthop:
-                print "Consistency issue detected - packet edited by another function"
-                print "{}\t{}\t{}".format(nextpacket,nextpacket.degree,nextpacket.path)
-                print "" + self.name + nextpacket.nexthop + nextpacket.src + nextpacket.dest
+                print("Consistency issue detected - packet edited by another function")
+                print("{}\t{}\t{}".format(nextpacket,nextpacket.degree,nextpacket.path))
+                print("" + self.name + nextpacket.nexthop + nextpacket.src + nextpacket.dest)
             self.send(nextpacket)
         elif rate != -1:
             self.semaphore[nexthop] += 1
@@ -155,7 +155,7 @@ class Entity (object):
         else:
             resend_time = max(packet.time_send + self.ctx.timeout, self.ctx.now)
             self.ctx.schedule_task_at(resend_time, lambda: self.ctx.objs[packet.src].queuesend(packet))
-            print "packet %s dropped by %s at time %0.3f" % (packet, self, self.ctx.now)
+            print("packet %s dropped by %s at time %0.3f" % (packet, self, self.ctx.now))
 
     def lastbitrecv(self, packet):
         if str(self) == packet.dest:

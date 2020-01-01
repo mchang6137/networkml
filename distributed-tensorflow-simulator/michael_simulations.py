@@ -3,7 +3,7 @@ import argparse
 import csv
 import os
 
-from simulator import *
+from .simulator import *
 
 '''
 Michael's Means of automating experiments
@@ -22,15 +22,15 @@ def vary_model_and_steps(args):
     args = set_bandwidth(args, bandwidth)
     
     for model_name in model_candidates:
-        print 'Trying with model name {}'.format(model_name)
+        print('Trying with model name {}'.format(model_name))
         args = set_model(args, model_name)
         step_list = step_num[args.model_name]
         for step in step_list:
-            print 'Trying step number {}'.format(step)
+            print('Trying step number {}'.format(step))
             args.step_num = step
             vary_param_optimality(args)
-            print 'Finished with step number {}'.format(step)
-        print 'Finished simulating with model name {}'.format(model_name)
+            print('Finished with step number {}'.format(step))
+        print('Finished simulating with model name {}'.format(model_name))
 
 def run_sim(args):
     sim = Simulation()
@@ -67,9 +67,9 @@ def vary_bandwidths(args):
         args.ps_recv_rate = bw
         args.worker_recv_rate = bw
 
-        print 'INFO: trying with bandwidth {}gbps'.format(bw)
+        print('INFO: trying with bandwidth {}gbps'.format(bw))
         vary_model(args)
-        print 'INFO: Done trying with bandwidth {}gbps'.format(bw)
+        print('INFO: Done trying with bandwidth {}gbps'.format(bw))
 
 # Try various kinds of models and 
 def vary_model(args):
@@ -86,9 +86,9 @@ def vary_model(args):
         args.trace_base_dir = 'csv/' + model_name + '/'
         args.distribution_trace_base_dir = 'distribution_csv/{}/'.format(args.model_name)
         args.json = 'json/' + '{}_param_ps_assignment.json'.format(model_name)
-        print 'INFO: trying with model {}'.format(model_name)
+        print('INFO: trying with model {}'.format(model_name))
         vary_param_optimality(args)
-        print 'INFO: DONE WITH MODEL {}'.format(model_name)
+        print('INFO: DONE WITH MODEL {}'.format(model_name))
 
 def vary_workers_exp_multicast(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -100,13 +100,13 @@ def vary_workers_exp_multicast(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]
             args.num_workers = workers
             args.num_ps = ps
 
-            print '{}: {} ps, {} wk, with only multicast'.format(model_name, ps, workers)
+            print('{}: {} ps, {} wk, with only multicast'.format(model_name, ps, workers))
             args.use_multicast = 1
             args.in_network_computation = 0
             try:
                 run_sim(args)
             except:
-                print 'this experiment failed in multicast fct'
+                print('this experiment failed in multicast fct')
 
 def vary_workers_exp_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -118,13 +118,13 @@ def vary_workers_exp_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,
             args.num_workers = workers
             args.num_ps = ps
             
-            print '{}: {} ps, {} wk, with aggregation only'.format(model_name, ps, workers)
+            print('{}: {} ps, {} wk, with aggregation only'.format(model_name, ps, workers))
             args.use_multicast = 0
             args.in_network_computation = 1
             try:
                 run_sim(args)
             except:
-                print 'this experiment failed in aggregation part'
+                print('this experiment failed in aggregation part')
 
 def vary_workers_exp(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -135,13 +135,13 @@ def vary_workers_exp(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
             args.num_workers = workers
             args.num_ps = ps
 
-            print '{}: {} ps, {} wk, with no agg, no multicast'.format(model_name, ps, workers)
+            print('{}: {} ps, {} wk, with no agg, no multicast'.format(model_name, ps, workers))
             args.use_multicast = 0
             args.in_network_computation = 0
             try:
                 run_sim(args)
             except:
-                print 'this experiment failed in no network improvement'
+                print('this experiment failed in no network improvement')
 
 def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,16,32], num_ps=[1,2,4,8]):
     args_dict = vars(args)
@@ -151,13 +151,13 @@ def vary_workers_exp_multicast_aggregation(args, num_workers=[2,4,8,16,32], num_
             args.num_workers = workers
             args.num_ps = ps
 
-            print '{}: {} ps {} wk, with aggregation and multicast'.format(model_name, workers, ps)
+            print('{}: {} ps {} wk, with aggregation and multicast'.format(model_name, workers, ps))
             args.use_multicast = 1
             args.in_network_computation = 1
             try:
                 run_sim(args)
             except:
-                print 'This experiment has failed in both the agg and multicast'
+                print('This experiment has failed in both the agg and multicast')
 
 # Try different types of parameters
 def vary_param_optimality(args):
@@ -165,14 +165,14 @@ def vary_param_optimality(args):
     num_workers = [2,4,8,16,32]
     num_ps = [1,2,4,8]
 
-    print '{} Testing with suboptimal (real) parameter distributions'.format(model_name)
+    print('{} Testing with suboptimal (real) parameter distributions'.format(model_name))
     args.optimal_param_distribution = 0
     vary_workers_exp(args, num_workers, num_ps)
     vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)
     vary_workers_exp_multicast(args, num_workers, num_ps)
     vary_workers_exp_aggregation(args, num_workers, num_ps)
 
-    print '{} Testing with optimal parameter distributions'.format(model_name)
+    print('{} Testing with optimal parameter distributions'.format(model_name))
     args.optimal_param_distribution = 1
     vary_workers_exp(args, num_workers, num_ps)
     vary_workers_exp_multicast_aggregation(args, num_workers, num_ps)

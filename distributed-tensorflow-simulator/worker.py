@@ -1,4 +1,4 @@
-from entity import Entity
+from .entity import Entity
 
 class Worker (Entity):
     def __init__(self, ctx, name="Worker", model_name='inception-v3', inbuffer_size=0, fwd_pass_time=0, use_optimal_param=0):
@@ -18,7 +18,7 @@ class Worker (Entity):
         if self.ctx.butterfly:
             if packet.name not in self.ready:
                 if self.ctx.verbosity:
-                    print "Gradient {} dropped by {}".format(packet.name, self)
+                    print("Gradient {} dropped by {}".format(packet.name, self))
                 return
             if packet.degree not in self.ready[packet.name]:
                 self.ready[packet.name][packet.degree] = lambda: self.queuesend(packet)
@@ -82,16 +82,16 @@ class Worker (Entity):
                 self.first_layer_received = self.backprop_finish
             self.phase = 1
             if self.ctx.verbosity:
-                print "%s has received read packet at time %0.3f" % (self.name, self.ctx.now)
+                print("%s has received read packet at time %0.3f" % (self.name, self.ctx.now))
         if self.ctx.horovod:
             self.lastbitrecvhorovod(packet)
         elif not packet.MF:
             if self.name == "worker0" and self.ctx.verbosity > 2:
-                print(packet.name)
+                print((packet.name))
             self.received_packets += 1
             if self.ctx.sendschedule[node_name] and self.received_packets % self.ctx.num_from_ps == 0:
                 if self.ctx.verbosity:
-                    print "%s has received all gradients at time %0.3f %d" % (self.name, self.ctx.now, self.bits_received)
+                    print("%s has received all gradients at time %0.3f %d" % (self.name, self.ctx.now, self.bits_received))
                 self.ctx.worker_receive.append(self.ctx.now)
                 # self.received_packets = 0
                 self.bits_received = 0
@@ -102,7 +102,7 @@ class Worker (Entity):
                     send_at = self.first_layer_received + self.fwd_pass_time
                     send_delta = send_at - self.ctx.now
                     if self.ctx.verbosity:
-                        print 'Worker {} waiting until at least {} for forward pass to complete'.format(self.name, send_at)
+                        print('Worker {} waiting until at least {} for forward pass to complete'.format(self.name, send_at))
                     self.ctx.schedule_task(send_delta, lambda: self.backprop())
 
     def forwardpasshorovod(self):
@@ -158,7 +158,7 @@ class Worker (Entity):
                 if self.steps_complete == self.ctx.multi_step and self.ctx.finish_time == 0:
                     self.ctx.finish_time = self.ctx.now
                 if self.ctx.verbosity:
-                    print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
+                    print("%s has received all gradients at time %0.3f" % (self.name, self.ctx.now))
         elif 2 ** packet.degree == len(self.ctx.workers) and self.ctx.butterfly and not packet.MF:
             self.received_packets += 1
             if self.received_packets == len(self.ctx.sendschedule[self.name]):
@@ -170,7 +170,7 @@ class Worker (Entity):
                 if self.steps_complete == self.ctx.multi_step and self.ctx.finish_time == 0:
                     self.ctx.finish_time = self.ctx.now
                 if self.ctx.verbosity:
-                    print "%s has received all gradients at time %0.3f" % (self.name, self.ctx.now)
+                    print("%s has received all gradients at time %0.3f" % (self.name, self.ctx.now))
             return
         nworker = self.ctx.workers[(idx + 1) % len(self.ctx.workers)]
         if self.ctx.butterfly:
